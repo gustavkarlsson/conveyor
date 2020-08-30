@@ -10,13 +10,14 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State : Any, Command : Any>(
     initialState: State,
-    private val reducer: (State, Command) -> Change<State, Command>,
+    private val reducer: Reducer<State, Command>,
     private val initialActions: Iterable<Action<Command>>,
     bufferSize: Int
 ) : Store<State, Command> {
@@ -34,6 +35,7 @@ internal class StoreImpl<State : Any, Command : Any>(
             field = value
         }
 
+    // TODO rename to avoid similarity with state?
     override val stage: Stage
         get() = when {
             job == null -> Stage.NotYetStarted
@@ -49,21 +51,27 @@ internal class StoreImpl<State : Any, Command : Any>(
     override fun start(scope: CoroutineScope): Job {
         val stage = stage
         check(stage == Stage.NotYetStarted) {
-            "Store was already started and is now $stage"
+            "Cannot start store when it is $stage"
         }
         val job = scope.launch {
-            for (action in initialActions) {
-                action(commands::send)
-            }
             commands
                 .openSubscription()
                 .consumeAsFlow()
+                .onStart {
+                    launch {
+                        for (action in initialActions) {
+                            action(commands::send)
+                        }
+                    }
+                }
                 .collect { command ->
                     val oldState = states.value
                     val (newState, actions) = reducer(oldState, command)
                     states.offer(newState)
-                    for (action in actions) {
-                        action(commands::send)
+                    launch {
+                        for (action in actions) {
+                            action(commands::send)
+                        }
                     }
                 }
         }
@@ -74,7 +82,13 @@ internal class StoreImpl<State : Any, Command : Any>(
     override val state = states.asFlow()
         .distinctUntilChanged { old, new -> old === new }
 
-    override suspend fun issue(command: Command) = commands.send(command)
+    override suspend fun issue(command: Command) {
+        val stage = stage
+        check(stage == Stage.Active) { "Cannot issue command while store is $stage" }
+        commands.send(command)
+    }
 }
+
+public typealias Reducer<State, Command> = (state: State, command: Command) -> Change<State, Command>
 
 public enum class Stage { NotYetStarted, Active, Stopped }

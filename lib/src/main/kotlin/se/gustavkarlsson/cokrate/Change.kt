@@ -21,11 +21,11 @@ public operator fun <State : Any, Command : Any> State.plus(
     Change(this, actions)
 
 public operator fun <State : Any, Command : Any> Change<State, Command>.plus(
-    actions: Iterable<Action<Command>>
-): Change<State, Command> =
-    Change(this.state, this.actions.collectionsPlus(actions))
-
-public operator fun <State : Any, Command : Any> Change<State, Command>.plus(
     action: Action<Command>
 ): Change<State, Command> =
     Change(this.state, this.actions.collectionsPlus(action))
+
+public operator fun <State : Any, Command : Any> Change<State, Command>.plus(
+    actions: Iterable<Action<Command>>
+): Change<State, Command> =
+    Change(this.state, this.actions.collectionsPlus(actions))
