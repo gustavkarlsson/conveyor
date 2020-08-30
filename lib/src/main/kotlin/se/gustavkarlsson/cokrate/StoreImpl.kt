@@ -3,7 +3,6 @@ package se.gustavkarlsson.cokrate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
@@ -13,13 +12,12 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State : Any>(
     initialState: State,
-    private val initialCommands: Iterable<Command<State>>,
+    private val initialCommands: Iterable<Command<State>>, // TODO Can we remove this from state?
     bufferSize: Int
 ) : Store<State> {
 
@@ -29,18 +27,18 @@ internal class StoreImpl<State : Any>(
         }
     }
 
-    private var job: Job? = null
+    internal var job: Job? = null
         set(value) {
             check(field == null)
             checkNotNull(value)
             field = value
         }
 
-    private val stage: Stage
+    private val status: Status
         get() = when {
-            job == null -> Stage.NotYetStarted
-            job?.isActive == true -> Stage.Active
-            else -> Stage.Stopped
+            job == null -> Status.NotYetStarted
+            job?.isActive == true -> Status.Active
+            else -> Status.Stopped
         }
 
     private val commands = BroadcastChannel<Command<State>>(bufferSize)
@@ -49,8 +47,8 @@ internal class StoreImpl<State : Any>(
 
     @Synchronized
     override fun start(scope: CoroutineScope): Job {
-        val stage = stage
-        check(stage == Stage.NotYetStarted) {
+        val stage = status
+        check(stage == Status.NotYetStarted) {
             "Cannot start store when it is $stage"
         }
         val job = scope.launch {
@@ -59,7 +57,7 @@ internal class StoreImpl<State : Any>(
                 .consumeAsFlow()
                 .onStart {
                     launch {
-                        initialCommands.forEach(commands::offer)
+                        initialCommands.forEach { commands.send(it) }
                     }
                 }
                 .collect { command ->
@@ -68,7 +66,7 @@ internal class StoreImpl<State : Any>(
                     states.offer(newState)
                     launch {
                         for (action in actions) {
-                            action(commands::send)
+                            action.execute(commands::send)
                         }
                     }
                 }
@@ -81,32 +79,10 @@ internal class StoreImpl<State : Any>(
         .distinctUntilChanged { old, new -> old === new }
 
     override suspend fun issue(command: Command<State>) {
-        val stage = stage
-        check(stage == Stage.Active) { "Cannot issue command while store is $stage" }
+        val stage = status
+        check(stage == Status.Active) { "Cannot issue command while store is $stage" }
         commands.send(command)
     }
 }
 
-private enum class Stage { NotYetStarted, Active, Stopped }
-
-public fun main() {
-    val store = StoreImpl(
-        initialState = 0,
-        initialCommands = listOf(object : Command<Int> {
-            override fun reduce(state: Int): Change<Int> {
-                return (state + 1).only()
-            }
-        }),
-        bufferSize = 64
-    )
-
-    runBlocking {
-
-        launch {
-            store.state.collect {
-                println(it)
-            }
-        }
-        store.start(GlobalScope)
-    }
-}
+private enum class Status { NotYetStarted, Active, Stopped }
