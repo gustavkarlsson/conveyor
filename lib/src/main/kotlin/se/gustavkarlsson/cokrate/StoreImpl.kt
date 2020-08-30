@@ -27,12 +27,34 @@ internal class StoreImpl<State : Any, Command : Any>(
         }
     }
 
+    private var job: Job? = null
+        set(value) {
+            check(field == null)
+            checkNotNull(value)
+            field = value
+        }
+
+    override val stage: Stage
+        get() = when {
+            job == null -> Stage.NotYetStarted
+            job?.isActive == true -> Stage.Active
+            else -> Stage.Stopped
+        }
+
     private val commands = BroadcastChannel<Command>(bufferSize)
 
     private val states = ConflatedBroadcastChannel(initialState)
 
-    override fun start(scope: CoroutineScope): Job =
-        scope.launch {
+    @Synchronized
+    override fun start(scope: CoroutineScope): Job {
+        val stage = stage
+        check(stage == Stage.NotYetStarted) {
+            "Store was already started and is now $stage"
+        }
+        val job = scope.launch {
+            for (action in initialActions) {
+                action(commands::send)
+            }
             commands
                 .openSubscription()
                 .consumeAsFlow()
@@ -44,13 +66,15 @@ internal class StoreImpl<State : Any, Command : Any>(
                         action(commands::send)
                     }
                 }
-            for (action in initialActions) {
-                action(commands::send)
-            }
         }
+        this.job = job
+        return job
+    }
 
     override val state = states.asFlow()
         .distinctUntilChanged { old, new -> old === new }
 
     override suspend fun issue(command: Command) = commands.send(command)
 }
+
+public enum class Stage { NotYetStarted, Active, Stopped }

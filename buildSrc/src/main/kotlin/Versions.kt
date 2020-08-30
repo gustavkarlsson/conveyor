@@ -2,7 +2,7 @@ import org.gradle.api.JavaVersion
 
 object Versions {
     // Config
-    val java = JavaVersion.VERSION_1_8
+    val java = JavaVersion.VERSION_1_6
     val kotlin = "1.4.0"
     // Skip 1.11.0 as it has breaking bug: https://github.com/allegro/axion-release-plugin/issues/332
     // Skip 1.12.0 as it has breaking bug: https://github.com/allegro/axion-release-plugin/issues/339
