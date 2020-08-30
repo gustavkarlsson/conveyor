@@ -21,6 +21,10 @@ dependencies {
     testImplementation("io.mockk:mockk:${Versions.mockk}")
 }
 
+kotlin {
+    explicitApi()
+}
+
 tasks.test {
     useJUnitPlatform {
         includeEngines("spek2")
