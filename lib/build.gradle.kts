@@ -11,7 +11,11 @@ repositories {
 }
 
 dependencies {
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${Versions.junit5}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${Versions.junit5}")
 
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spek}")
     testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spek}")
