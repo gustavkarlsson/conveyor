@@ -31,7 +31,7 @@ object StoreImplTest : Spek({
             }
         }
     }
-    describe("A minimal non-started store") {
+    describe("A minimal store") {
         val initialState = "initial"
         val store by memoized {
             StoreImpl(initialState, emptyList(), 8)
@@ -48,56 +48,53 @@ object StoreImplTest : Spek({
             val result = runBlocking { store.state.first() }
             expectThat(result).isEqualTo(initialState)
         }
-    }
-    describe("A minimal started store") {
-        val initialState = "initial"
-        val scope by memoized(
-            factory = { CoroutineScope(SupervisorJob() + Dispatchers.Unconfined) },
-            destructor = { it.cancel("Test ended") }
-        )
-        val store by memoized {
-            StoreImpl(initialState, emptyList(), 8)
-        }
-        lateinit var job: Job
-        beforeEachTest {
-            job = store.start(scope)
-        }
 
-        it("has an active job") {
-            expectThat(job.isActive).isTrue()
-        }
-        it("throws exception when started") {
-            expectThrows<IllegalStateException> {
-                store.start(scope)
-            }
-        }
-        it("has its job cancelled after its scope was cancelled") {
-            scope.cancel("Cancelling scope to test job cancellation")
-            expectThat(job.isCancelled).isTrue()
-        }
-        it("state emits initial") {
-            val result = runBlocking { store.state.first() }
-            expectThat(result).isEqualTo(initialState)
-        }
-
-        describe("that had its job explicitly cancelled") {
+        describe("that was started") {
+            val scope by memoized(
+                factory = { CoroutineScope(SupervisorJob() + Dispatchers.Unconfined) },
+                destructor = { it.cancel("Test ended") }
+            )
+            lateinit var job: Job
             beforeEachTest {
-                job.cancel("Purposefully cancelled before test")
+                job = store.start(scope)
             }
 
+            it("has an active job") {
+                expectThat(job.isActive).isTrue()
+            }
             it("throws exception when started") {
                 expectThrows<IllegalStateException> {
                     store.start(scope)
                 }
             }
-            it("throws exception when a command is issued") {
-                expectThrows<IllegalStateException> {
-                    store.issue { "shouldThrow".toChange() }
-                }
+            it("has its job cancelled after its scope was cancelled") {
+                scope.cancel("Cancelling scope to test job cancellation")
+                expectThat(job.isCancelled).isTrue()
             }
             it("state emits initial") {
                 val result = runBlocking { store.state.first() }
                 expectThat(result).isEqualTo(initialState)
+            }
+
+            describe("and had its job explicitly cancelled") {
+                beforeEachTest {
+                    job.cancel("Purposefully cancelled before test")
+                }
+
+                it("throws exception when started") {
+                    expectThrows<IllegalStateException> {
+                        store.start(scope)
+                    }
+                }
+                it("throws exception when a command is issued") {
+                    expectThrows<IllegalStateException> {
+                        store.issue { "shouldThrow".toChange() }
+                    }
+                }
+                it("state emits initial") {
+                    val result = runBlocking { store.state.first() }
+                    expectThat(result).isEqualTo(initialState)
+                }
             }
         }
     }
