@@ -10,7 +10,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.isTrue
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -35,7 +37,7 @@ object StoreImplTest : Spek({
         it("throws exception when command is issued") {
             runBlocking {
                 expectThrows<IllegalStateException> {
-                    store.issue { Unit.only() }
+                    store.issue { Unit.toChange() }
                 }
             }
         }
@@ -55,13 +57,20 @@ object StoreImplTest : Spek({
             scope.cancel("Test ended")
         }
 
+        it("has an active job") {
+            expectThat(job.isActive).isTrue()
+        }
         it("throws exception when started") {
             expectThrows<IllegalStateException> {
                 store.start(scope)
             }
         }
+        it("has its job cancelled after its scope was cancelled") {
+            scope.cancel("Cancelling scope to test job cancellation")
+            expectThat(job.isCancelled).isTrue()
+        }
 
-        describe("that was stopped") {
+        describe("that had its job explicitly cancelled") {
             beforeEachTest {
                 job.cancel("Purposefully cancelled before test")
             }
@@ -71,10 +80,9 @@ object StoreImplTest : Spek({
                     store.start(scope)
                 }
             }
-
-            it("throws exception when command issued") {
+            it("throws exception when a command is issued") {
                 expectThrows<IllegalStateException> {
-                    store.issue { Unit.only() }
+                    store.issue { Unit.toChange() }
                 }
             }
         }

@@ -7,7 +7,7 @@ public data class Change<State : Any>(
     val actions: Iterable<Action<State>> = emptyList()
 )
 
-public fun <State : Any> State.only(): Change<State> =
+public fun <State : Any> State.toChange(): Change<State> =
     Change(this)
 
 public operator fun <State : Any> State.plus(

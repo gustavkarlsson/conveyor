@@ -27,7 +27,7 @@ internal class StoreImpl<State : Any>(
         }
     }
 
-    internal var job: Job? = null
+    private var job: Job? = null
         set(value) {
             check(field == null)
             checkNotNull(value)
@@ -38,7 +38,7 @@ internal class StoreImpl<State : Any>(
         get() = when {
             job == null -> Status.NotYetStarted
             job?.isActive == true -> Status.Active
-            else -> Status.Stopped
+            else -> Status.Cancelled
         }
 
     private val commands = BroadcastChannel<Command<State>>(bufferSize)
@@ -85,4 +85,4 @@ internal class StoreImpl<State : Any>(
     }
 }
 
-private enum class Status { NotYetStarted, Active, Stopped }
+private enum class Status { NotYetStarted, Active, Cancelled }
