@@ -40,7 +40,7 @@ object StoreImplTest : Spek({
         it("throws exception when command is issued") {
             runBlocking {
                 expectThrows<IllegalStateException> {
-                    store.issue { "shouldThrow".toChange() }
+                    store.issue { "shouldThrow".only() }
                 }
             }
         }
@@ -88,7 +88,7 @@ object StoreImplTest : Spek({
                 }
                 it("throws exception when a command is issued") {
                     expectThrows<IllegalStateException> {
-                        store.issue { "shouldThrow".toChange() }
+                        store.issue { "shouldThrow".only() }
                     }
                 }
                 it("state emits initial") {
