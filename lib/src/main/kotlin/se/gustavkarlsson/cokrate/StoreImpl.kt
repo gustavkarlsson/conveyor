@@ -6,6 +6,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -52,6 +53,7 @@ internal class StoreImpl<State : Any>(
             "Cannot start store when it is $stage"
         }
         val job = scope.launch {
+            val commandIssuer = ChannelCommandIssuer(commands)
             commands
                 .openSubscription()
                 .consumeAsFlow()
@@ -66,7 +68,7 @@ internal class StoreImpl<State : Any>(
                     states.offer(newState)
                     launch {
                         for (action in actions) {
-                            action.execute(commands::send)
+                            action.execute(commandIssuer)
                         }
                     }
                 }
@@ -82,6 +84,14 @@ internal class StoreImpl<State : Any>(
         val stage = status
         check(stage == Status.Active) { "Cannot issue command while store is $stage" }
         commands.send(command)
+    }
+}
+
+private class ChannelCommandIssuer<State : Any>(
+    private val channel: SendChannel<Command<State>>
+) : CommandIssuer<State> {
+    override suspend fun issue(command: Command<State>) {
+        channel.send(command)
     }
 }
 
