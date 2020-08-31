@@ -1,40 +1,44 @@
-package se.gustavkarlsson.cokrate.actions
+package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.cokrate.actions.SingleAction
-import se.gustavkarlsson.cokrate.test.FixedStateCommand
-import se.gustavkarlsson.cokrate.test.TrackingCommandIssuer
+import se.gustavkarlsson.conveyor.test.FixedStateCommand
+import se.gustavkarlsson.conveyor.test.TrackingCommandIssuer
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
 @ExperimentalCoroutinesApi
 @FlowPreview
-object SingleActionTest : Spek({
-    val command = FixedStateCommand(Unit)
+object FlowActionTest : Spek({
+    val command1 = FixedStateCommand(Unit)
+    val command2 = FixedStateCommand(Unit)
     val issuer by memoized { TrackingCommandIssuer<Unit>() }
-    val action by memoized { SingleAction { command } }
+    val action by memoized {
+        FlowAction(flowOf(command1, command2))
+    }
 
     describe("An action") {
         it("does not issue any commands automatically") {
             expectThat(issuer.issuedCommands).isEmpty()
         }
-        it("issues command when executed") {
+        it("issues all commands when executed") {
             runBlocking {
                 action.execute(issuer)
             }
-            expectThat(issuer.issuedCommands).containsExactly(command)
+            expectThat(issuer.issuedCommands).containsExactly(command1, command2)
         }
-        it("issues commands twice when executed twice") {
+        it("issues all commands twice when executed twice") {
             runBlocking {
                 action.execute(issuer)
                 action.execute(issuer)
             }
-            expectThat(issuer.issuedCommands).containsExactly(command, command)
+            expectThat(issuer.issuedCommands)
+                .containsExactly(command1, command2, command1, command2)
         }
     }
 })

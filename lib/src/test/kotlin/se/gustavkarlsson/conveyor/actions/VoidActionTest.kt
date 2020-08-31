@@ -1,12 +1,12 @@
-package se.gustavkarlsson.cokrate.actions
+package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.cokrate.Command
-import se.gustavkarlsson.cokrate.CommandIssuer
+import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.CommandIssuer
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.util.concurrent.atomic.AtomicInteger

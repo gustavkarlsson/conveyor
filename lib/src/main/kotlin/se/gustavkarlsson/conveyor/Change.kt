@@ -1,10 +1,10 @@
-package se.gustavkarlsson.cokrate
+package se.gustavkarlsson.conveyor
 
 import kotlinx.coroutines.flow.Flow
-import se.gustavkarlsson.cokrate.actions.FlowAction
-import se.gustavkarlsson.cokrate.actions.MultiAction
-import se.gustavkarlsson.cokrate.actions.SingleAction
-import se.gustavkarlsson.cokrate.actions.VoidAction
+import se.gustavkarlsson.conveyor.actions.FlowAction
+import se.gustavkarlsson.conveyor.actions.MultiAction
+import se.gustavkarlsson.conveyor.actions.SingleAction
+import se.gustavkarlsson.conveyor.actions.VoidAction
 
 public data class Change<State : Any>(
     val newState: State,

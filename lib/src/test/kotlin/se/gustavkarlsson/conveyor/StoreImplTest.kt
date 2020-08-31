@@ -1,4 +1,4 @@
-package se.gustavkarlsson.cokrate
+package se.gustavkarlsson.conveyor
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

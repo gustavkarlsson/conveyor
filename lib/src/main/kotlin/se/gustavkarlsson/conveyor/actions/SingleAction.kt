@@ -1,8 +1,8 @@
-package se.gustavkarlsson.cokrate.actions
+package se.gustavkarlsson.conveyor.actions
 
-import se.gustavkarlsson.cokrate.Action
-import se.gustavkarlsson.cokrate.Command
-import se.gustavkarlsson.cokrate.CommandIssuer
+import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.CommandIssuer
 
 public class SingleAction<State : Any>(
     private val block: suspend () -> Command<State>

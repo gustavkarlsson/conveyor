@@ -1,4 +1,4 @@
-rootProject.name = "cokrate"
+rootProject.name = "conveyor"
 
 include(
     "lib"

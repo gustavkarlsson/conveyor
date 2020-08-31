@@ -1,7 +1,7 @@
-package se.gustavkarlsson.cokrate.test
+package se.gustavkarlsson.conveyor.test
 
-import se.gustavkarlsson.cokrate.Command
-import se.gustavkarlsson.cokrate.CommandIssuer
+import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.CommandIssuer
 
 class TrackingCommandIssuer<T : Any> : CommandIssuer<T> {
     val issuedCommands = mutableListOf<Command<T>>()

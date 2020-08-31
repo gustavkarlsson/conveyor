@@ -1,10 +1,10 @@
-package se.gustavkarlsson.cokrate.actions
+package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import se.gustavkarlsson.cokrate.Action
-import se.gustavkarlsson.cokrate.Command
-import se.gustavkarlsson.cokrate.CommandIssuer
+import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.CommandIssuer
 
 public class FlowAction<State : Any>(
     private val flow: Flow<Command<State>>
