@@ -11,7 +11,8 @@ public data class Change<State : Any>(
     val actions: Iterable<Action<State>> = emptyList()
 )
 
-// TODO consider visibility of these extensions
+// TODO consider visibility of these extensions.
+//  Also consider state.with(action).with(action) returning the wrong type
 
 public fun <State : Any> State.only(): Change<State> = Change(this)
 
