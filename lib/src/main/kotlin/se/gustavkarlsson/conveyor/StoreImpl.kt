@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.asFlow
@@ -44,7 +44,7 @@ internal class StoreImpl<State>(
             else -> Status.Cancelled
         }
 
-    private val commands = BroadcastChannel<Command<State>>(commandBufferSize)
+    private val commands = Channel<Command<State>>(commandBufferSize)
 
     private val states = ConflatedBroadcastChannel(initialState)
 
@@ -57,7 +57,6 @@ internal class StoreImpl<State>(
         val job = scope.launch {
             val commandIssuer = ChannelCommandIssuer(commands)
             commands
-                .openSubscription()
                 .consumeAsFlow()
                 .onStart {
                     launch {
