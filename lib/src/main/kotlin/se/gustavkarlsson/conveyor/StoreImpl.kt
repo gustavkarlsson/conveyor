@@ -7,22 +7,18 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     initialState: State,
-    initialCommands: Collection<Command<State>>, // TODO Can we remove this from state?
-    commandBufferSize: Int
+    initialCommands: Collection<Command<State>>,
+    commandBufferSize: Int,
 ) : Store<State> {
-
-    private val initialCommands = ArrayDeque(initialCommands)
 
     init {
         require(commandBufferSize > 0) {
@@ -45,6 +41,13 @@ internal class StoreImpl<State>(
         }
 
     private val commands = Channel<Command<State>>(commandBufferSize)
+        .also { channel ->
+            for (command in initialCommands) {
+                require(channel.offer(command)) {
+                    "Initial command count is greater than command buffer size"
+                }
+            }
+        }
 
     private val states = ConflatedBroadcastChannel(initialState)
 
@@ -57,22 +60,12 @@ internal class StoreImpl<State>(
         val job = scope.launch {
             val commandIssuer = ChannelCommandIssuer(commands)
             commands
-                .consumeAsFlow()
-                .onStart {
-                    launch {
-                        initialCommands.clear {
-                            commands.send(it)
-                        }
-                    }
-                }
-                .collect { command ->
+                .consumeEach { command ->
                     val oldState = states.value
                     val (newState, actions) = command.reduce(oldState)
                     states.offer(newState)
-                    launch {
-                        for (action in actions) {
-                            action.execute(commandIssuer)
-                        }
+                    for (action in actions) {
+                        launch { action.execute(commandIssuer) }
                     }
                 }
         }
@@ -99,14 +92,5 @@ private class ChannelCommandIssuer<State>(
 ) : CommandIssuer<State> {
     override suspend fun issue(command: Command<State>) {
         channel.send(command)
-    }
-}
-
-private inline fun <T> MutableCollection<T>.clear(block: (T) -> Unit) {
-    val iterator = iterator()
-    while (iterator.hasNext()) {
-        val item = iterator.next()
-        block(item)
-        iterator.remove()
     }
 }

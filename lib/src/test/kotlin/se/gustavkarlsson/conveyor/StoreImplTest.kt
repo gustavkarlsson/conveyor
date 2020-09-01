@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.test.FixedStateCommand
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -20,14 +21,19 @@ import strikt.assertions.isTrue
 @FlowPreview
 object StoreImplTest : Spek({
     describe("Store creation") {
-        it("throws exception with no buffer") {
+        it("throws exception with empty command buffer") {
             expectThrows<IllegalArgumentException> {
                 StoreImpl(Unit, emptyList(), 0)
             }
         }
-        it("throws exception with negative buffer") {
+        it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
                 StoreImpl(Unit, emptyList(), 0)
+            }
+        }
+        it("throws exception with more initial commands than command buffer size") {
+            expectThrows<IllegalArgumentException> {
+                StoreImpl(Unit, listOf(FixedStateCommand(Unit), FixedStateCommand(Unit)), 1)
             }
         }
     }
