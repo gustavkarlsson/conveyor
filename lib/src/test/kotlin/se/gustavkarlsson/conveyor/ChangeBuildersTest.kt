@@ -9,10 +9,11 @@ import se.gustavkarlsson.conveyor.test.FixedStateCommand
 import se.gustavkarlsson.conveyor.test.NullAction
 import se.gustavkarlsson.conveyor.test.NullCommandIssuer
 import se.gustavkarlsson.conveyor.test.TrackingCommandIssuer
+import se.gustavkarlsson.conveyor.test.hasCount
+import se.gustavkarlsson.conveyor.test.hasIssued
+import strikt.api.Assertion
 import strikt.api.expect
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
-import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 
 object ChangeBuildersTest : Spek({
@@ -42,24 +43,20 @@ object ChangeBuildersTest : Spek({
         }
         it("void action creates Change with that action") {
             val change = state.withVoid { counter.increment() }
-            runBlocking {
-                change.actions.forEach { it.execute(NullCommandIssuer()) }
-            }
+            change.executeActionsWith(NullCommandIssuer())
             expect {
-                that(change.newState).isEqualTo(state)
-                that(change.actions).hasSize(1)
-                that(counter.value).isEqualTo(1)
+                that(change).hasNewState(state)
+                that(change).hasActionCount(1)
+                that(counter).hasCount(1)
             }
         }
         it("single action creates Change with that action") {
             val change = state.withSingle { command1 }
-            runBlocking {
-                change.actions.forEach { it.execute(trackingCommandIssuer) }
-            }
+            change.executeActionsWith(trackingCommandIssuer)
             expect {
-                that(change.newState).isEqualTo(state)
-                that(change.actions).hasSize(1)
-                that(trackingCommandIssuer.issuedCommands).containsExactly(command1)
+                that(change).hasNewState(state)
+                that(change).hasActionCount(1)
+                that(trackingCommandIssuer).hasIssued(command1)
             }
         }
         it("multi action creates Change with that action") {
@@ -67,24 +64,20 @@ object ChangeBuildersTest : Spek({
                 issue(command1)
                 issue(command2)
             }
-            runBlocking {
-                change.actions.forEach { it.execute(trackingCommandIssuer) }
-            }
+            change.executeActionsWith(trackingCommandIssuer)
             expect {
-                that(change.newState).isEqualTo(state)
-                that(change.actions).hasSize(1)
-                that(trackingCommandIssuer.issuedCommands).containsExactly(command1, command2)
+                that(change).hasNewState(state)
+                that(change).hasActionCount(1)
+                that(trackingCommandIssuer).hasIssued(command1, command2)
             }
         }
         it("flow action creates Change with that action") {
             val change = state.withFlow(flowOf(command1, command2))
-            runBlocking {
-                change.actions.forEach { it.execute(trackingCommandIssuer) }
-            }
+            change.executeActionsWith(trackingCommandIssuer)
             expect {
-                that(change.newState).isEqualTo(state)
-                that(change.actions).hasSize(1)
-                that(trackingCommandIssuer.issuedCommands).containsExactly(command1, command2)
+                that(change).hasNewState(state)
+                that(change).hasActionCount(1)
+                that(trackingCommandIssuer).hasIssued(command1, command2)
             }
         }
     }
@@ -103,24 +96,20 @@ object ChangeBuildersTest : Spek({
         }
         it("void action creates Change with that action added") {
             val newChange = change.andVoid { counter.increment() }
-            runBlocking {
-                newChange.actions.forEach { it.execute(NullCommandIssuer()) }
-            }
+            newChange.executeActionsWith(NullCommandIssuer())
             expect {
-                that(newChange.newState).isEqualTo(state)
-                that(newChange.actions).hasSize(2)
-                that(counter.value).isEqualTo(1)
+                that(newChange).hasNewState(state)
+                that(newChange).hasActionCount(2)
+                that(counter).hasCount(1)
             }
         }
         it("single action creates Change with that action added") {
             val newChange = change.andSingle { command1 }
-            runBlocking {
-                newChange.actions.forEach { it.execute(trackingCommandIssuer) }
-            }
+            newChange.executeActionsWith(trackingCommandIssuer)
             expect {
-                that(newChange.newState).isEqualTo(state)
-                that(newChange.actions).hasSize(2)
-                that(trackingCommandIssuer.issuedCommands).containsExactly(command1)
+                that(newChange).hasNewState(state)
+                that(newChange).hasActionCount(2)
+                that(trackingCommandIssuer).hasIssued(command1)
             }
         }
         it("multi action creates Change with that action added") {
@@ -128,24 +117,43 @@ object ChangeBuildersTest : Spek({
                 issue(command1)
                 issue(command2)
             }
-            runBlocking {
-                newChange.actions.forEach { it.execute(trackingCommandIssuer) }
-            }
+            newChange.executeActionsWith(trackingCommandIssuer)
             expect {
-                that(newChange.newState).isEqualTo(state)
-                that(newChange.actions).hasSize(2)
-                that(trackingCommandIssuer.issuedCommands).containsExactly(command1, command2)
+                that(newChange).hasNewState(state)
+                that(newChange).hasActionCount(2)
+                that(trackingCommandIssuer).hasIssued(command1, command2)
             }
         }
         it("flow action creates Change with that action added") {
             val newChange = change.andFlow(flowOf(command1, command2))
-            runBlocking {
-                newChange.actions.forEach { it.execute(trackingCommandIssuer) }
-            }
+            newChange.executeActionsWith(trackingCommandIssuer)
             expect {
-                that(newChange.newState).isEqualTo(state)
-                that(newChange.actions).hasSize(2)
-                that(trackingCommandIssuer.issuedCommands).containsExactly(command1, command2)
+                that(newChange).hasNewState(state)
+                that(newChange).hasActionCount(2)
+                that(trackingCommandIssuer).hasIssued(command1, command2)
             }
-        }    }
+        }
+    }
 })
+
+private fun <T : Any> Assertion.Builder<Change<T>>.hasNewState(
+    expected: T
+): Assertion.Builder<Change<T>> =
+    with("newState", { newState }) {
+        isEqualTo(expected)
+    }
+
+private fun <T : Any> Assertion.Builder<Change<T>>.hasActionCount(
+    expected: Int
+): Assertion.Builder<Change<T>> =
+    with("action count", { actions.size }) {
+        isEqualTo(expected)
+    }
+
+private fun <T : Any> Change<T>.executeActionsWith(issuer: CommandIssuer<T>) {
+    runBlocking {
+        for (action in actions) {
+            action.execute(issuer)
+        }
+    }
+}
