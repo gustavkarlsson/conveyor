@@ -8,7 +8,7 @@ import se.gustavkarlsson.conveyor.actions.VoidAction
 
 public data class Change<State : Any>(
     val newState: State,
-    val actions: Iterable<Action<State>> = emptyList()
+    val actions: List<Action<State>> = emptyList()
 )
 
 // TODO consider visibility of these extensions.
@@ -17,12 +17,12 @@ public data class Change<State : Any>(
 public fun <State : Any> State.only(): Change<State> = Change(this)
 
 public fun <State : Any> State.with(
-    actions: Iterable<Action<State>>
+    actions: List<Action<State>>
 ): Change<State> = Change(this, actions)
 
 public fun <State : Any> State.with(
     vararg actions: Action<State>
-): Change<State> = with(actions.asIterable())
+): Change<State> = with(actions.toList())
 
 public fun <State : Any> State.with(
     action: Action<State>
@@ -45,12 +45,12 @@ public fun <State : Any> State.withFlow(
 ): Change<State> = with(FlowAction(flow))
 
 public fun <State : Any> Change<State>.and(
-    actions: Iterable<Action<State>>
+    actions: List<Action<State>>
 ): Change<State> = copy(actions = this.actions + actions)
 
 public fun <State : Any> Change<State>.and(
     vararg actions: Action<State>
-): Change<State> = and(actions.asIterable())
+): Change<State> = and(actions.toList())
 
 public fun <State : Any> Change<State>.and(
     action: Action<State>
