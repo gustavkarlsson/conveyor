@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal class StoreImpl<State : Any>(
+internal class StoreImpl<State>(
     initialState: State,
     initialCommands: Collection<Command<State>>, // TODO Can we remove this from state?
     commandBufferSize: Int
@@ -95,7 +95,7 @@ internal class StoreImpl<State : Any>(
 
 private enum class Status { NotYetStarted, Active, Cancelled }
 
-private class ChannelCommandIssuer<State : Any>(
+private class ChannelCommandIssuer<State>(
     private val channel: SendChannel<Command<State>>
 ) : CommandIssuer<State> {
     override suspend fun issue(command: Command<State>) {
