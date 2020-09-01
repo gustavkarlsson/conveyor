@@ -136,21 +136,21 @@ object ChangeBuildersTest : Spek({
     }
 })
 
-private fun <T : Any> Assertion.Builder<Change<T>>.hasNewState(
-    expected: T
-): Assertion.Builder<Change<T>> =
+private fun <State> Assertion.Builder<Change<State>>.hasNewState(
+    expected: State
+): Assertion.Builder<Change<State>> =
     with("newState", { newState }) {
         isEqualTo(expected)
     }
 
-private fun <T : Any> Assertion.Builder<Change<T>>.hasActionCount(
+private fun <State> Assertion.Builder<Change<State>>.hasActionCount(
     expected: Int
-): Assertion.Builder<Change<T>> =
+): Assertion.Builder<Change<State>> =
     with("action count", { actions.size }) {
         isEqualTo(expected)
     }
 
-private fun <T : Any> Change<T>.executeActionsWith(issuer: CommandIssuer<T>) {
+private fun <State> Change<State>.executeActionsWith(issuer: CommandIssuer<State>) {
     runBlocking {
         for (action in actions) {
             action.execute(issuer)

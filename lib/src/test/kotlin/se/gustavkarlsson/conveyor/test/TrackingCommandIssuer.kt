@@ -5,18 +5,18 @@ import se.gustavkarlsson.conveyor.CommandIssuer
 import strikt.api.Assertion
 import strikt.assertions.containsExactly
 
-class TrackingCommandIssuer<T : Any> : CommandIssuer<T> {
-    private val _issuedCommands = mutableListOf<Command<T>>()
-    val issuedCommands: List<Command<T>> = _issuedCommands
+class TrackingCommandIssuer<State> : CommandIssuer<State> {
+    private val _issuedCommands = mutableListOf<Command<State>>()
+    val issuedCommands: List<Command<State>> = _issuedCommands
 
-    override suspend fun issue(command: Command<T>) {
+    override suspend fun issue(command: Command<State>) {
         _issuedCommands.add(command)
     }
 }
 
-fun <T : Any> Assertion.Builder<TrackingCommandIssuer<T>>.hasIssued(
-    vararg expected: Command<T>
-): Assertion.Builder<TrackingCommandIssuer<T>> =
+fun <State> Assertion.Builder<TrackingCommandIssuer<State>>.hasIssued(
+    vararg expected: Command<State>
+): Assertion.Builder<TrackingCommandIssuer<State>> =
     with("issuedCommands", { issuedCommands }) {
         containsExactly(*expected)
     }
