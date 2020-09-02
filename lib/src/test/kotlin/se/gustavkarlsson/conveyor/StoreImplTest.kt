@@ -202,5 +202,19 @@ object StoreImplTest : Spek({
             scope.advanceTimeBy(delay2Millis)
             expectThat(store.currentState).isEqualTo(afterCommand2State)
         }
+        it("a command changes state immediately") {
+            val afterIssuedCommandState = "after_issued_command"
+            runBlockingTest {
+                store.issue(FixedStateCommand(afterIssuedCommandState))
+            }
+            expectThat(store.currentState).isEqualTo(afterIssuedCommandState)
+        }
+        it("a delayed command does not delay initial actions") {
+            val afterIssuedCommandState = "after_issued_command"
+            runBlockingTest {
+                store.issue(FixedStateCommand(afterIssuedCommandState))
+            }
+            expectThat(store.currentState).isEqualTo(afterIssuedCommandState)
+        }
     }
 })
