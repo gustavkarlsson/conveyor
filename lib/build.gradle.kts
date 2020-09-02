@@ -14,6 +14,8 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
 
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:${Versions.junit5}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${Versions.junit5}")
 

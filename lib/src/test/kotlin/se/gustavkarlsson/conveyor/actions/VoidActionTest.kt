@@ -2,7 +2,7 @@ package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Command
@@ -27,13 +27,13 @@ object VoidActionTest : Spek({
             expectThat(blockInvocationCount.get()).isEqualTo(0)
         }
         it("runs block when executed") {
-            runBlocking {
+            runBlockingTest {
                 action.execute(nullIssuer)
             }
             expectThat(blockInvocationCount.get()).isEqualTo(1)
         }
         it("runs block twice when executed twice") {
-            runBlocking {
+            runBlockingTest {
                 action.execute(nullIssuer)
                 action.execute(nullIssuer)
             }

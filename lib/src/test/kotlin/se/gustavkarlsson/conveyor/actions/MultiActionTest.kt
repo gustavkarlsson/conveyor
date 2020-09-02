@@ -2,7 +2,7 @@ package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
@@ -29,13 +29,13 @@ object MultiActionTest : Spek({
             expectThat(issuer.issuedCommands).isEmpty()
         }
         it("issues all commands when executed") {
-            runBlocking {
+            runBlockingTest {
                 action.execute(issuer)
             }
             expectThat(issuer.issuedCommands).containsExactly(command1, command2)
         }
         it("issues all commands twice when executed twice") {
-            runBlocking {
+            runBlockingTest {
                 action.execute(issuer)
                 action.execute(issuer)
             }

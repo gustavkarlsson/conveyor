@@ -1,14 +1,12 @@
 package se.gustavkarlsson.conveyor
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
@@ -44,26 +42,29 @@ object StoreImplTest : Spek({
         }
 
         it("throws exception when command is issued") {
-            runBlocking {
+            runBlockingTest {
                 expectThrows<IllegalStateException> {
                     store.issue { "shouldThrow".only() }
                 }
             }
         }
         it("state emits initial") {
-            val result = runBlocking { store.state.first() }
-            expectThat(result).isEqualTo(initialState)
+            runBlockingTest {
+                val result = store.state.first()
+                expectThat(result).isEqualTo(initialState)
+            }
         }
 
         describe("that was started") {
             val scope by memoized(
-                factory = { CoroutineScope(SupervisorJob() + Dispatchers.Unconfined) },
-                destructor = { it.cancel("Test ended") }
+                factory = { TestCoroutineScope(Job()) },
+                destructor = { it.cleanupTestCoroutines() }
             )
             lateinit var job: Job
             beforeEachTest {
                 job = store.start(scope)
             }
+            afterEachTest {  }
 
             it("has an active job") {
                 expectThat(job.isActive).isTrue()
@@ -78,8 +79,10 @@ object StoreImplTest : Spek({
                 expectThat(job.isCancelled).isTrue()
             }
             it("state emits initial") {
-                val result = runBlocking { store.state.first() }
-                expectThat(result).isEqualTo(initialState)
+                runBlockingTest {
+                    val result = store.state.first()
+                    expectThat(result).isEqualTo(initialState)
+                }
             }
 
             describe("and had its job explicitly cancelled") {
@@ -98,8 +101,10 @@ object StoreImplTest : Spek({
                     }
                 }
                 it("state emits initial") {
-                    val result = runBlocking { store.state.first() }
-                    expectThat(result).isEqualTo(initialState)
+                    runBlockingTest {
+                        val result = store.state.first()
+                        expectThat(result).isEqualTo(initialState)
+                    }
                 }
             }
         }

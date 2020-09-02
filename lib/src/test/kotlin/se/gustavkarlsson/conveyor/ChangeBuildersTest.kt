@@ -1,7 +1,8 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.Counter
@@ -16,6 +17,7 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
+@ExperimentalCoroutinesApi
 object ChangeBuildersTest : Spek({
     val state = "state"
     val command1 = FixedStateCommand("newState1")
@@ -150,8 +152,9 @@ private fun <State> Assertion.Builder<Change<State>>.hasActionCount(
         isEqualTo(expected)
     }
 
+@ExperimentalCoroutinesApi
 private fun <State> Change<State>.executeActionsWith(issuer: CommandIssuer<State>) {
-    runBlocking {
+    runBlockingTest {
         for (action in actions) {
             action.execute(issuer)
         }
