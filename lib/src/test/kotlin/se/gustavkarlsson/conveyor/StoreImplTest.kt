@@ -10,6 +10,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
+import se.gustavkarlsson.conveyor.test.NullAction
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -27,11 +28,6 @@ object StoreImplTest : Spek({
         it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
                 StoreImpl(Unit, emptyList(), -1)
-            }
-        }
-        it("throws exception with more initial commands than command buffer size") {
-            expectThrows<IllegalArgumentException> {
-                StoreImpl(Unit, listOf(FixedStateCommand(Unit), FixedStateCommand(Unit)), 1)
             }
         }
     }

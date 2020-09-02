@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     initialState: State,
-    initialCommands: Collection<Command<State>>,
+    initialActions: List<Action<State>>,
     commandBufferSize: Int,
 ) : Store<State> {
 
@@ -41,12 +41,11 @@ internal class StoreImpl<State>(
     override val state = states.asFlow()
         .distinctUntilChanged { old, new -> old === new }
 
+    private val initialActions = ArrayDeque(initialActions)
+
     init {
         require(commandBufferSize > 0) {
             "commandBufferSize must be positive. Was: $commandBufferSize"
-        }
-        require(commands.offerAll(initialCommands)) {
-            "Initial command count is greater than command buffer size"
         }
     }
 
@@ -58,6 +57,9 @@ internal class StoreImpl<State>(
         }
         val job = scope.launch {
             val commandIssuer = ChannelCommandIssuer(commands)
+            initialActions.clear { action ->
+                launch { action.execute(commandIssuer) }
+            }
             commands
                 .consumeEach { command ->
                     val oldState = states.value
@@ -81,11 +83,13 @@ internal class StoreImpl<State>(
     }
 }
 
-private fun <T> SendChannel<T>.offerAll(iterable: Iterable<T>): Boolean {
-    for (item in iterable) {
-        if (!offer(item)) return false
+private inline fun <T> MutableCollection<T>.clear(block: (T) -> Unit) {
+    val iterator = iterator()
+    while (iterator.hasNext()) {
+        val item = iterator.next()
+        block(item)
+        iterator.remove()
     }
-    return true
 }
 
 private enum class Status { NotYetStarted, Active, Cancelled }
