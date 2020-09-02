@@ -20,12 +20,6 @@ internal class StoreImpl<State>(
     commandBufferSize: Int,
 ) : Store<State> {
 
-    init {
-        require(commandBufferSize > 0) {
-            "commandBufferSize must be positive. Was: $commandBufferSize"
-        }
-    }
-
     private var job: Job? = null
         set(value) {
             check(field == null)
@@ -41,15 +35,20 @@ internal class StoreImpl<State>(
         }
 
     private val commands = Channel<Command<State>>(commandBufferSize)
-        .also { channel ->
-            for (command in initialCommands) {
-                require(channel.offer(command)) {
-                    "Initial command count is greater than command buffer size"
-                }
-            }
-        }
 
     private val states = ConflatedBroadcastChannel(initialState)
+
+    override val state = states.asFlow()
+        .distinctUntilChanged { old, new -> old === new }
+
+    init {
+        require(commandBufferSize > 0) {
+            "commandBufferSize must be positive. Was: $commandBufferSize"
+        }
+        require(commands.offerAll(initialCommands)) {
+            "Initial command count is greater than command buffer size"
+        }
+    }
 
     @Synchronized
     override fun start(scope: CoroutineScope): Job {
@@ -73,9 +72,6 @@ internal class StoreImpl<State>(
         return job
     }
 
-    override val state = states.asFlow()
-        .distinctUntilChanged { old, new -> old === new }
-
     override suspend fun issue(command: Command<State>) {
         val currentStatus = status
         check(currentStatus == Status.Active) {
@@ -83,6 +79,13 @@ internal class StoreImpl<State>(
         }
         commands.send(command)
     }
+}
+
+private fun <T> SendChannel<T>.offerAll(iterable: Iterable<T>): Boolean {
+    for (item in iterable) {
+        if (!offer(item)) return false
+    }
+    return true
 }
 
 private enum class Status { NotYetStarted, Active, Cancelled }
