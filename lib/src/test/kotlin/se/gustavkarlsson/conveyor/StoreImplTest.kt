@@ -93,9 +93,10 @@ object StoreImplTest : Spek({
             }
             it("existing state subscription ends when job is cancelled") {
                 runBlockingTest {
-                    val result = async { store.state.toList() }
+                    val deferred = async { store.state.toList() }
                     job.cancel("Purposefully cancelled")
-                    expectThat(result.await()).containsExactly(initialState)
+                    val result = deferred.await()
+                    expectThat(result).containsExactly(initialState)
                 }
             }
 
@@ -169,6 +170,37 @@ object StoreImplTest : Spek({
             scope.cancel("Purposefully cancelled")
             scope.advanceTimeBy(delayMillis)
             expectThat(store.currentState).isEqualTo(initialState)
+        }
+    }
+    describe("A started store with two initial delayed actions") {
+        val afterCommand1State = "after_command_1"
+        val command1 = FixedStateCommand(afterCommand1State)
+        val delay1Millis = 1000L
+        val action1 = SingleAction {
+            delay(delay1Millis)
+            command1
+        }
+        val afterCommand2State = "after_command_2"
+        val command2 = FixedStateCommand(afterCommand2State)
+        val delay2Millis = 2000L
+        val action2 = SingleAction {
+            delay(delay2Millis)
+            command2
+        }
+        val store by memoized {
+            StoreImpl(initialState, listOf(action1, action2), 8)
+        }
+        beforeEachTest {
+            store.start(scope)
+        }
+
+        it("the state changes after the first delay has passed") {
+            scope.advanceTimeBy(delay1Millis)
+            expectThat(store.currentState).isEqualTo(afterCommand1State)
+        }
+        it("the state changes after the second delay has passed") {
+            scope.advanceTimeBy(delay2Millis)
+            expectThat(store.currentState).isEqualTo(afterCommand2State)
         }
     }
 })
