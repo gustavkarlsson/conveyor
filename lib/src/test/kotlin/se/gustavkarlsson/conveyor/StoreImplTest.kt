@@ -28,7 +28,7 @@ object StoreImplTest : Spek({
         }
         it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
-                StoreImpl(Unit, emptyList(), 0)
+                StoreImpl(Unit, emptyList(), -1)
             }
         }
         it("throws exception with more initial commands than command buffer size") {
