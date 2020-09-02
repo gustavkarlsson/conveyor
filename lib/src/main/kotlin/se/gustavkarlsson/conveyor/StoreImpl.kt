@@ -21,11 +21,6 @@ internal class StoreImpl<State>(
 ) : Store<State> {
 
     private var job: Job? = null
-        set(value) {
-            check(field == null)
-            checkNotNull(value)
-            field = value
-        }
 
     private val status: Status
         get() = when {
