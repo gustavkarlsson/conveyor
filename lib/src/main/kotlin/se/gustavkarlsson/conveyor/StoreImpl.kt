@@ -12,12 +12,14 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
+private const val DEFAULT_BUFFER_SIZE = 64
+
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     initialState: State,
-    initialActions: List<Action<State>>,
-    commandBufferSize: Int,
+    initialActions: Iterable<Action<State>> = emptyList(),
+    commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : Store<State> {
 
     private var job: Job? = null
@@ -29,21 +31,31 @@ internal class StoreImpl<State>(
             else -> Status.Cancelled
         }
 
+    // TODO encapsulate command stuff into new class
     private val commands = Channel<Command<State>>(commandBufferSize)
 
+    private val commandIssuer = ChannelCommandIssuer(commands)
+
+    // TODO encapsulate state stuff into new class
     private val states = ConflatedBroadcastChannel(initialState)
+
+    private val stateSetter = StateSetter(states)
 
     override val state = states.asFlow()
         .distinctUntilChanged { old, new -> old === new }
 
     override val currentState: State get() = states.value
 
-    private val initialActions = ArrayDeque(initialActions)
+    // TODO encapsulate action stuff into new class
+    private val initialActions = ArrayDeque(initialActions.toList())
+
+    private val actionExecutor = ActionExecutor(commandIssuer)
 
     init {
         require(commandBufferSize > 0) {
             "commandBufferSize must be positive. Was: $commandBufferSize"
         }
+        stateSetter.set(initialState)
     }
 
     @Synchronized
@@ -53,18 +65,17 @@ internal class StoreImpl<State>(
             "Cannot start store when it is $currentStatus"
         }
         val job = scope.launch {
-            val commandIssuer = ChannelCommandIssuer(commands)
             initialActions.removeAll { action ->
-                launch { action.execute(commandIssuer) }
+                launch { actionExecutor.execute(action) }
                 true
             }
             commands
                 .consumeEach { command ->
                     val oldState = states.value
                     val (newState, actions) = command.reduce(oldState)
-                    states.offer(newState)
+                    stateSetter.set(newState)
                     for (action in actions) {
-                        launch { action.execute(commandIssuer) }
+                        launch { actionExecutor.execute(action) }
                     }
                 }
         }
@@ -78,16 +89,32 @@ internal class StoreImpl<State>(
         check(currentStatus == Status.Active) {
             "Cannot issue command while store is $currentStatus"
         }
-        commands.send(command)
+        commandIssuer.issue(command)
     }
 }
 
 private enum class Status { NotYetStarted, Active, Cancelled }
 
 private class ChannelCommandIssuer<State>(
-    private val channel: SendChannel<Command<State>>
+    private val channel: SendChannel<Command<State>>,
 ) : CommandIssuer<State> {
     override suspend fun issue(command: Command<State>) {
         channel.send(command)
+    }
+}
+
+private class StateSetter<State>(
+    private val channel: SendChannel<State>,
+) {
+    fun set(state: State) {
+        check(channel.offer(state)) { "Failed to set state, channel over capacity" }
+    }
+}
+
+private class ActionExecutor<State>(
+    private val commandIssuer: CommandIssuer<State>,
+) {
+    suspend fun execute(action: Action<State>) {
+        action.execute(commandIssuer)
     }
 }

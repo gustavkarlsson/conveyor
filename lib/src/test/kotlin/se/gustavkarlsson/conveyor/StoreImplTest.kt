@@ -35,18 +35,18 @@ object StoreImplTest : Spek({
     describe("Store creation") {
         it("throws exception with empty command buffer") {
             expectThrows<IllegalArgumentException> {
-                StoreImpl(Unit, emptyList(), 0)
+                StoreImpl(Unit, commandBufferSize = 0)
             }
         }
         it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
-                StoreImpl(Unit, emptyList(), -1)
+                StoreImpl(Unit, commandBufferSize = -1)
             }
         }
     }
     describe("A minimal store") {
         val store by memoized {
-            StoreImpl(initialState, emptyList(), 8)
+            StoreImpl(initialState)
         }
 
         it("throws exception when command is issued") {
@@ -134,7 +134,7 @@ object StoreImplTest : Spek({
         val command = FixedStateCommand(afterCommandState)
         val action = SingleAction { command }
         val store by memoized {
-            StoreImpl(initialState, listOf(action), 8)
+            StoreImpl(initialState, listOf(action))
         }
 
         it("the state does not change before starting") {
@@ -154,7 +154,7 @@ object StoreImplTest : Spek({
             command
         }
         val store by memoized {
-            StoreImpl(initialState, listOf(action), 8)
+            StoreImpl(initialState, listOf(action))
         }
         beforeEachTest {
             store.start(scope)
@@ -189,7 +189,7 @@ object StoreImplTest : Spek({
             command2
         }
         val store by memoized {
-            StoreImpl(initialState, listOf(action1, action2), 8)
+            StoreImpl(initialState, listOf(action1, action2))
         }
         beforeEachTest {
             store.start(scope)
