@@ -59,8 +59,9 @@ internal class StoreImpl<State>(
         }
         val job = scope.launch {
             val commandIssuer = ChannelCommandIssuer(commands)
-            initialActions.clear { action ->
+            initialActions.removeAll { action ->
                 launch { action.execute(commandIssuer) }
+                true
             }
             commands
                 .consumeEach { command ->
@@ -83,15 +84,6 @@ internal class StoreImpl<State>(
             "Cannot issue command while store is $currentStatus"
         }
         commands.send(command)
-    }
-}
-
-private inline fun <T> MutableCollection<T>.clear(block: (T) -> Unit) {
-    val iterator = iterator()
-    while (iterator.hasNext()) {
-        val item = iterator.next()
-        block(item)
-        iterator.remove()
     }
 }
 
