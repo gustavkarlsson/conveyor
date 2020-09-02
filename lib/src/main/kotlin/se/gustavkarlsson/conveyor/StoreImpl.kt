@@ -72,6 +72,7 @@ internal class StoreImpl<State>(
                     }
                 }
         }
+        job.invokeOnCompletion { states.close(it) }
         this.job = job
         return job
     }

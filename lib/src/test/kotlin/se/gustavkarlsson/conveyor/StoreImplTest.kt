@@ -3,6 +3,7 @@ package se.gustavkarlsson.conveyor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -92,9 +93,9 @@ object StoreImplTest : Spek({
             }
             it("existing state subscription ends when job is cancelled") {
                 runBlockingTest {
-                    val result = store.state.toList()
+                    val result = async { store.state.toList() }
                     job.cancel("Purposefully cancelled")
-                    expectThat(result).containsExactly(initialState)
+                    expectThat(result.await()).containsExactly(initialState)
                 }
             }
 
