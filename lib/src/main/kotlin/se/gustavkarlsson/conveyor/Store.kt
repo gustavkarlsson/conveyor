@@ -7,5 +7,6 @@ import kotlinx.coroutines.flow.Flow
 public interface Store<State> {
     public fun start(scope: CoroutineScope): Job
     public val state: Flow<State>
+    public val currentState: State
     public suspend fun issue(command: Command<State>)
 }

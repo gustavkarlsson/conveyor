@@ -41,6 +41,8 @@ internal class StoreImpl<State>(
     override val state = states.asFlow()
         .distinctUntilChanged { old, new -> old === new }
 
+    override val currentState: State get() = states.value
+
     private val initialActions = ArrayDeque(initialActions)
 
     init {
