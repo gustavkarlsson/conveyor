@@ -14,6 +14,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.actions.SingleAction
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
@@ -208,13 +209,23 @@ object StoreImplTest : Spek({
                 store.issue(FixedStateCommand(afterIssuedCommandState))
             }
             expectThat(store.currentState).isEqualTo(afterIssuedCommandState)
-        }
-        it("a delayed command does not delay initial actions") {
-            val afterIssuedCommandState = "after_issued_command"
-            runBlockingTest {
-                store.issue(FixedStateCommand(afterIssuedCommandState))
+            expect {
+                that(scope.currentTime).isEqualTo(0)
+                that(store.currentState).isEqualTo(afterIssuedCommandState)
             }
-            expectThat(store.currentState).isEqualTo(afterIssuedCommandState)
+        }
+        it("a command with a delayed action does not delay initial actions") {
+            val command = Command<String> { oldState ->
+                oldState.withVoid { delay(500) }
+            }
+            runBlockingTest {
+                store.issue(command)
+            }
+            scope.advanceTimeBy(delay1Millis)
+            expect {
+                that(scope.currentTime).isEqualTo(delay1Millis)
+                that(store.currentState).isEqualTo(afterCommand1State)
+            }
         }
     }
 })
