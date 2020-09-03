@@ -8,6 +8,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -36,15 +37,11 @@ internal class StoreImpl<State>(
 
     private val commandIssuer = ChannelCommandIssuer(commands)
 
-    // TODO encapsulate state stuff into new class
-    private val states = ConflatedBroadcastChannel(initialState)
+    private val stateHolder = StateHolder(initialState)
 
-    private val stateSetter = StateSetter(states)
+    override val state = stateHolder.flow
 
-    override val state = states.asFlow()
-        .distinctUntilChanged { old, new -> old === new }
-
-    override val currentState: State get() = states.value
+    override val currentState get() = stateHolder.current
 
     // TODO encapsulate action stuff into new class
     private val initialActions = ArrayDeque(initialActions.toList())
@@ -55,7 +52,7 @@ internal class StoreImpl<State>(
         require(commandBufferSize > 0) {
             "commandBufferSize must be positive. Was: $commandBufferSize"
         }
-        stateSetter.set(initialState)
+        stateHolder.set(initialState)
     }
 
     @Synchronized
@@ -71,15 +68,15 @@ internal class StoreImpl<State>(
             }
             commands
                 .consumeEach { command ->
-                    val oldState = states.value
+                    val oldState = stateHolder.current
                     val (newState, actions) = command.reduce(oldState)
-                    stateSetter.set(newState)
+                    stateHolder.set(newState)
                     for (action in actions) {
                         launch { actionExecutor.execute(action) }
                     }
                 }
         }
-        job.invokeOnCompletion { states.close(it) }
+        job.invokeOnCompletion { stateHolder.close(it) }
         this.job = job
         return job
     }
@@ -103,11 +100,24 @@ private class ChannelCommandIssuer<State>(
     }
 }
 
-private class StateSetter<State>(
-    private val channel: SendChannel<State>,
+@FlowPreview
+@ExperimentalCoroutinesApi
+private class StateHolder<State>(
+    initialState: State,
 ) {
+    private val channel = ConflatedBroadcastChannel(initialState)
+
+    val current: State get() = channel.value
+
+    val flow: Flow<State> = channel.asFlow()
+        .distinctUntilChanged { old, new -> old === new }
+
     fun set(state: State) {
         check(channel.offer(state)) { "Failed to set state, channel over capacity" }
+    }
+
+    fun close(cause: Throwable?) {
+        channel.close(cause)
     }
 }
 
