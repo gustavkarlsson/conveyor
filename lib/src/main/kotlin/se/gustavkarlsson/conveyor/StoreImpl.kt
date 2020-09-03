@@ -33,14 +33,13 @@ internal class StoreImpl<State>(
 
     private val stateHolder = StateHolder(initialState)
 
-    private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
-
     override val state = stateHolder.flow
 
     override val currentState get() = stateHolder.get()
 
-    // TODO encapsulate action stuff into new class
-    private val initialActions = ArrayDeque(initialActions.toList())
+    private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
+
+    private val storeRunner = StoreRunner(initialActions, commandProcessor)
 
     @Synchronized
     override fun start(scope: CoroutineScope): Job {
@@ -48,16 +47,7 @@ internal class StoreImpl<State>(
         check(currentStatus == Status.NotYetStarted) {
             "Cannot start store when it is $currentStatus"
         }
-        val actionExecutor = ActionExecutor(commandProcessor)
-        val job = scope.launch {
-            initialActions.removeAll { action ->
-                launch { actionExecutor.execute(action) }
-                true
-            }
-            commandProcessor.process {
-                launch { actionExecutor.execute(it) }
-            }
-        }
+        val job = storeRunner.run(scope)
         job.invokeOnCompletion { stateHolder.close(it) }
         this.job = job
         return job
@@ -123,10 +113,24 @@ private class StateHolder<State>(initialState: State) {
     }
 }
 
-private class ActionExecutor<State>(
-    private val commandIssuer: CommandIssuer<State>,
+@ExperimentalCoroutinesApi
+private class StoreRunner<State>(
+    initialActions: Iterable<Action<State>>,
+    private val commandProcessor: CommandProcessor<State>,
 ) {
-    suspend fun execute(action: Action<State>) {
-        action.execute(commandIssuer)
-    }
+    private var initialActions: MutableIterable<Action<State>>? = ArrayDeque(initialActions.toList())
+
+    @Synchronized
+    fun run(scope: CoroutineScope): Job =
+        scope.launch {
+            checkNotNull(initialActions) {
+                "Initial actions have already been processed"
+            }.forEach { action ->
+                launch { action.execute(commandProcessor) }
+            }
+            initialActions = null
+            commandProcessor.process { action ->
+                launch { action.execute(commandProcessor) }
+            }
+        }
 }
