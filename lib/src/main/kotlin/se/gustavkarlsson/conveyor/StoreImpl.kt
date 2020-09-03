@@ -48,7 +48,10 @@ internal class StoreImpl<State>(
             "Cannot start store when it is $currentStatus"
         }
         val job = storeRunner.run(scope)
-        job.invokeOnCompletion { stateHolder.close(it) }
+        job.invokeOnCompletion {
+            commandProcessor.close(it)
+            stateHolder.close(it)
+        }
         this.job = job
         return job
     }
@@ -76,14 +79,14 @@ private class CommandProcessor<State>(
         }
     }
 
-    private val commands = Channel<Command<State>>(bufferSize)
+    private val channel = Channel<Command<State>>(bufferSize)
 
     override suspend fun issue(command: Command<State>) {
-        commands.send(command)
+        channel.send(command)
     }
 
     suspend fun process(onAction: suspend (Action<State>) -> Unit) {
-        commands.consumeEach { command ->
+        channel.consumeEach { command ->
             val oldState = getState()
             val (newState, actions) = command.reduce(oldState)
             setState(newState)
@@ -91,6 +94,10 @@ private class CommandProcessor<State>(
                 onAction(action)
             }
         }
+    }
+
+    fun close(cause: Throwable?) {
+        channel.close(cause)
     }
 }
 
