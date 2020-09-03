@@ -16,16 +16,17 @@ public data class Change<State>(
 
 public fun <State> State.only(): Change<State> = Change(this)
 
+// TODO Add tests for null values
 public fun <State> State.with(
-    actions: List<Action<State>>
-): Change<State> = Change(this, actions)
+    actions: List<Action<State>?>
+): Change<State> = Change(this, actions.filterNotNull())
 
 public fun <State> State.with(
-    vararg actions: Action<State>
+    vararg actions: Action<State>?
 ): Change<State> = with(actions.toList())
 
 public fun <State> State.with(
-    action: Action<State>
+    action: Action<State>?
 ): Change<State> = with(listOf(action))
 
 public fun <State> State.withVoid(
@@ -45,15 +46,15 @@ public fun <State> State.withFlow(
 ): Change<State> = with(FlowAction(flow))
 
 public fun <State> Change<State>.and(
-    actions: List<Action<State>>
-): Change<State> = copy(actions = this.actions + actions)
+    actions: List<Action<State>?>
+): Change<State> = copy(actions = (this.actions + actions).filterNotNull())
 
 public fun <State> Change<State>.and(
-    vararg actions: Action<State>
+    vararg actions: Action<State>?
 ): Change<State> = and(actions.toList())
 
 public fun <State> Change<State>.and(
-    action: Action<State>
+    action: Action<State>?
 ): Change<State> = and(listOf(action))
 
 public fun <State> Change<State>.andVoid(
