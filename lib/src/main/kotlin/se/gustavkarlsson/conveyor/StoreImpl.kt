@@ -43,10 +43,6 @@ internal class StoreImpl<State>(
 
     @Synchronized
     override fun start(scope: CoroutineScope): Job {
-        val currentStatus = status
-        check(currentStatus == Status.NotYetStarted) {
-            "Cannot start store when it is $currentStatus"
-        }
         val job = storeRunner.run(scope)
         job.invokeOnCompletion {
             commandProcessor.close(it)
@@ -128,11 +124,12 @@ private class StoreRunner<State>(
     private var initialActions: MutableIterable<Action<State>>? = ArrayDeque(initialActions.toList())
 
     @Synchronized
-    fun run(scope: CoroutineScope): Job =
-        scope.launch {
-            checkNotNull(initialActions) {
-                "Initial actions have already been processed"
-            }.forEach { action ->
+    fun run(scope: CoroutineScope): Job {
+        val actions = checkNotNull(initialActions) {
+            "Store has already been started"
+        }
+        return scope.launch {
+            for (action in actions) {
                 launch { action.execute(commandProcessor) }
             }
             initialActions = null
@@ -140,4 +137,5 @@ private class StoreRunner<State>(
                 launch { action.execute(commandProcessor) }
             }
         }
+    }
 }
