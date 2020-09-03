@@ -16,6 +16,11 @@ import java.util.concurrent.atomic.AtomicReference
 
 private const val DEFAULT_BUFFER_SIZE = 64
 
+// TODO Add support for cold sources? https://www.halfbit.de/posts/external-events-in-knot/
+// TODO Add support for watchers?
+// TODO Add support for side effects/events/interceptors
+// TODO React to state/changes?
+
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
