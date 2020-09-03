@@ -46,6 +46,28 @@ internal class StoreImpl<State>(
     override suspend fun issue(command: Command<State>) = commandProcessor.issue(command)
 }
 
+@FlowPreview
+@ExperimentalCoroutinesApi
+private class StateHolder<State>(initialState: State) {
+    private val channel = ConflatedBroadcastChannel(initialState)
+
+    fun get(): State = channel.value
+
+    fun set(state: State) {
+        check(channel.offer(state)) {
+            "Failed to set state, channel over capacity"
+        }
+    }
+
+    val flow: Flow<State> =
+        channel.asFlow()
+            .distinctUntilChanged { old, new -> old === new }
+
+    fun close(cause: Throwable?) {
+        channel.close(cause)
+    }
+}
+
 @ExperimentalCoroutinesApi
 private class CommandProcessor<State>(
     bufferSize: Int,
@@ -60,15 +82,14 @@ private class CommandProcessor<State>(
 
     private val channel = Channel<Command<State>>(bufferSize)
 
-    override suspend fun issue(command: Command<State>) {
+    override suspend fun issue(command: Command<State>) =
         try {
             channel.send(command)
         } catch (e: ClosedSendChannelException) {
             throw IllegalStateException("Store has been stopped", e)
         }
-    }
 
-    suspend fun process(onAction: suspend (Action<State>) -> Unit) {
+    suspend fun process(onAction: suspend (Action<State>) -> Unit) =
         channel.consumeEach { command ->
             val oldState = getState()
             val (newState, actions) = command.reduce(oldState)
@@ -77,26 +98,6 @@ private class CommandProcessor<State>(
                 onAction(action)
             }
         }
-    }
-
-    fun close(cause: Throwable?) {
-        channel.close(cause)
-    }
-}
-
-@FlowPreview
-@ExperimentalCoroutinesApi
-private class StateHolder<State>(initialState: State) {
-    private val channel = ConflatedBroadcastChannel(initialState)
-
-    fun get(): State = channel.value
-
-    fun set(state: State) {
-        check(channel.offer(state)) { "Failed to set state, channel over capacity" }
-    }
-
-    val flow: Flow<State> = channel.asFlow()
-        .distinctUntilChanged { old, new -> old === new }
 
     fun close(cause: Throwable?) {
         channel.close(cause)
