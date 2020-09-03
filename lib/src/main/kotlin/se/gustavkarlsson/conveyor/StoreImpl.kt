@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
 
 private const val DEFAULT_BUFFER_SIZE = 64
 
@@ -31,19 +32,18 @@ internal class StoreImpl<State>(
 
     private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
 
-    private val storeRunner = StoreRunner(initialActions, commandProcessor)
+    private val storeStarter = StoreStarter(initialActions, commandProcessor)
 
-    override fun start(scope: CoroutineScope): Job =
-        storeRunner.run(scope).apply {
-            invokeOnCompletion {
-                commandProcessor.close(it)
-                stateHolder.close(it)
-            }
+    override fun start(scope: CoroutineScope): Job {
+        val job = storeStarter.start(scope)
+        job.invokeOnCompletion { throwable ->
+            commandProcessor.close(throwable)
+            stateHolder.close(throwable)
         }
-
-    override suspend fun issue(command: Command<State>) {
-        commandProcessor.issue(command)
+        return job
     }
+
+    override suspend fun issue(command: Command<State>) = commandProcessor.issue(command)
 }
 
 @ExperimentalCoroutinesApi
@@ -104,25 +104,29 @@ private class StateHolder<State>(initialState: State) {
 }
 
 @ExperimentalCoroutinesApi
-private class StoreRunner<State>(
+private class StoreStarter<State>(
     initialActions: Iterable<Action<State>>,
     private val commandProcessor: CommandProcessor<State>,
 ) {
-    private var initialActions: MutableIterable<Action<State>>? = ArrayDeque(initialActions.toList())
+    private val initialActions = AtomicReference(initialActions)
 
-    @Synchronized
-    fun run(scope: CoroutineScope): Job {
-        val actions = checkNotNull(initialActions) {
-            "Store has already been started"
-        }
+    fun start(scope: CoroutineScope): Job {
+        val actions = takeInitialActions()
         return scope.launch {
-            for (action in actions) {
+            actions.removeAll { action ->
                 launch { action.execute(commandProcessor) }
+                true
             }
-            initialActions = null
             commandProcessor.process { action ->
                 launch { action.execute(commandProcessor) }
             }
         }
+    }
+
+    private fun takeInitialActions(): MutableIterable<Action<State>> {
+        val actions = checkNotNull(initialActions.getAndSet(null)) {
+            "Store has already been started"
+        }
+        return ArrayDeque(actions.toList())
     }
 }
