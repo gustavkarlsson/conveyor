@@ -5,6 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
@@ -22,15 +23,6 @@ internal class StoreImpl<State>(
     commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : Store<State> {
 
-    private var job: Job? = null
-
-    private val status: Status
-        get() = when {
-            job == null -> Status.NotYetStarted
-            job?.isActive == true -> Status.Active
-            else -> Status.Cancelled
-        }
-
     private val stateHolder = StateHolder(initialState)
 
     override val state = stateHolder.flow
@@ -41,27 +33,18 @@ internal class StoreImpl<State>(
 
     private val storeRunner = StoreRunner(initialActions, commandProcessor)
 
-    @Synchronized
-    override fun start(scope: CoroutineScope): Job {
-        val job = storeRunner.run(scope)
-        job.invokeOnCompletion {
-            commandProcessor.close(it)
-            stateHolder.close(it)
+    override fun start(scope: CoroutineScope): Job =
+        storeRunner.run(scope).apply {
+            invokeOnCompletion {
+                commandProcessor.close(it)
+                stateHolder.close(it)
+            }
         }
-        this.job = job
-        return job
-    }
 
     override suspend fun issue(command: Command<State>) {
-        val currentStatus = status
-        check(currentStatus == Status.Active) {
-            "Cannot issue command while store is $currentStatus"
-        }
         commandProcessor.issue(command)
     }
 }
-
-private enum class Status { NotYetStarted, Active, Cancelled }
 
 @ExperimentalCoroutinesApi
 private class CommandProcessor<State>(
@@ -78,7 +61,11 @@ private class CommandProcessor<State>(
     private val channel = Channel<Command<State>>(bufferSize)
 
     override suspend fun issue(command: Command<State>) {
-        channel.send(command)
+        try {
+            channel.send(command)
+        } catch (e: ClosedSendChannelException) {
+            throw IllegalStateException("Store has been stopped", e)
+        }
     }
 
     suspend fun process(onAction: suspend (Action<State>) -> Unit) {

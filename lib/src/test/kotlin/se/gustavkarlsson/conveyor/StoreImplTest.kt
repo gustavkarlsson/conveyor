@@ -49,13 +49,6 @@ object StoreImplTest : Spek({
             StoreImpl(initialState)
         }
 
-        it("throws exception when command is issued") {
-            runBlockingTest {
-                expectThrows<IllegalStateException> {
-                    store.issue { "shouldThrow".only() }
-                }
-            }
-        }
         it("state emits initial") {
             runBlockingTest {
                 val result = store.state.first()
