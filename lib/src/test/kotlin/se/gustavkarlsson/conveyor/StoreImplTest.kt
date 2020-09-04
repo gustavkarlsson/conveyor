@@ -17,9 +17,12 @@ import se.gustavkarlsson.conveyor.test.FixedStateCommand
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
+import strikt.assertions.message
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -36,12 +39,16 @@ object StoreImplTest : Spek({
         it("throws exception with empty command buffer") {
             expectThrows<IllegalArgumentException> {
                 StoreImpl(Unit, commandBufferSize = 0)
-            }
+            }.message
+                .isNotNull()
+                .contains("bufferSize must be positive. Was: 0")
         }
         it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
                 StoreImpl(Unit, commandBufferSize = -1)
-            }
+            }.message
+                .isNotNull()
+                .contains("bufferSize must be positive. Was: -1")
         }
     }
     describe("A minimal store") {
@@ -73,7 +80,9 @@ object StoreImplTest : Spek({
             it("throws exception when started") {
                 expectThrows<IllegalStateException> {
                     store.start(scope)
-                }
+                }.message
+                    .isNotNull()
+                    .contains("Store has already been started")
             }
             it("has its job cancelled after its scope was cancelled") {
                 scope.cancel("Cancelling scope to test job cancellation")
@@ -102,12 +111,16 @@ object StoreImplTest : Spek({
                 it("throws exception when started") {
                     expectThrows<IllegalStateException> {
                         store.start(scope)
-                    }
+                    }.message
+                        .isNotNull()
+                        .contains("Store has already been started")
                 }
                 it("throws exception when a command is issued") {
                     expectThrows<IllegalStateException> {
                         store.issue { "shouldThrow".only() }
-                    }
+                    }.message
+                        .isNotNull()
+                        .contains("Store has been stopped")
                 }
                 it("currentState returns initial") {
                     val result = store.currentState

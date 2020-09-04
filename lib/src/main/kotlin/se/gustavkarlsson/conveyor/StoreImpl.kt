@@ -5,7 +5,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
@@ -37,15 +36,31 @@ internal class StoreImpl<State>(
 
     private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
 
-    private val storeStarter = StoreStarter(initialActions, commandProcessor)
+    private val initialActions = AtomicReference(initialActions)
 
     override fun start(scope: CoroutineScope): Job {
-        val job = storeStarter.start(scope)
+        val actions = takeInitialActions()
+        val job = scope.launch {
+            actions.removeAll { action ->
+                launch { action.execute(commandProcessor) }
+                true
+            }
+            commandProcessor.process { action ->
+                launch { action.execute(commandProcessor) }
+            }
+        }
         job.invokeOnCompletion { throwable ->
             commandProcessor.close(throwable)
             stateHolder.close(throwable)
         }
         return job
+    }
+
+    private fun takeInitialActions(): MutableIterable<Action<State>> {
+        val actions = checkNotNull(initialActions.getAndSet(null)) {
+            "Store has already been started"
+        }
+        return ArrayDeque(actions.toList())
     }
 
     override suspend fun issue(command: Command<State>) = commandProcessor.issue(command)
@@ -87,12 +102,10 @@ private class CommandProcessor<State>(
 
     private val channel = Channel<Command<State>>(bufferSize)
 
-    override suspend fun issue(command: Command<State>) =
-        try {
-            channel.send(command)
-        } catch (e: ClosedSendChannelException) {
-            throw IllegalStateException("Store has been stopped", e)
-        }
+    override suspend fun issue(command: Command<State>) {
+        check(!channel.isClosedForSend) { "Store has been stopped" }
+        channel.send(command)
+    }
 
     suspend fun process(onAction: suspend (Action<State>) -> Unit) =
         channel.consumeEach { command ->
@@ -106,33 +119,5 @@ private class CommandProcessor<State>(
 
     fun close(cause: Throwable?) {
         channel.close(cause)
-    }
-}
-
-@ExperimentalCoroutinesApi
-private class StoreStarter<State>(
-    initialActions: Iterable<Action<State>>,
-    private val commandProcessor: CommandProcessor<State>,
-) {
-    private val initialActions = AtomicReference(initialActions)
-
-    fun start(scope: CoroutineScope): Job {
-        val actions = takeInitialActions()
-        return scope.launch {
-            actions.removeAll { action ->
-                launch { action.execute(commandProcessor) }
-                true
-            }
-            commandProcessor.process { action ->
-                launch { action.execute(commandProcessor) }
-            }
-        }
-    }
-
-    private fun takeInitialActions(): MutableIterable<Action<State>> {
-        val actions = checkNotNull(initialActions.getAndSet(null)) {
-            "Store has already been started"
-        }
-        return ArrayDeque(actions.toList())
     }
 }
