@@ -42,14 +42,14 @@ object StoreImplTest : Spek({
                 StoreImpl(Unit, commandBufferSize = 0)
             }.message
                 .isNotNull()
-                .contains("bufferSize must be positive. Was: 0")
+                .contains(bufferSizeErrorMessage(0))
         }
         it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
                 StoreImpl(Unit, commandBufferSize = -1)
             }.message
                 .isNotNull()
-                .contains("bufferSize must be positive. Was: -1")
+                .contains(bufferSizeErrorMessage(-1))
         }
     }
     describe("A minimal store") {
@@ -83,7 +83,7 @@ object StoreImplTest : Spek({
                     store.start(scope)
                 }.message
                     .isNotNull()
-                    .contains("Store has already been started")
+                    .contains(STORE_STARTED_ERROR_MESSAGE)
             }
             it("has its job cancelled after its scope was cancelled") {
                 scope.cancel("Cancelling scope to test job cancellation")
@@ -114,14 +114,14 @@ object StoreImplTest : Spek({
                         store.start(scope)
                     }.message
                         .isNotNull()
-                        .contains("Store has already been started")
+                        .contains(STORE_STARTED_ERROR_MESSAGE)
                 }
                 it("throws exception when a command is issued") {
                     expectThrows<IllegalStateException> {
                         store.issue { Change("shouldThrow") }
                     }.message
                         .isNotNull()
-                        .contains("Store has been stopped")
+                        .contains(STORE_STOPPED_ERROR_MESSAGE)
                 }
                 it("currentState returns initial") {
                     val result = store.currentState

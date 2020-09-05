@@ -16,12 +16,10 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
-private const val DEFAULT_BUFFER_SIZE = 64
-
-// TODO Add support for cold sources? https://www.halfbit.de/posts/external-events-in-knot/
 // TODO Add support for watchers?
 // TODO Add support for side effects/events/interceptors
 // TODO React to state/changes?
@@ -31,36 +29,17 @@ private const val DEFAULT_BUFFER_SIZE = 64
 internal class StoreImpl<State>(
     initialState: State,
     initialActions: Iterable<Action<State>> = emptyList(),
-    onlineActions: Iterable<Action<State>> = emptyList(), // TODO clear somehow after cancellation
+    onlineActions: Iterable<Action<State>> = emptyList(),
     commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : Store<State> {
 
     private val stateHolder = StateHolder(initialState)
 
-    // TODO Extract into own class
-    private val onlineCount = AtomicInteger(0)
-    private val onlineActionSignals = Channel<Boolean>(Channel.CONFLATED) // TODO use Enum instead
-    private val onlineActionsFlow = onlineActionSignals.consumeAsFlow()
-        .distinctUntilChanged()
-        .mapLatest { active ->
-            if (active) {
-                onlineActions
-            } else {
-                emptyList()
-            }
-        }
+    private val onlineActionsProcessor = OnlineActionsProcessor(onlineActions)
 
     override val state = stateHolder.flow
-        .onStart {
-            if (onlineCount.incrementAndGet() == 1) {
-                onlineActionSignals.send(true)
-            }
-        }
-        .onCompletion {
-            if (onlineCount.decrementAndGet() == 0) {
-                onlineActionSignals.send(false)
-            }
-        }
+        .onStart { onlineActionsProcessor.increaseOnlineCount() }
+        .onCompletion { onlineActionsProcessor.decreaseOnlineCount() }
 
     override val currentState get() = stateHolder.get()
 
@@ -68,25 +47,28 @@ internal class StoreImpl<State>(
 
     private val initialActions = AtomicReference(initialActions)
 
+    private val started = AtomicBoolean(false)
+
     override fun start(scope: CoroutineScope): Job {
+        check(!started.getAndSet(true)) { STORE_STARTED_ERROR_MESSAGE }
         val job = scope.launch {
             launch {
-                onlineActionsFlow.collectLatest { actions ->
-                    for (action in actions) {
-                        launch { action.execute(commandProcessor) }
-                    }
+                onlineActionsProcessor.process { action ->
+                    launch { action.execute(commandProcessor) }
                 }
             }
             takeInitialActions().removeAll { action ->
                 launch { action.execute(commandProcessor) }
                 true
             }
-            commandProcessor.process { action ->
-                launch { action.execute(commandProcessor) }
+            launch {
+                commandProcessor.process { action ->
+                    launch { action.execute(commandProcessor) }
+                }
             }
         }
         job.invokeOnCompletion { throwable ->
-            onlineActionSignals.close(throwable)
+            onlineActionsProcessor.close(throwable)
             commandProcessor.close(throwable)
             stateHolder.close(throwable)
         }
@@ -94,9 +76,7 @@ internal class StoreImpl<State>(
     }
 
     private fun takeInitialActions(): MutableIterable<Action<State>> {
-        val actions = checkNotNull(initialActions.getAndSet(null)) {
-            "Store has already been started"
-        }
+        val actions = checkNotNull(initialActions.getAndSet(null))
         return ArrayDeque(actions.toList())
     }
 
@@ -111,9 +91,7 @@ private class StateHolder<State>(initialState: State) {
     fun get(): State = channel.value
 
     fun set(state: State) {
-        check(channel.offer(state)) {
-            "Failed to set state, channel over capacity"
-        }
+        check(channel.offer(state))
     }
 
     val flow: Flow<State> =
@@ -133,14 +111,14 @@ private class CommandProcessor<State>(
 ) : CommandIssuer<State> {
     init {
         require(bufferSize > 0) {
-            "bufferSize must be positive. Was: $bufferSize"
+            bufferSizeErrorMessage(bufferSize)
         }
     }
 
     private val channel = Channel<Command<State>>(bufferSize)
 
     override suspend fun issue(command: Command<State>) {
-        check(!channel.isClosedForSend) { "Store has been stopped" }
+        check(!channel.isClosedForSend) { STORE_STOPPED_ERROR_MESSAGE }
         channel.send(command)
     }
 
@@ -158,3 +136,54 @@ private class CommandProcessor<State>(
         channel.close(cause)
     }
 }
+
+// TODO more testing required
+@ExperimentalCoroutinesApi
+private class OnlineActionsProcessor<State>(actions: Iterable<Action<State>>) {
+    private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
+
+    private var actions: Iterable<Action<State>>? = actions.toList()
+
+    private val flow = toggleChannel.consumeAsFlow()
+        .distinctUntilChanged()
+        .mapLatest { toggle ->
+            when (toggle) {
+                Toggle.Enable -> requireNotNull(this.actions)
+                Toggle.Disable -> emptyList()
+            }
+        }
+
+    private val onlineCount = AtomicInteger(0)
+
+    suspend fun increaseOnlineCount() {
+        if (onlineCount.incrementAndGet() == 1) {
+            toggleChannel.send(Toggle.Enable)
+        }
+    }
+
+    suspend fun decreaseOnlineCount() {
+        if (onlineCount.decrementAndGet() == 0) {
+            toggleChannel.send(Toggle.Disable)
+        }
+    }
+
+    suspend fun process(onAction: suspend (Action<State>) -> Unit) =
+        flow.collectLatest { actions ->
+            for (action in actions) {
+                onAction(action)
+            }
+        }
+
+    fun close(cause: Throwable?) {
+        toggleChannel.close(cause)
+        actions = null
+    }
+
+    private enum class Toggle { Enable, Disable }
+}
+
+private const val DEFAULT_BUFFER_SIZE = 64
+internal const val STORE_STOPPED_ERROR_MESSAGE = "Store has been stopped"
+internal const val STORE_STARTED_ERROR_MESSAGE = "Store has already been started"
+
+internal fun bufferSizeErrorMessage(size: Int) = "bufferSize must be positive. Was: $size"
