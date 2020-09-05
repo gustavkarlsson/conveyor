@@ -140,7 +140,7 @@ private class InitialActionsProcessor<State>(
     private val actions = AtomicReference(actions.toList())
 
     suspend fun process(block: suspend (executeAction: suspend () -> Unit) -> Unit) {
-        with(consumeInitialActions()) {
+        with(consumeActions()) {
             while (hasNext()) {
                 val action = next()
                 remove()
@@ -149,7 +149,7 @@ private class InitialActionsProcessor<State>(
         }
     }
 
-    private fun consumeInitialActions(): MutableIterator<Action<State>> {
+    private fun consumeActions(): MutableIterator<Action<State>> {
         val actions = checkNotNull(actions.getAndSet(null))
         return actions.toMutableList().iterator()
     }
