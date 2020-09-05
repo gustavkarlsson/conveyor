@@ -41,7 +41,7 @@ internal class StoreImpl<State>(
     private val liveActionsProcessor = LiveActionsProcessor(liveActions, commandProcessor)
 
     override val state = stateHolder.flow
-        .onStart { liveActionsProcessor.increaseliveCount() }
+        .onStart { liveActionsProcessor.increaseLiveCount() }
         .onCompletion { liveActionsProcessor.decreaseLiveCount() }
 
     override val currentState get() = stateHolder.get()
@@ -170,7 +170,7 @@ private class LiveActionsProcessor<State>(
 
     private val liveCount = AtomicInteger(0)
 
-    suspend fun increaseliveCount() {
+    suspend fun increaseLiveCount() {
         if (liveCount.incrementAndGet() == 1) {
             toggleChannel.send(Toggle.Enable)
         }
