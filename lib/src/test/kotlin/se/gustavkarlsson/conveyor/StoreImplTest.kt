@@ -6,9 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
@@ -169,14 +167,11 @@ object StoreImplTest : Spek({
             store.start(scope)
             expectThat(store.currentState).isEqualTo(initialState)
         }
-        // FIXME flaky test. Because of onlineScope?
         it("the state changes after started and first collector runs") {
             store.start(scope)
-            lateinit var result: String
             runBlockingTest {
-                result = store.state.drop(1).take(1).first()
+                store.state.first { it == afterCommandState }
             }
-            expectThat(result).isEqualTo(afterCommandState)
         }
     }
     describe("A started store with one delayed initial action") {

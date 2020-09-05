@@ -1,20 +1,22 @@
 package se.gustavkarlsson.conveyor
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
 private const val DEFAULT_BUFFER_SIZE = 64
@@ -29,45 +31,35 @@ private const val DEFAULT_BUFFER_SIZE = 64
 internal class StoreImpl<State>(
     initialState: State,
     initialActions: Iterable<Action<State>> = emptyList(),
-    private val onlineActions: Iterable<Action<State>> = emptyList(),
+    onlineActions: Iterable<Action<State>> = emptyList(), // TODO clear somehow after cancellation
     commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : Store<State> {
 
     private val stateHolder = StateHolder(initialState)
 
-    private var onlineScope: CoroutineScope? = null
-    private var onlineCount = 0
+    // TODO Extract into own class
+    private val onlineCount = AtomicInteger(0)
+    private val onlineActionSignals = Channel<Boolean>(Channel.CONFLATED) // TODO use Enum instead
+    private val onlineActionsFlow = onlineActionSignals.consumeAsFlow()
+        .distinctUntilChanged()
+        .mapLatest { active ->
+            if (active) {
+                onlineActions
+            } else {
+                emptyList()
+            }
+        }
 
     override val state = stateHolder.flow
         .onStart {
-            val newScope = synchronized(this@StoreImpl) {
-                if (++onlineCount == 1) {
-                    // Just came online
-                    check(onlineScope == null)
-                    onlineScope = CoroutineScope(Job())
-                    onlineScope
-                } else {
-                    null
-                }
-            }
-            newScope?.launch {
-                for (action in onlineActions) {
-                    launch { action.execute(commandProcessor) }
-                }
+            if (onlineCount.incrementAndGet() == 1) {
+                onlineActionSignals.send(true)
             }
         }
-        .onCompletion { cause ->
-            val scopeToCancel = synchronized(this@StoreImpl) {
-                if (--onlineCount == 0) {
-                    // Just came offline
-                    val existingScope = onlineScope
-                    onlineScope = null
-                    existingScope
-                } else {
-                    null
-                }
+        .onCompletion {
+            if (onlineCount.decrementAndGet() == 0) {
+                onlineActionSignals.send(false)
             }
-            scopeToCancel?.cancel(cause as? CancellationException)
         }
 
     override val currentState get() = stateHolder.get()
@@ -77,9 +69,15 @@ internal class StoreImpl<State>(
     private val initialActions = AtomicReference(initialActions)
 
     override fun start(scope: CoroutineScope): Job {
-        val actions = takeInitialActions()
         val job = scope.launch {
-            actions.removeAll { action ->
+            launch {
+                onlineActionsFlow.collectLatest { actions ->
+                    for (action in actions) {
+                        launch { action.execute(commandProcessor) }
+                    }
+                }
+            }
+            takeInitialActions().removeAll { action ->
                 launch { action.execute(commandProcessor) }
                 true
             }
@@ -88,7 +86,7 @@ internal class StoreImpl<State>(
             }
         }
         job.invokeOnCompletion { throwable ->
-            onlineScope?.cancel(throwable as? CancellationException)
+            onlineActionSignals.close(throwable)
             commandProcessor.close(throwable)
             stateHolder.close(throwable)
         }
