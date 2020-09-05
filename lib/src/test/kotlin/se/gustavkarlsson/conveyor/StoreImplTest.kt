@@ -13,6 +13,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.actions.SingleAction
+import se.gustavkarlsson.conveyor.actions.VoidAction
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
 import strikt.api.expect
 import strikt.api.expectThat
@@ -117,7 +118,7 @@ object StoreImplTest : Spek({
                 }
                 it("throws exception when a command is issued") {
                     expectThrows<IllegalStateException> {
-                        store.issue { "shouldThrow".only() }
+                        store.issue { Change("shouldThrow") }
                     }.message
                         .isNotNull()
                         .contains("Store has been stopped")
@@ -222,7 +223,7 @@ object StoreImplTest : Spek({
         }
         it("a command with a delayed action does not delay initial actions") {
             val command = Command<String> { oldState ->
-                oldState.withVoid { delay(500) }
+                Change(oldState, VoidAction { delay(500) })
             }
             runBlockingTest {
                 store.issue(command)

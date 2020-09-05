@@ -1,10 +1,12 @@
-package se.gustavkarlsson.conveyor
+package se.gustavkarlsson.conveyor.changebuilders
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.Change
+import se.gustavkarlsson.conveyor.CommandIssuer
 import se.gustavkarlsson.conveyor.test.Counter
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
 import se.gustavkarlsson.conveyor.test.NullAction
@@ -17,6 +19,7 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
+@OptIn(ExperimentalChangeBuilder::class)
 @ExperimentalCoroutinesApi
 object ChangeBuildersTest : Spek({
     val state = "state"
