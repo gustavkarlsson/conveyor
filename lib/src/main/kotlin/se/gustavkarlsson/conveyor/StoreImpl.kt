@@ -72,6 +72,8 @@ internal class StoreImpl<State>(
         }
         commandProcessor.issue(command)
     }
+
+    private enum class Stage { Initial, Started, Stopped }
 }
 
 @FlowPreview
@@ -196,8 +198,6 @@ private class LiveActionsProcessor<State>(
 
     private enum class Toggle { Enable, Disable }
 }
-
-private enum class Stage { Initial, Started, Stopped }
 
 private const val DEFAULT_BUFFER_SIZE = 64
 internal const val STORE_STOPPED_ERROR_MESSAGE = "Store has been stopped"
