@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference
 internal class StoreImpl<State>(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
-    onlineActions: Iterable<Action<State>> = emptyList(),
+    liveActions: Iterable<Action<State>> = emptyList(),
     commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : Store<State> {
 
@@ -38,11 +38,11 @@ internal class StoreImpl<State>(
 
     private val startActionsProcessor = StartActionsProcessor(startActions, commandProcessor)
 
-    private val onlineActionsProcessor = OnlineActionsProcessor(onlineActions, commandProcessor)
+    private val liveActionsProcessor = LiveActionsProcessor(liveActions, commandProcessor)
 
     override val state = stateHolder.flow
-        .onStart { onlineActionsProcessor.increaseOnlineCount() }
-        .onCompletion { onlineActionsProcessor.decreaseOnlineCount() }
+        .onStart { liveActionsProcessor.increaseliveCount() }
+        .onCompletion { liveActionsProcessor.decreaseLiveCount() }
 
     override val currentState get() = stateHolder.get()
 
@@ -55,11 +55,11 @@ internal class StoreImpl<State>(
         val job = scope.launch {
             launch { commandProcessor.process(scope) }
             launch { startActionsProcessor.process(scope) }
-            launch { onlineActionsProcessor.process(scope) }
+            launch { liveActionsProcessor.process(scope) }
         }
         job.invokeOnCompletion { throwable ->
             stage.set(Stage.Stopped)
-            onlineActionsProcessor.close(throwable)
+            liveActionsProcessor.close(throwable)
             commandProcessor.close(throwable)
             stateHolder.close(throwable)
         }
@@ -151,7 +151,7 @@ private class StartActionsProcessor<State>(
 
 // TODO more testing required
 @ExperimentalCoroutinesApi
-private class OnlineActionsProcessor<State>(
+private class LiveActionsProcessor<State>(
     actions: Iterable<Action<State>>,
     private val commandIssuer: CommandIssuer<State>,
 ) {
@@ -168,16 +168,16 @@ private class OnlineActionsProcessor<State>(
             }
         }
 
-    private val onlineCount = AtomicInteger(0)
+    private val liveCount = AtomicInteger(0)
 
-    suspend fun increaseOnlineCount() {
-        if (onlineCount.incrementAndGet() == 1) {
+    suspend fun increaseliveCount() {
+        if (liveCount.incrementAndGet() == 1) {
             toggleChannel.send(Toggle.Enable)
         }
     }
 
-    suspend fun decreaseOnlineCount() {
-        if (onlineCount.decrementAndGet() == 0) {
+    suspend fun decreaseLiveCount() {
+        if (liveCount.decrementAndGet() == 0) {
             toggleChannel.send(Toggle.Disable)
         }
     }

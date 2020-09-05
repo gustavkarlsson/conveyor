@@ -165,9 +165,9 @@ object StoreImplTest : Spek({
             expectThat(store.currentState).isEqualTo(fixedStateCommandState)
         }
     }
-    describe("A store with one simple online action") {
+    describe("A store with one simple live action") {
         val store by memoized {
-            StoreImpl(initialState, onlineActions = listOf(fixedStateAction))
+            StoreImpl(initialState, liveActions = listOf(fixedStateAction))
         }
 
         it("the state does not change before starting") {
