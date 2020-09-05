@@ -35,6 +35,10 @@ internal class StoreImpl<State>(
 
     private val stateHolder = StateHolder(initialState)
 
+    private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
+
+    private val initialActionsProcessor = InitialActionsProcessor(initialActions)
+
     private val onlineActionsProcessor = OnlineActionsProcessor(onlineActions)
 
     override val state = stateHolder.flow
@@ -43,26 +47,23 @@ internal class StoreImpl<State>(
 
     override val currentState get() = stateHolder.get()
 
-    private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
-
-    private val initialActions = AtomicReference(initialActions)
-
     private val started = AtomicBoolean(false)
 
     override fun start(scope: CoroutineScope): Job {
         check(!started.getAndSet(true)) { STORE_STARTED_ERROR_MESSAGE }
         val job = scope.launch {
             launch {
-                onlineActionsProcessor.process { action ->
+                commandProcessor.process { action ->
                     launch { action.execute(commandProcessor) }
                 }
             }
-            takeInitialActions().removeAll { action ->
-                launch { action.execute(commandProcessor) }
-                true
+            launch {
+                initialActionsProcessor.process { action ->
+                    launch { action.execute(commandProcessor) }
+                }
             }
             launch {
-                commandProcessor.process { action ->
+                onlineActionsProcessor.process { action ->
                     launch { action.execute(commandProcessor) }
                 }
             }
@@ -73,11 +74,6 @@ internal class StoreImpl<State>(
             stateHolder.close(throwable)
         }
         return job
-    }
-
-    private fun takeInitialActions(): MutableIterable<Action<State>> {
-        val actions = checkNotNull(initialActions.getAndSet(null))
-        return ArrayDeque(actions.toList())
     }
 
     override suspend fun issue(command: Command<State>) = commandProcessor.issue(command)
@@ -134,6 +130,27 @@ private class CommandProcessor<State>(
 
     fun close(cause: Throwable?) {
         channel.close(cause)
+    }
+}
+
+private class InitialActionsProcessor<State>(
+    actions: Iterable<Action<State>>
+) {
+    private val actions = AtomicReference(actions.toList())
+
+    suspend fun process(onAction: suspend (Action<State>) -> Unit) {
+        with(consumeInitialActions()) {
+            while (hasNext()) {
+                val action = next()
+                remove()
+                onAction(action)
+            }
+        }
+    }
+
+    private fun consumeInitialActions(): MutableIterator<Action<State>> {
+        val actions = checkNotNull(actions.getAndSet(null))
+        return actions.toMutableList().iterator()
     }
 }
 
