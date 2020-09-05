@@ -1,7 +1,5 @@
 package se.gustavkarlsson.conveyor.actions
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -11,8 +9,6 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.util.concurrent.atomic.AtomicInteger
 
-@ExperimentalCoroutinesApi
-@FlowPreview
 object VoidActionTest : Spek({
     val nullIssuer = object : CommandIssuer<Nothing> {
         override suspend fun issue(command: Command<Nothing>) = Unit

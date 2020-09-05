@@ -1,7 +1,5 @@
 package se.gustavkarlsson.conveyor.actions
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -11,8 +9,6 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
-@ExperimentalCoroutinesApi
-@FlowPreview
 object SingleActionTest : Spek({
     val command = FixedStateCommand(Unit)
     val issuer by memoized { TrackingCommandIssuer<Unit>() }

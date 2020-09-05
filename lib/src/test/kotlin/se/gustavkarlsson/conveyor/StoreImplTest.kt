@@ -1,7 +1,5 @@
 package se.gustavkarlsson.conveyor
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
@@ -10,12 +8,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.actions.SingleAction
 import se.gustavkarlsson.conveyor.actions.VoidAction
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
+import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -26,8 +24,6 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 import strikt.assertions.message
 
-@ExperimentalCoroutinesApi
-@FlowPreview
 object StoreImplTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
@@ -76,20 +72,19 @@ object StoreImplTest : Spek({
         }
 
         it("state emits initial") {
-            runBlockingTest {
-                val result = store.state.first()
-                expectThat(result).isEqualTo(initialState)
+            val result = runBlockingTest {
+                store.state.first()
             }
+            expectThat(result).isEqualTo(initialState)
         }
         it("currentState returns initial") {
             val result = store.currentState
             expectThat(result).isEqualTo(initialState)
         }
         it("state emits initial after issuing command that changes state") {
-            lateinit var result: String
-            runBlockingTest {
+            val result = runBlockingTest {
                 store.issue(fixedStateCommand1)
-                result = store.state.first()
+                store.state.first()
             }
             expectThat(result).isEqualTo(initialState)
         }
@@ -100,12 +95,11 @@ object StoreImplTest : Spek({
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("state emits initial and new state when issuing command that changes state and then starting") {
-            lateinit var result: List<String>
-            runBlockingTest {
+            val result = runBlockingTest {
                 val job = async { store.state.take(2).toList() }
                 store.issue(fixedStateCommand1)
                 store.start(scope)
-                result = job.await()
+                job.await()
             }
             expectThat(result).containsExactly(initialState, state1)
         }
@@ -138,18 +132,18 @@ object StoreImplTest : Spek({
                 expectThat(job.isCancelled).isTrue()
             }
             it("state emits initial") {
-                runBlockingTest {
-                    val result = store.state.first()
-                    expectThat(result).isEqualTo(initialState)
+                val result = runBlockingTest {
+                    store.state.first()
                 }
+                expectThat(result).isEqualTo(initialState)
             }
             it("existing state subscription ends when job is cancelled") {
-                runBlockingTest {
+                val result = runBlockingTest {
                     val deferred = async { store.state.toList() }
                     job.cancel("Purposefully cancelled")
-                    val result = deferred.await()
-                    expectThat(result).containsExactly(initialState)
+                    deferred.await()
                 }
+                expectThat(result).containsExactly(initialState)
             }
 
             describe("and had its job explicitly cancelled") {
@@ -176,10 +170,10 @@ object StoreImplTest : Spek({
                     expectThat(result).isEqualTo(initialState)
                 }
                 it("state emits initial and then closes") {
-                    runBlockingTest {
-                        val result = store.state.toList()
-                        expectThat(result).containsExactly(initialState)
+                    val result = runBlockingTest {
+                        store.state.toList()
                     }
+                    expectThat(result).containsExactly(initialState)
                 }
             }
         }
