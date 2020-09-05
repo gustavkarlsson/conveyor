@@ -10,16 +10,6 @@ import se.gustavkarlsson.conveyor.actions.MultiAction
 import se.gustavkarlsson.conveyor.actions.SingleAction
 import se.gustavkarlsson.conveyor.actions.VoidAction
 
-@RequiresOptIn(message = "This API is experimental. To ensure stability, use a Change constructor instead.")
-@Retention(AnnotationRetention.BINARY)
-@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
-public annotation class ExperimentalChangeBuilder
-
-// TODO consider visibility of these extensions.
-//  Should they be encapsulated in a DSL?
-//  What about state.with(action).with(action) returning the wrong type?
-//
-
 @ExperimentalChangeBuilder
 public fun <State> State.only(): Change<State> = Change(this)
 
@@ -58,38 +48,3 @@ public fun <State> State.withMulti(
 public fun <State> State.withFlow(
     flow: Flow<Command<State>>
 ): Change<State> = with(FlowAction(flow))
-
-@ExperimentalChangeBuilder
-public fun <State> Change<State>.and(
-    actions: List<Action<State>?>
-): Change<State> = copy(actions = (this.actions + actions).filterNotNull())
-
-@ExperimentalChangeBuilder
-public fun <State> Change<State>.and(
-    vararg actions: Action<State>?
-): Change<State> = and(actions.asList())
-
-@ExperimentalChangeBuilder
-public fun <State> Change<State>.and(
-    action: Action<State>?
-): Change<State> = and(listOf(action))
-
-@ExperimentalChangeBuilder
-public fun <State> Change<State>.andVoid(
-    block: suspend () -> Unit
-): Change<State> = and(VoidAction(block))
-
-@ExperimentalChangeBuilder
-public fun <State> Change<State>.andSingle(
-    block: suspend () -> Command<State>
-): Change<State> = and(SingleAction(block))
-
-@ExperimentalChangeBuilder
-public fun <State> Change<State>.andMulti(
-    block: suspend CommandIssuer<State>.() -> Unit
-): Change<State> = and(MultiAction(block))
-
-@ExperimentalChangeBuilder
-public fun <State> Change<State>.andFlow(
-    flow: Flow<Command<State>>
-): Change<State> = and(FlowAction(flow))
