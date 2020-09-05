@@ -47,5 +47,5 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-group = "se.gustavkarlsson"
+group = "se.gustavkarlsson.conveyor"
 version = "1.0-SNAPSHOT"
