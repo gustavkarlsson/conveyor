@@ -29,6 +29,9 @@ import strikt.assertions.message
 @FlowPreview
 object StoreImplTest : Spek({
     val initialState = "initial"
+    val fixedStateCommandState = "after_command"
+    val fixedStateCommand = FixedStateCommand(fixedStateCommandState)
+    val fixedStateAction = SingleAction { fixedStateCommand }
     val scope by memoized(
         factory = { TestCoroutineScope(Job()) },
         destructor = {
@@ -36,6 +39,7 @@ object StoreImplTest : Spek({
             it.cleanupTestCoroutines()
         }
     )
+
     describe("Store creation") {
         it("throws exception with empty command buffer") {
             expectThrows<IllegalArgumentException> {
@@ -67,13 +71,25 @@ object StoreImplTest : Spek({
             val result = store.currentState
             expectThat(result).isEqualTo(initialState)
         }
+        it("currentState returns initial after issuing command") {
+            runBlockingTest {
+                store.issue { Change(fixedStateCommandState) }
+            }
+            expectThat(store.currentState).isEqualTo(initialState)
+        }
+        it("currentState returns new state after issuing command and then starting") {
+            runBlockingTest {
+                store.issue { Change(fixedStateCommandState) }
+            }
+            store.start(scope)
+            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
+        }
 
         describe("that was started") {
             lateinit var job: Job
             beforeEachTest {
                 job = store.start(scope)
             }
-            afterEachTest { }
 
             it("has an active job") {
                 expectThat(job.isActive).isTrue()
@@ -137,11 +153,8 @@ object StoreImplTest : Spek({
         }
     }
     describe("A store with one simple initial action") {
-        val afterCommandState = "after_command"
-        val command = FixedStateCommand(afterCommandState)
-        val action = SingleAction { command }
         val store by memoized {
-            StoreImpl(initialState, initialActions = listOf(action))
+            StoreImpl(initialState, initialActions = listOf(fixedStateAction))
         }
 
         it("the state does not change before starting") {
@@ -149,15 +162,12 @@ object StoreImplTest : Spek({
         }
         it("the state changes when starting") {
             store.start(scope)
-            expectThat(store.currentState).isEqualTo(afterCommandState)
+            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
         }
     }
     describe("A store with one simple online action") {
-        val afterCommandState = "after_command"
-        val command = FixedStateCommand(afterCommandState)
-        val action = SingleAction { command }
         val store by memoized {
-            StoreImpl(initialState, onlineActions = listOf(action))
+            StoreImpl(initialState, onlineActions = listOf(fixedStateAction))
         }
 
         it("the state does not change before starting") {
@@ -170,17 +180,15 @@ object StoreImplTest : Spek({
         it("the state changes after started and first collector runs") {
             store.start(scope)
             runBlockingTest {
-                store.state.first { it == afterCommandState }
+                store.state.first { it == fixedStateCommandState }
             }
         }
     }
     describe("A started store with one delayed initial action") {
-        val afterCommandState = "after_command"
-        val command = FixedStateCommand(afterCommandState)
         val delayMillis = 1000L
         val action = SingleAction {
             delay(delayMillis)
-            command
+            fixedStateCommand
         }
         val store by memoized {
             StoreImpl(initialState, initialActions = listOf(action))
@@ -194,7 +202,7 @@ object StoreImplTest : Spek({
         }
         it("the state changes after the delay has passed") {
             scope.advanceTimeBy(delayMillis)
-            expectThat(store.currentState).isEqualTo(afterCommandState)
+            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
         }
         it("the state does not change if its scope was cancelled before the delay has passed") {
             scope.cancel("Purposefully cancelled")
@@ -233,14 +241,13 @@ object StoreImplTest : Spek({
             expectThat(store.currentState).isEqualTo(afterCommand2State)
         }
         it("a command changes state immediately") {
-            val afterIssuedCommandState = "after_issued_command"
             runBlockingTest {
-                store.issue(FixedStateCommand(afterIssuedCommandState))
+                store.issue(fixedStateCommand)
             }
-            expectThat(store.currentState).isEqualTo(afterIssuedCommandState)
+            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
             expect {
                 that(scope.currentTime).isEqualTo(0)
-                that(store.currentState).isEqualTo(afterIssuedCommandState)
+                that(store.currentState).isEqualTo(fixedStateCommandState)
             }
         }
         it("a command with a delayed action does not delay initial actions") {

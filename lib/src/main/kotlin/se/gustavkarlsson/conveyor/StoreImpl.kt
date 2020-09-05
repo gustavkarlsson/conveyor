@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
@@ -47,16 +46,19 @@ internal class StoreImpl<State>(
 
     override val currentState get() = stateHolder.get()
 
-    private val started = AtomicBoolean(false)
+    private val stage = AtomicReference(Stage.Initial)
 
     override fun start(scope: CoroutineScope): Job {
-        check(!started.getAndSet(true)) { STORE_STARTED_ERROR_MESSAGE }
+        check(stage.compareAndSet(Stage.Initial, Stage.Started)) {
+            STORE_STARTED_ERROR_MESSAGE
+        }
         val job = scope.launch {
             launch { commandProcessor.process(scope) }
             launch { initialActionsProcessor.process(scope) }
             launch { onlineActionsProcessor.process(scope) }
         }
         job.invokeOnCompletion { throwable ->
+            stage.set(Stage.Stopped)
             onlineActionsProcessor.close(throwable)
             commandProcessor.close(throwable)
             stateHolder.close(throwable)
@@ -64,7 +66,12 @@ internal class StoreImpl<State>(
         return job
     }
 
-    override suspend fun issue(command: Command<State>) = commandProcessor.issue(command)
+    override suspend fun issue(command: Command<State>) {
+        check(stage.get() != Stage.Stopped) {
+            STORE_STOPPED_ERROR_MESSAGE
+        }
+        commandProcessor.issue(command)
+    }
 }
 
 @FlowPreview
@@ -75,7 +82,9 @@ private class StateHolder<State>(initialState: State) {
     fun get(): State = channel.value
 
     fun set(state: State) {
-        check(channel.offer(state))
+        check(channel.offer(state)) {
+            "Failed to set state, channel over capacity"
+        }
     }
 
     val flow: Flow<State> =
@@ -101,10 +110,7 @@ private class CommandProcessor<State>(
 
     private val channel = Channel<Command<State>>(bufferSize)
 
-    override suspend fun issue(command: Command<State>) {
-        check(!channel.isClosedForSend) { STORE_STOPPED_ERROR_MESSAGE }
-        channel.send(command)
-    }
+    override suspend fun issue(command: Command<State>) = channel.send(command)
 
     suspend fun process(scope: CoroutineScope) =
         channel.consumeEach { command ->
@@ -190,6 +196,8 @@ private class OnlineActionsProcessor<State>(
 
     private enum class Toggle { Enable, Disable }
 }
+
+private enum class Stage { Initial, Started, Stopped }
 
 private const val DEFAULT_BUFFER_SIZE = 64
 internal const val STORE_STOPPED_ERROR_MESSAGE = "Store has been stopped"
