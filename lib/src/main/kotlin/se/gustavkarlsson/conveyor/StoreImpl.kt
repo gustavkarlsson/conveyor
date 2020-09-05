@@ -52,21 +52,9 @@ internal class StoreImpl<State>(
     override fun start(scope: CoroutineScope): Job {
         check(!started.getAndSet(true)) { STORE_STARTED_ERROR_MESSAGE }
         val job = scope.launch {
-            launch {
-                commandProcessor.process { executeAction ->
-                    launch { executeAction() }
-                }
-            }
-            launch {
-                initialActionsProcessor.process { executeAction ->
-                    launch { executeAction() }
-                }
-            }
-            launch {
-                onlineActionsProcessor.process { executeAction ->
-                    launch { executeAction() }
-                }
-            }
+            launch { commandProcessor.process(scope) }
+            launch { initialActionsProcessor.process(scope) }
+            launch { onlineActionsProcessor.process(scope) }
         }
         job.invokeOnCompletion { throwable ->
             onlineActionsProcessor.close(throwable)
@@ -118,13 +106,13 @@ private class CommandProcessor<State>(
         channel.send(command)
     }
 
-    suspend fun process(block: (executeAction: suspend () -> Unit) -> Unit) =
+    suspend fun process(scope: CoroutineScope) =
         channel.consumeEach { command ->
             val oldState = getState()
             val (newState, actions) = command.reduce(oldState)
             setState(newState)
             for (action in actions) {
-                block { action.execute(this) }
+                scope.launch { action.execute(this@CommandProcessor) }
             }
         }
 
@@ -139,12 +127,12 @@ private class InitialActionsProcessor<State>(
 ) {
     private val actions = AtomicReference(actions.toList())
 
-    suspend fun process(block: (executeAction: suspend () -> Unit) -> Unit) {
+    suspend fun process(scope: CoroutineScope) {
         with(consumeActions()) {
             while (hasNext()) {
                 val action = next()
                 remove()
-                block { action.execute(commandIssuer) }
+                scope.launch { action.execute(commandIssuer) }
             }
         }
     }
@@ -188,10 +176,10 @@ private class OnlineActionsProcessor<State>(
         }
     }
 
-    suspend fun process(block: (executeAction: suspend () -> Unit) -> Unit) =
+    suspend fun process(scope: CoroutineScope) =
         flow.collectLatest { actions ->
             for (action in actions) {
-                block { action.execute(commandIssuer) }
+                scope.launch { action.execute(commandIssuer) }
             }
         }
 
