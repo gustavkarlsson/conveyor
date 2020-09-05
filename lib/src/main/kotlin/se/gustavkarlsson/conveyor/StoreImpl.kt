@@ -37,9 +37,9 @@ internal class StoreImpl<State>(
 
     private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
 
-    private val initialActionsProcessor = InitialActionsProcessor(initialActions)
+    private val initialActionsProcessor = InitialActionsProcessor(initialActions, commandProcessor)
 
-    private val onlineActionsProcessor = OnlineActionsProcessor(onlineActions)
+    private val onlineActionsProcessor = OnlineActionsProcessor(onlineActions, commandProcessor)
 
     override val state = stateHolder.flow
         .onStart { onlineActionsProcessor.increaseOnlineCount() }
@@ -53,18 +53,18 @@ internal class StoreImpl<State>(
         check(!started.getAndSet(true)) { STORE_STARTED_ERROR_MESSAGE }
         val job = scope.launch {
             launch {
-                commandProcessor.process { action ->
-                    launch { action.execute(commandProcessor) }
+                commandProcessor.process { executeAction ->
+                    launch { executeAction() }
                 }
             }
             launch {
-                initialActionsProcessor.process { action ->
-                    launch { action.execute(commandProcessor) }
+                initialActionsProcessor.process { executeAction ->
+                    launch { executeAction() }
                 }
             }
             launch {
-                onlineActionsProcessor.process { action ->
-                    launch { action.execute(commandProcessor) }
+                onlineActionsProcessor.process { executeAction ->
+                    launch { executeAction() }
                 }
             }
         }
@@ -118,13 +118,13 @@ private class CommandProcessor<State>(
         channel.send(command)
     }
 
-    suspend fun process(onAction: suspend (Action<State>) -> Unit) =
+    suspend fun process(block: suspend (executeAction: suspend () -> Unit) -> Unit) =
         channel.consumeEach { command ->
             val oldState = getState()
             val (newState, actions) = command.reduce(oldState)
             setState(newState)
             for (action in actions) {
-                onAction(action)
+                block { action.execute(this) }
             }
         }
 
@@ -134,16 +134,17 @@ private class CommandProcessor<State>(
 }
 
 private class InitialActionsProcessor<State>(
-    actions: Iterable<Action<State>>
+    actions: Iterable<Action<State>>,
+    private val commandIssuer: CommandIssuer<State>,
 ) {
     private val actions = AtomicReference(actions.toList())
 
-    suspend fun process(onAction: suspend (Action<State>) -> Unit) {
+    suspend fun process(block: suspend (executeAction: suspend () -> Unit) -> Unit) {
         with(consumeInitialActions()) {
             while (hasNext()) {
                 val action = next()
                 remove()
-                onAction(action)
+                block { action.execute(commandIssuer) }
             }
         }
     }
@@ -156,7 +157,10 @@ private class InitialActionsProcessor<State>(
 
 // TODO more testing required
 @ExperimentalCoroutinesApi
-private class OnlineActionsProcessor<State>(actions: Iterable<Action<State>>) {
+private class OnlineActionsProcessor<State>(
+    actions: Iterable<Action<State>>,
+    private val commandIssuer: CommandIssuer<State>,
+) {
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
 
     private var actions: Iterable<Action<State>>? = actions.toList()
@@ -184,10 +188,10 @@ private class OnlineActionsProcessor<State>(actions: Iterable<Action<State>>) {
         }
     }
 
-    suspend fun process(onAction: suspend (Action<State>) -> Unit) =
+    suspend fun process(block: suspend (executeAction: suspend () -> Unit) -> Unit) =
         flow.collectLatest { actions ->
             for (action in actions) {
-                onAction(action)
+                block { action.execute(commandIssuer) }
             }
         }
 
