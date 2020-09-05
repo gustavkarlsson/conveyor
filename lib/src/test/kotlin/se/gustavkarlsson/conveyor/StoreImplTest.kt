@@ -7,6 +7,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
@@ -84,15 +85,33 @@ object StoreImplTest : Spek({
             val result = store.currentState
             expectThat(result).isEqualTo(initialState)
         }
-        it("currentState returns initial after issuing command") {
+        it("state emits initial after issuing command that changes state") {
+            lateinit var result: String
             runBlockingTest {
-                store.issue { Change(state1) }
+                store.issue(fixedStateCommand1)
+                result = store.state.first()
+            }
+            expectThat(result).isEqualTo(initialState)
+        }
+        it("currentState returns initial even after issuing command") {
+            runBlockingTest {
+                store.issue(fixedStateCommand1)
             }
             expectThat(store.currentState).isEqualTo(initialState)
         }
-        it("currentState returns new state after issuing command and then starting") {
+        it("state emits initial and new state when issuing command that changes state and then starting") {
+            lateinit var result: List<String>
             runBlockingTest {
-                store.issue { Change(state1) }
+                val job = async { store.state.take(2).toList() }
+                store.issue(fixedStateCommand1)
+                store.start(scope)
+                result = job.await()
+            }
+            expectThat(result).containsExactly(initialState, state1)
+        }
+        it("currentState returns new state after issuing command that changes state and then starting") {
+            runBlockingTest {
+                store.issue(fixedStateCommand1)
             }
             store.start(scope)
             expectThat(store.currentState).isEqualTo(state1)
