@@ -118,7 +118,7 @@ private class CommandProcessor<State>(
         channel.send(command)
     }
 
-    suspend fun process(block: suspend (executeAction: suspend () -> Unit) -> Unit) =
+    suspend fun process(block: (executeAction: suspend () -> Unit) -> Unit) =
         channel.consumeEach { command ->
             val oldState = getState()
             val (newState, actions) = command.reduce(oldState)
@@ -139,7 +139,7 @@ private class InitialActionsProcessor<State>(
 ) {
     private val actions = AtomicReference(actions.toList())
 
-    suspend fun process(block: suspend (executeAction: suspend () -> Unit) -> Unit) {
+    suspend fun process(block: (executeAction: suspend () -> Unit) -> Unit) {
         with(consumeActions()) {
             while (hasNext()) {
                 val action = next()
@@ -188,7 +188,7 @@ private class OnlineActionsProcessor<State>(
         }
     }
 
-    suspend fun process(block: suspend (executeAction: suspend () -> Unit) -> Unit) =
+    suspend fun process(block: (executeAction: suspend () -> Unit) -> Unit) =
         flow.collectLatest { actions ->
             for (action in actions) {
                 block { action.execute(commandIssuer) }
