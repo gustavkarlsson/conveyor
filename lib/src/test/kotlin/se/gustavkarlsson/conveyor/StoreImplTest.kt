@@ -152,9 +152,9 @@ object StoreImplTest : Spek({
             }
         }
     }
-    describe("A store with one simple initial action") {
+    describe("A store with one simple start action") {
         val store by memoized {
-            StoreImpl(initialState, initialActions = listOf(fixedStateAction))
+            StoreImpl(initialState, startActions = listOf(fixedStateAction))
         }
 
         it("the state does not change before starting") {
@@ -184,14 +184,14 @@ object StoreImplTest : Spek({
             }
         }
     }
-    describe("A started store with one delayed initial action") {
+    describe("A started store with one delayed start action") {
         val delayMillis = 1000L
         val action = SingleAction {
             delay(delayMillis)
             fixedStateCommand
         }
         val store by memoized {
-            StoreImpl(initialState, initialActions = listOf(action))
+            StoreImpl(initialState, startActions = listOf(action))
         }
         beforeEachTest {
             store.start(scope)
@@ -210,7 +210,7 @@ object StoreImplTest : Spek({
             expectThat(store.currentState).isEqualTo(initialState)
         }
     }
-    describe("A started store with two initial delayed actions") {
+    describe("A started store with two delayed start actions") {
         val afterCommand1State = "after_command_1"
         val command1 = FixedStateCommand(afterCommand1State)
         val delay1Millis = 1000L
@@ -226,7 +226,7 @@ object StoreImplTest : Spek({
             command2
         }
         val store by memoized {
-            StoreImpl(initialState, initialActions = listOf(action1, action2))
+            StoreImpl(initialState, startActions = listOf(action1, action2))
         }
         beforeEachTest {
             store.start(scope)
@@ -250,7 +250,7 @@ object StoreImplTest : Spek({
                 that(store.currentState).isEqualTo(fixedStateCommandState)
             }
         }
-        it("a command with a delayed action does not delay initial actions") {
+        it("a command with a delayed action does not delay start actions") {
             val command = Command<String> { oldState ->
                 Change(oldState, VoidAction { delay(500) })
             }

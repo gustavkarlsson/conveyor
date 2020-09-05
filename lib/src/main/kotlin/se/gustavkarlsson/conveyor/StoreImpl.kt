@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReference
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     initialState: State,
-    initialActions: Iterable<Action<State>> = emptyList(),
+    startActions: Iterable<Action<State>> = emptyList(),
     onlineActions: Iterable<Action<State>> = emptyList(),
     commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : Store<State> {
@@ -36,7 +36,7 @@ internal class StoreImpl<State>(
 
     private val commandProcessor = CommandProcessor(commandBufferSize, stateHolder::get, stateHolder::set)
 
-    private val initialActionsProcessor = InitialActionsProcessor(initialActions, commandProcessor)
+    private val startActionsProcessor = StartActionsProcessor(startActions, commandProcessor)
 
     private val onlineActionsProcessor = OnlineActionsProcessor(onlineActions, commandProcessor)
 
@@ -54,7 +54,7 @@ internal class StoreImpl<State>(
         }
         val job = scope.launch {
             launch { commandProcessor.process(scope) }
-            launch { initialActionsProcessor.process(scope) }
+            launch { startActionsProcessor.process(scope) }
             launch { onlineActionsProcessor.process(scope) }
         }
         job.invokeOnCompletion { throwable ->
@@ -127,7 +127,7 @@ private class CommandProcessor<State>(
     }
 }
 
-private class InitialActionsProcessor<State>(
+private class StartActionsProcessor<State>(
     actions: Iterable<Action<State>>,
     private val commandIssuer: CommandIssuer<State>,
 ) {
