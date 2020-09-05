@@ -29,9 +29,22 @@ import strikt.assertions.message
 @FlowPreview
 object StoreImplTest : Spek({
     val initialState = "initial"
-    val fixedStateCommandState = "after_command"
-    val fixedStateCommand = FixedStateCommand(fixedStateCommandState)
-    val fixedStateAction = SingleAction { fixedStateCommand }
+    val state1 = "state1"
+    val state2 = "state2"
+    val fixedStateCommand1 = FixedStateCommand(state1)
+    val fixedStateCommand2 = FixedStateCommand(state2)
+    val fixedStateAction1 = SingleAction { fixedStateCommand1 }
+    val delay5 = 5L
+    val delay10 = 10L
+    val delay20 = 20L
+    val delayAction10 = SingleAction {
+        delay(delay10)
+        fixedStateCommand1
+    }
+    val delayAction20 = SingleAction {
+        delay(delay20)
+        fixedStateCommand2
+    }
     val scope by memoized(
         factory = { TestCoroutineScope(Job()) },
         destructor = {
@@ -73,16 +86,16 @@ object StoreImplTest : Spek({
         }
         it("currentState returns initial after issuing command") {
             runBlockingTest {
-                store.issue { Change(fixedStateCommandState) }
+                store.issue { Change(state1) }
             }
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("currentState returns new state after issuing command and then starting") {
             runBlockingTest {
-                store.issue { Change(fixedStateCommandState) }
+                store.issue { Change(state1) }
             }
             store.start(scope)
-            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
+            expectThat(store.currentState).isEqualTo(state1)
         }
 
         describe("that was started") {
@@ -154,7 +167,7 @@ object StoreImplTest : Spek({
     }
     describe("A store with one simple start action") {
         val store by memoized {
-            StoreImpl(initialState, startActions = listOf(fixedStateAction))
+            StoreImpl(initialState, startActions = listOf(fixedStateAction1))
         }
 
         it("the state does not change before starting") {
@@ -162,12 +175,12 @@ object StoreImplTest : Spek({
         }
         it("the state changes when starting") {
             store.start(scope)
-            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
+            expectThat(store.currentState).isEqualTo(state1)
         }
     }
     describe("A store with one simple live action") {
         val store by memoized {
-            StoreImpl(initialState, liveActions = listOf(fixedStateAction))
+            StoreImpl(initialState, liveActions = listOf(fixedStateAction1))
         }
 
         it("the state does not change before starting") {
@@ -180,18 +193,13 @@ object StoreImplTest : Spek({
         it("the state changes after started and first collector runs") {
             store.start(scope)
             runBlockingTest {
-                store.state.first { it == fixedStateCommandState }
+                store.state.first { it == state1 }
             }
         }
     }
     describe("A started store with one delayed start action") {
-        val delayMillis = 1000L
-        val action = SingleAction {
-            delay(delayMillis)
-            fixedStateCommand
-        }
         val store by memoized {
-            StoreImpl(initialState, startActions = listOf(action))
+            StoreImpl(initialState, startActions = listOf(delayAction10))
         }
         beforeEachTest {
             store.start(scope)
@@ -201,66 +209,52 @@ object StoreImplTest : Spek({
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("the state changes after the delay has passed") {
-            scope.advanceTimeBy(delayMillis)
-            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
+            scope.advanceTimeBy(delay10)
+            expectThat(store.currentState).isEqualTo(state1)
         }
         it("the state does not change if its scope was cancelled before the delay has passed") {
             scope.cancel("Purposefully cancelled")
-            scope.advanceTimeBy(delayMillis)
+            scope.advanceTimeBy(delay10)
             expectThat(store.currentState).isEqualTo(initialState)
         }
     }
     describe("A started store with two delayed start actions") {
-        val afterCommand1State = "after_command_1"
-        val command1 = FixedStateCommand(afterCommand1State)
-        val delay1Millis = 1000L
-        val action1 = SingleAction {
-            delay(delay1Millis)
-            command1
-        }
-        val afterCommand2State = "after_command_2"
-        val command2 = FixedStateCommand(afterCommand2State)
-        val delay2Millis = 2000L
-        val action2 = SingleAction {
-            delay(delay2Millis)
-            command2
-        }
         val store by memoized {
-            StoreImpl(initialState, startActions = listOf(action1, action2))
+            StoreImpl(initialState, startActions = listOf(delayAction10, delayAction20))
         }
         beforeEachTest {
             store.start(scope)
         }
 
         it("the state changes after the first delay has passed") {
-            scope.advanceTimeBy(delay1Millis)
-            expectThat(store.currentState).isEqualTo(afterCommand1State)
+            scope.advanceTimeBy(delay10)
+            expectThat(store.currentState).isEqualTo(state1)
         }
         it("the state changes after the second delay has passed") {
-            scope.advanceTimeBy(delay2Millis)
-            expectThat(store.currentState).isEqualTo(afterCommand2State)
+            scope.advanceTimeBy(delay20)
+            expectThat(store.currentState).isEqualTo(state2)
         }
         it("a command changes state immediately") {
             runBlockingTest {
-                store.issue(fixedStateCommand)
+                store.issue(fixedStateCommand1)
             }
-            expectThat(store.currentState).isEqualTo(fixedStateCommandState)
+            expectThat(store.currentState).isEqualTo(state1)
             expect {
                 that(scope.currentTime).isEqualTo(0)
-                that(store.currentState).isEqualTo(fixedStateCommandState)
+                that(store.currentState).isEqualTo(state1)
             }
         }
         it("a command with a delayed action does not delay start actions") {
             val command = Command<String> { oldState ->
-                Change(oldState, VoidAction { delay(500) })
+                Change(oldState, VoidAction { delay(delay5) })
             }
             runBlockingTest {
                 store.issue(command)
             }
-            scope.advanceTimeBy(delay1Millis)
+            scope.advanceTimeBy(delay10)
             expect {
-                that(scope.currentTime).isEqualTo(delay1Millis)
-                that(store.currentState).isEqualTo(afterCommand1State)
+                that(scope.currentTime).isEqualTo(delay10)
+                that(store.currentState).isEqualTo(state1)
             }
         }
     }
