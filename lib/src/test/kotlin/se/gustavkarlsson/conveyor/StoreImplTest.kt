@@ -141,7 +141,7 @@ object StoreImplTest : Spek({
         val command = FixedStateCommand(afterCommandState)
         val action = SingleAction { command }
         val store by memoized {
-            StoreImpl(initialState, listOf(action))
+            StoreImpl(initialState, initialActions = listOf(action))
         }
 
         it("the state does not change before starting") {
@@ -161,7 +161,7 @@ object StoreImplTest : Spek({
             command
         }
         val store by memoized {
-            StoreImpl(initialState, listOf(action))
+            StoreImpl(initialState, initialActions = listOf(action))
         }
         beforeEachTest {
             store.start(scope)
@@ -196,7 +196,7 @@ object StoreImplTest : Spek({
             command2
         }
         val store by memoized {
-            StoreImpl(initialState, listOf(action1, action2))
+            StoreImpl(initialState, initialActions = listOf(action1, action2))
         }
         beforeEachTest {
             store.start(scope)

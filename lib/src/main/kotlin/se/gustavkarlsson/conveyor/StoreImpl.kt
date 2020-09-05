@@ -1,15 +1,19 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicReference
 
@@ -25,12 +29,46 @@ private const val DEFAULT_BUFFER_SIZE = 64
 internal class StoreImpl<State>(
     initialState: State,
     initialActions: Iterable<Action<State>> = emptyList(),
+    private val onlineActions: Iterable<Action<State>> = emptyList(),
     commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) : Store<State> {
 
     private val stateHolder = StateHolder(initialState)
 
+    private var onlineScope: CoroutineScope? = null
+    private var onlineCount = 0
+
     override val state = stateHolder.flow
+        .onStart {
+            val newScope = synchronized(this@StoreImpl) {
+                if (++onlineCount == 1) {
+                    // Just came online
+                    check(onlineScope == null)
+                    onlineScope = CoroutineScope(Job())
+                    onlineScope
+                } else {
+                    null
+                }
+            }
+            newScope?.launch {
+                for (action in onlineActions) {
+                    launch { action.execute(commandProcessor) }
+                }
+            }
+        }
+        .onCompletion { cause ->
+            val scopeToCancel = synchronized(this@StoreImpl) {
+                if (--onlineCount == 0) {
+                    // Just came offline
+                    val existingScope = checkNotNull(onlineScope)
+                    onlineScope = null
+                    existingScope
+                } else {
+                    null
+                }
+            }
+            scopeToCancel?.cancel(cause as? CancellationException)
+        }
 
     override val currentState get() = stateHolder.get()
 
