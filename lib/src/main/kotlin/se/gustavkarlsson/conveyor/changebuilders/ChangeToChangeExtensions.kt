@@ -10,7 +10,6 @@ import se.gustavkarlsson.conveyor.actions.MultiAction
 import se.gustavkarlsson.conveyor.actions.SingleAction
 import se.gustavkarlsson.conveyor.actions.VoidAction
 
-// TODO Add tests for null values
 @ExperimentalChangeBuilder
 public fun <State> Change<State>.and(
     actions: List<Action<State>?>

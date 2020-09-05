@@ -37,14 +37,17 @@ object ChangeBuildersTest : Spek({
         }
     }
     describe("with") {
-        it("1 action creates Change with that action") {
+        it("action creates Change with that action") {
             expectThat(state.with(action1)).isEqualTo(Change(state, listOf(action1)))
         }
-        it("2 vararg actions creates Change with those actions") {
-            expectThat(state.with(action1, action2)).isEqualTo(Change(state, listOf(action1, action2)))
+        it("null action creates Change with no actions") {
+            expectThat(state.with(null)).isEqualTo(Change(state))
+        }
+        it("vararg actions creates Change with those actions") {
+            expectThat(state.with(action1, null, action2)).isEqualTo(Change(state, listOf(action1, action2)))
         }
         it("list of actions creates Change with those actions") {
-            expectThat(state.with(listOf(action1, action2))).isEqualTo(Change(state, listOf(action1, action2)))
+            expectThat(state.with(listOf(action1, null, action2))).isEqualTo(Change(state, listOf(action1, action2)))
         }
         it("void action creates Change with that action") {
             val change = state.withVoid { counter.increment() }
@@ -89,14 +92,17 @@ object ChangeBuildersTest : Spek({
 
     describe("and") {
         val change = Change(state, listOf(action1))
-        it("action creates Change with that action added ") {
+        it("action creates Change with that action added") {
             expectThat(change.and(action2)).isEqualTo(Change(state, listOf(action1, action2)))
         }
+        it("null action creates equal Change") {
+            expectThat(change.and(null)).isEqualTo(change)
+        }
         it("vararg actions creates Change with those actions added") {
-            expectThat(change.and(action2, action3)).isEqualTo(Change(state, listOf(action1, action2, action3)))
+            expectThat(change.and(action2, null, action3)).isEqualTo(Change(state, listOf(action1, action2, action3)))
         }
         it("list of actions creates Change with those actions added") {
-            expectThat(change.and(listOf(action2, action3)))
+            expectThat(change.and(listOf(action2, null, action3)))
                 .isEqualTo(Change(state, listOf(action1, action2, action3)))
         }
         it("void action creates Change with that action added") {

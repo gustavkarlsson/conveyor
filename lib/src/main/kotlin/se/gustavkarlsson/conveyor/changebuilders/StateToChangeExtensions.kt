@@ -13,7 +13,6 @@ import se.gustavkarlsson.conveyor.actions.VoidAction
 @ExperimentalChangeBuilder
 public fun <State> State.only(): Change<State> = Change(this)
 
-// TODO Add tests for null values
 @ExperimentalChangeBuilder
 public fun <State> State.with(
     actions: List<Action<State>?>
