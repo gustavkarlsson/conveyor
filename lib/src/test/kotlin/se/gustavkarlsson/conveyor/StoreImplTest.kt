@@ -6,7 +6,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.test.runBlockingTest
@@ -150,6 +152,31 @@ object StoreImplTest : Spek({
         it("the state changes when starting") {
             store.start(scope)
             expectThat(store.currentState).isEqualTo(afterCommandState)
+        }
+    }
+    describe("A store with one simple online action") {
+        val afterCommandState = "after_command"
+        val command = FixedStateCommand(afterCommandState)
+        val action = SingleAction { command }
+        val store by memoized {
+            StoreImpl(initialState, onlineActions = listOf(action))
+        }
+
+        it("the state does not change before starting") {
+            expectThat(store.currentState).isEqualTo(initialState)
+        }
+        it("the state does not change when starting") {
+            store.start(scope)
+            expectThat(store.currentState).isEqualTo(initialState)
+        }
+        // FIXME flaky test. Because of onlineScope?
+        it("the state changes after started and first collector runs") {
+            store.start(scope)
+            lateinit var result: String
+            runBlockingTest {
+                result = store.state.drop(1).take(1).first()
+            }
+            expectThat(result).isEqualTo(afterCommandState)
         }
     }
     describe("A started store with one delayed initial action") {

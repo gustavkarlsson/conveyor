@@ -60,7 +60,7 @@ internal class StoreImpl<State>(
             val scopeToCancel = synchronized(this@StoreImpl) {
                 if (--onlineCount == 0) {
                     // Just came offline
-                    val existingScope = checkNotNull(onlineScope)
+                    val existingScope = onlineScope
                     onlineScope = null
                     existingScope
                 } else {
@@ -88,6 +88,7 @@ internal class StoreImpl<State>(
             }
         }
         job.invokeOnCompletion { throwable ->
+            onlineScope?.cancel(throwable as? CancellationException)
             commandProcessor.close(throwable)
             stateHolder.close(throwable)
         }
