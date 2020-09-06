@@ -2,7 +2,7 @@ package se.gustavkarlsson.conveyor
 
 public data class Change<State>(
     val newState: State,
-    val actions: List<Action<State>> = emptyList(),
+    val actions: List<Action<State>>,
 ) {
     public constructor(
         newState: State,

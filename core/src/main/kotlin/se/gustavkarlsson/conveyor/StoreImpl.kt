@@ -49,8 +49,8 @@ internal class StoreImpl<State>(
     private val stage = AtomicReference(Stage.Initial)
 
     override fun start(scope: CoroutineScope): Job {
-        check(stage.compareAndSet(Stage.Initial, Stage.Started)) {
-            STORE_STARTED_ERROR_MESSAGE
+        if(!stage.compareAndSet(Stage.Initial, Stage.Started)) {
+            throw StoreStartedException
         }
         val job = scope.launch {
             launch { commandProcessor.process(scope) }
@@ -67,8 +67,8 @@ internal class StoreImpl<State>(
     }
 
     override suspend fun issue(command: Command<State>) {
-        check(stage.get() != Stage.Stopped) {
-            STORE_STOPPED_ERROR_MESSAGE
+        if(stage.get() == Stage.Stopped) {
+            throw StoreStoppedException
         }
         commandProcessor.issue(command)
     }
@@ -106,7 +106,7 @@ private class CommandProcessor<State>(
 ) : CommandIssuer<State> {
     init {
         require(bufferSize > 0) {
-            bufferSizeErrorMessage(bufferSize)
+            "bufferSize must be positive. Was: $bufferSize"
         }
     }
 
@@ -200,7 +200,3 @@ private class LiveActionsProcessor<State>(
 }
 
 private const val DEFAULT_BUFFER_SIZE = 64
-internal const val STORE_STOPPED_ERROR_MESSAGE = "Store has been stopped"
-internal const val STORE_STARTED_ERROR_MESSAGE = "Store has already been started"
-
-internal fun bufferSizeErrorMessage(size: Int) = "bufferSize must be positive. Was: $size"

@@ -56,14 +56,14 @@ object StoreImplTest : Spek({
                 StoreImpl(Unit, commandBufferSize = 0)
             }.message
                 .isNotNull()
-                .contains(bufferSizeErrorMessage(0))
+                .contains("positive")
         }
         it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
                 StoreImpl(Unit, commandBufferSize = -1)
             }.message
                 .isNotNull()
-                .contains(bufferSizeErrorMessage(-1))
+                .contains("positive")
         }
     }
     describe("A minimal store") {
@@ -121,11 +121,9 @@ object StoreImplTest : Spek({
                 expectThat(job.isActive).isTrue()
             }
             it("throws exception when started") {
-                expectThrows<IllegalStateException> {
+                expectThrows<StoreStartedException> {
                     store.start(scope)
-                }.message
-                    .isNotNull()
-                    .contains(STORE_STARTED_ERROR_MESSAGE)
+                }
             }
             it("has its job cancelled after its scope was cancelled") {
                 scope.cancel("Cancelling scope to test job cancellation")
@@ -152,18 +150,14 @@ object StoreImplTest : Spek({
                 }
 
                 it("throws exception when started") {
-                    expectThrows<IllegalStateException> {
+                    expectThrows<StoreStartedException> {
                         store.start(scope)
-                    }.message
-                        .isNotNull()
-                        .contains(STORE_STARTED_ERROR_MESSAGE)
+                    }
                 }
                 it("throws exception when a command is issued") {
-                    expectThrows<IllegalStateException> {
+                    expectThrows<StoreStoppedException> {
                         store.issue { Change("shouldThrow") }
-                    }.message
-                        .isNotNull()
-                        .contains(STORE_STOPPED_ERROR_MESSAGE)
+                    }
                 }
                 it("currentState returns initial") {
                     val result = store.currentState
