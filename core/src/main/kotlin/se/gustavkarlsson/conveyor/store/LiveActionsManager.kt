@@ -8,9 +8,9 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.offerOrThrow
 import java.util.concurrent.atomic.AtomicInteger
 
-// TODO more testing required
 @ExperimentalCoroutinesApi
 internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
@@ -18,15 +18,17 @@ internal class LiveActionsManager<State>(
     private val liveCount = AtomicInteger(0)
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
 
-    override suspend fun increaseLiveCount() {
+    override fun increment() {
         if (liveCount.incrementAndGet() == 1) {
-            toggleChannel.send(Toggle.Enable)
+            toggleChannel.offerOrThrow(Toggle.Enable)
         }
     }
 
-    override suspend fun decreaseLiveCount() {
-        if (liveCount.decrementAndGet() == 0) {
-            toggleChannel.send(Toggle.Disable)
+    override fun decrement() {
+        val newCount = liveCount.decrementAndGet()
+        check(newCount >= 0)
+        if (newCount == 0) {
+            toggleChannel.offerOrThrow(Toggle.Disable)
         }
     }
 
@@ -41,7 +43,7 @@ internal class LiveActionsManager<State>(
             }
         }
 
-    override suspend fun process(onAction: (Action<State>) -> Unit) =
+    override suspend fun process(onAction: suspend (Action<State>) -> Unit) =
         flow.collectLatest { actions ->
             for (action in actions) {
                 onAction(action)

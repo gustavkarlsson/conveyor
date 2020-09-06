@@ -23,7 +23,7 @@ internal class CommandManager<State>(
 
     override suspend fun issue(command: Command<State>) = channel.send(command)
 
-    override suspend fun process(onAction: (Action<State>) -> Unit) =
+    override suspend fun process(onAction: suspend (Action<State>) -> Unit) =
         channel.consumeEach { command ->
             val oldState = stateContainer.currentState
             val (newState, actions) = command.reduce(oldState)

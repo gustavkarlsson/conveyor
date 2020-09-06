@@ -24,8 +24,8 @@ internal class StoreImpl<State>(
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateContainer.state
-        .onStart { liveActionsCounter.increaseLiveCount() }
-        .onCompletion { liveActionsCounter.decreaseLiveCount() }
+        .onStart { liveActionsCounter.increment() }
+        .onCompletion { liveActionsCounter.decrement() }
 
     override val currentState get() = stateContainer.currentState
 

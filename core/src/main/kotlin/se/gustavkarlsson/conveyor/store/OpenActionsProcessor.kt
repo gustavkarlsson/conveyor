@@ -8,7 +8,7 @@ internal class OpenActionsProcessor<State>(
 ) : Processor<State> {
     private val actions = AtomicReference(actions.toList())
 
-    override suspend fun process(onAction: (Action<State>) -> Unit) {
+    override suspend fun process(onAction: suspend (Action<State>) -> Unit) {
         with(consumeActions()) {
             while (hasNext()) {
                 val action = next()
