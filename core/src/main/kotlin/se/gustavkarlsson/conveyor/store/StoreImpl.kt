@@ -20,7 +20,7 @@ internal class StoreImpl<State>(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
-    commandBufferSize: Int = DEFAULT_BUFFER_SIZE,
+    commandBufferSize: Int = 64,
 ) : Store<State> {
 
     private val stateHolder = StateHolderImpl(initialState)
@@ -66,5 +66,3 @@ internal class StoreImpl<State>(
 
     private enum class Stage { Initial, Started, Stopped }
 }
-
-private const val DEFAULT_BUFFER_SIZE = 64
