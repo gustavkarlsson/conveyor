@@ -10,7 +10,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal class StateManager<State>(initialState: State) : StateContainer<State>, Cancellable {
+internal class StateManager<State>(initialState: State) :
+    ReadableStateContainer<State>,
+    WriteableStateContainer<State>,
+    Cancellable {
     private val channel = ConflatedBroadcastChannel(initialState)
 
     override val state: Flow<State> =

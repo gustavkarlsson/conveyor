@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    private val stateContainer: StateContainer<State>,
+    private val stateContainer: ReadableStateContainer<State>,
     private val commandIssuer: CommandIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val processors: Iterable<Processor<State>>,

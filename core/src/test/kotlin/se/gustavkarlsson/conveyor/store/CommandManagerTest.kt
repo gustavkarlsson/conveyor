@@ -21,7 +21,6 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.message
-import java.util.concurrent.atomic.AtomicReference
 
 object CommandManagerTest : Spek({
     val initialState = "initial"
@@ -35,29 +34,29 @@ object CommandManagerTest : Spek({
         }
     )
     val command = FixedStateCommand(afterCommandState)
-    val stateHolder by memoized { AtomicReference(initialState) }
+    val stateContainer by memoized { StateContainer(initialState) }
 
     describe("Creation") {
         it("throws exception with zero commandBufferSize") {
             expectThrows<IllegalArgumentException> {
-                CommandManager(0, stateHolder::get, stateHolder::set)
+                CommandManager(0, stateContainer)
             }.message
                 .isNotNull()
                 .contains("positive")
         }
         it("throws exception with negative commandBufferSize") {
             expectThrows<IllegalArgumentException> {
-                CommandManager(-1, stateHolder::get, stateHolder::set)
+                CommandManager(-1, stateContainer)
             }.message
                 .isNotNull()
                 .contains("positive")
         }
     }
     describe("A Command Manager") {
-        val subject by memoized { CommandManager(bufferSize, stateHolder::get, stateHolder::set) }
+        val subject by memoized { CommandManager(bufferSize, stateContainer) }
 
         it("state is initial") {
-            expectThat(stateHolder.get()).isEqualTo(initialState)
+            expectThat(stateContainer.currentState).isEqualTo(initialState)
         }
         it("does not suspend when issuing commands to fill the buffer") {
             runBlockingTest {
@@ -104,7 +103,7 @@ object CommandManagerTest : Spek({
                 runBlockingTest {
                     subject.issue(conditionalCommand)
                 }
-                expectThat(stateHolder.get()).isEqualTo(afterCommandState)
+                expectThat(stateContainer.currentState).isEqualTo(afterCommandState)
             }
             it("issued command with action executes action") {
                 val action = NullAction<String>()
@@ -157,7 +156,7 @@ object CommandManagerTest : Spek({
             }
 
             it("state is initial") {
-                expectThat(stateHolder.get()).isEqualTo(initialState)
+                expectThat(stateContainer.currentState).isEqualTo(initialState)
             }
 
             describe("that was cancelled") {
@@ -167,7 +166,7 @@ object CommandManagerTest : Spek({
                     runBlockingTest {
                         subject.process {}
                     }
-                    expectThat(stateHolder.get()).isEqualTo(initialState)
+                    expectThat(stateContainer.currentState).isEqualTo(initialState)
                 }
             }
             describe("that is processing") {
@@ -182,7 +181,7 @@ object CommandManagerTest : Spek({
                 }
 
                 it("has new state") {
-                    expectThat(stateHolder.get()).isEqualTo(afterCommandState)
+                    expectThat(stateContainer.currentState).isEqualTo(afterCommandState)
                 }
             }
         }
@@ -198,3 +197,5 @@ private fun expectSuspends(block: suspend () -> Unit) {
         }
     }
 }
+
+private class StateContainer<State>(override var currentState: State) : WriteableStateContainer<State>

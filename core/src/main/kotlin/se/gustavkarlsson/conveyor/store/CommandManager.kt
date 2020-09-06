@@ -11,8 +11,7 @@ import se.gustavkarlsson.conveyor.CommandIssuer
 @ExperimentalCoroutinesApi
 internal class CommandManager<State>(
     bufferSize: Int,
-    private val getState: () -> State,
-    private val setState: (State) -> Unit,
+    private val stateContainer: WriteableStateContainer<State>,
 ) : CommandIssuer<State>, Processor<State>, Cancellable {
     init {
         require(bufferSize > 0) {
@@ -26,9 +25,9 @@ internal class CommandManager<State>(
 
     override suspend fun process(onAction: (Action<State>) -> Unit) =
         channel.consumeEach { command ->
-            val oldState = getState()
+            val oldState = stateContainer.currentState
             val (newState, actions) = command.reduce(oldState)
-            setState(newState)
+            stateContainer.currentState = newState
             for (action in actions) {
                 onAction(action)
             }
