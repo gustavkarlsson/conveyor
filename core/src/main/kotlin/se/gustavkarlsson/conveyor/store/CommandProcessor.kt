@@ -5,5 +5,5 @@ import se.gustavkarlsson.conveyor.Command
 
 internal interface CommandProcessor<State> {
     suspend fun process(scope: CoroutineScope)
-    fun close(cause: Throwable?)
+    fun cancel(cause: Throwable? = null)
 }

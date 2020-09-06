@@ -6,5 +6,5 @@ internal interface StateHolder<State> {
     val flow: Flow<State>
     fun get(): State
     fun set(state: State)
-    fun close(cause: Throwable?)
+    fun cancel(cause: Throwable? = null)
 }

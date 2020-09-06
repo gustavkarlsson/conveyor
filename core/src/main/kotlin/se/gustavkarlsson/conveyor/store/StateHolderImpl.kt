@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.store
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
@@ -24,7 +25,7 @@ internal class StateHolderImpl<State>(initialState: State) : StateHolder<State> 
         channel.asFlow()
             .distinctUntilChanged { old, new -> old === new }
 
-    override fun close(cause: Throwable?) {
-        channel.close(cause)
+    override fun cancel(cause: Throwable?) {
+        channel.cancel(cause as? CancellationException)
     }
 }

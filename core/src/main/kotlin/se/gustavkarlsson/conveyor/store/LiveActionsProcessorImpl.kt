@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.store
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -52,8 +53,8 @@ internal class LiveActionsProcessorImpl<State>(
             }
         }
 
-    override fun close(cause: Throwable?) {
-        toggleChannel.close(cause)
+    override fun cancel(cause: Throwable?) {
+        toggleChannel.cancel(cause as? CancellationException)
         actions = null
     }
 

@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Command
 import se.gustavkarlsson.conveyor.CommandIssuer
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.StoreStartedException
-import se.gustavkarlsson.conveyor.StoreStoppedException
+import se.gustavkarlsson.conveyor.StoreClosedException
+import se.gustavkarlsson.conveyor.StoreOpenedException
 import java.util.concurrent.atomic.AtomicReference
 
 @FlowPreview
@@ -29,11 +29,11 @@ internal class StoreImpl<State>(
 
     override val currentState get() = stateHolder.get()
 
-    private val stage = AtomicReference(Stage.Initial)
+    private val stage = AtomicReference<Stage>(Stage.Initial)
 
-    override fun start(scope: CoroutineScope): Job {
-        if (!stage.compareAndSet(Stage.Initial, Stage.Started)) {
-            throw StoreStartedException
+    override fun open(scope: CoroutineScope): Job {
+        if (!stage.compareAndSet(Stage.Initial, Stage.Opened)) {
+            throw StoreOpenedException
         }
         val job = scope.launch {
             launch { commandProcessor.process(scope) }
@@ -41,20 +41,25 @@ internal class StoreImpl<State>(
             launch { liveActionsProcessor.process(scope) }
         }
         job.invokeOnCompletion { throwable ->
-            stage.set(Stage.Stopped)
-            liveActionsProcessor.close(throwable)
-            commandProcessor.close(throwable)
-            stateHolder.close(throwable)
+            stage.set(Stage.Closed(throwable))
+            liveActionsProcessor.cancel(throwable)
+            commandProcessor.cancel(throwable)
+            stateHolder.cancel(throwable)
         }
         return job
     }
 
     override suspend fun issue(command: Command<State>) {
-        if (stage.get() == Stage.Stopped) {
-            throw StoreStoppedException
+        val currentStage = stage.get()
+        if (currentStage is Stage.Closed) {
+            throw StoreClosedException(currentStage.cause)
         }
         commandIssuer.issue(command)
     }
 
-    private enum class Stage { Initial, Started, Stopped }
+    private sealed class Stage {
+        object Initial : Stage()
+        object Opened : Stage()
+        data class Closed(val cause: Throwable?) : Stage()
+    }
 }

@@ -98,7 +98,7 @@ object StoreIntegrationTest : Spek({
             val result = runBlockingTest {
                 val job = async { store.state.take(2).toList() }
                 store.issue(fixedStateCommand1)
-                store.start(scope)
+                store.open(scope)
                 job.await()
             }
             expectThat(result).containsExactly(initialState, state1)
@@ -107,22 +107,22 @@ object StoreIntegrationTest : Spek({
             runBlockingTest {
                 store.issue(fixedStateCommand1)
             }
-            store.start(scope)
+            store.open(scope)
             expectThat(store.currentState).isEqualTo(state1)
         }
 
         describe("that was started") {
             lateinit var job: Job
             beforeEachTest {
-                job = store.start(scope)
+                job = store.open(scope)
             }
 
             it("has an active job") {
                 expectThat(job.isActive).isTrue()
             }
             it("throws exception when started") {
-                expectThrows<StoreStartedException> {
-                    store.start(scope)
+                expectThrows<StoreOpenedException> {
+                    store.open(scope)
                 }
             }
             it("has its job cancelled after its scope was cancelled") {
@@ -150,12 +150,12 @@ object StoreIntegrationTest : Spek({
                 }
 
                 it("throws exception when started") {
-                    expectThrows<StoreStartedException> {
-                        store.start(scope)
+                    expectThrows<StoreOpenedException> {
+                        store.open(scope)
                     }
                 }
                 it("throws exception when a command is issued") {
-                    expectThrows<StoreStoppedException> {
+                    expectThrows<StoreClosedException> {
                         store.issue { Change("shouldThrow") }
                     }
                 }
@@ -181,7 +181,7 @@ object StoreIntegrationTest : Spek({
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("the state changes when starting") {
-            store.start(scope)
+            store.open(scope)
             expectThat(store.currentState).isEqualTo(state1)
         }
     }
@@ -194,11 +194,11 @@ object StoreIntegrationTest : Spek({
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("the state does not change when starting") {
-            store.start(scope)
+            store.open(scope)
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("the state changes after started and first collector runs") {
-            store.start(scope)
+            store.open(scope)
             runBlockingTest {
                 store.state.first { it == state1 }
             }
@@ -209,7 +209,7 @@ object StoreIntegrationTest : Spek({
             buildStore(initialState, startActions = listOf(delayAction10))
         }
         beforeEachTest {
-            store.start(scope)
+            store.open(scope)
         }
 
         it("the state does not change immediately") {
@@ -230,7 +230,7 @@ object StoreIntegrationTest : Spek({
             buildStore(initialState, startActions = listOf(delayAction10, delayAction20))
         }
         beforeEachTest {
-            store.start(scope)
+            store.open(scope)
         }
 
         it("the state changes after the first delay has passed") {

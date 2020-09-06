@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.store
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -34,7 +35,7 @@ internal class CommandManager<State>(
             }
         }
 
-    override fun close(cause: Throwable?) {
-        channel.close(cause)
+    override fun cancel(cause: Throwable?) {
+        channel.cancel(cause as? CancellationException)
     }
 }

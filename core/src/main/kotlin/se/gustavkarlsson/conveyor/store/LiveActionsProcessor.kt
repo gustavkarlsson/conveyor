@@ -6,5 +6,5 @@ internal interface LiveActionsProcessor {
     suspend fun increaseLiveCount()
     suspend fun decreaseLiveCount()
     suspend fun process(scope: CoroutineScope)
-    fun close(cause: Throwable?)
+    fun cancel(cause: Throwable? = null)
 }
