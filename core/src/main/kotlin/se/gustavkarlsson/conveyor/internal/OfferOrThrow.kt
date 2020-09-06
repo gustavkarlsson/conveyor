@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.utils
+package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.channels.SendChannel
 

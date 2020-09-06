@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.store
+package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi

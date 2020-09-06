@@ -2,11 +2,11 @@ package se.gustavkarlsson.conveyor
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import se.gustavkarlsson.conveyor.store.CommandManager
-import se.gustavkarlsson.conveyor.store.LiveActionsManager
-import se.gustavkarlsson.conveyor.store.OpenActionsProcessor
-import se.gustavkarlsson.conveyor.store.StateManager
-import se.gustavkarlsson.conveyor.store.StoreImpl
+import se.gustavkarlsson.conveyor.internal.CommandManager
+import se.gustavkarlsson.conveyor.internal.LiveActionsManager
+import se.gustavkarlsson.conveyor.internal.OpenActionsProcessor
+import se.gustavkarlsson.conveyor.internal.StateManager
+import se.gustavkarlsson.conveyor.internal.StoreImpl
 
 @ExperimentalCoroutinesApi
 @FlowPreview

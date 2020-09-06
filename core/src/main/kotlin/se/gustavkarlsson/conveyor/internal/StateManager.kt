@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.store
+package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -7,7 +7,6 @@ import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import se.gustavkarlsson.conveyor.utils.offerOrThrow
 
 @FlowPreview
 @ExperimentalCoroutinesApi

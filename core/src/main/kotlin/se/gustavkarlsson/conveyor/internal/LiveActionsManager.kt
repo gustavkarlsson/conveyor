@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.store
+package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.utils.offerOrThrow
 import java.util.concurrent.atomic.AtomicInteger
 
 @ExperimentalCoroutinesApi
