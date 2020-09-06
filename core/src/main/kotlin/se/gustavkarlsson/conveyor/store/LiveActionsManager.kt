@@ -15,10 +15,10 @@ import java.util.concurrent.atomic.AtomicInteger
 
 // TODO more testing required
 @ExperimentalCoroutinesApi
-internal class LiveActionsProcessorImpl<State>(
+internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
     private val commandIssuer: CommandIssuer<State>,
-) : LiveActionsProcessor {
+) : LiveActionsCounter, Processor, Cancellable {
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
 
     private var actions: Iterable<Action<State>>? = actions.toList()

@@ -14,7 +14,7 @@ internal class CommandManager<State>(
     bufferSize: Int,
     private val getState: () -> State,
     private val setState: (State) -> Unit,
-) : CommandIssuer<State>, CommandProcessor<State> {
+) : CommandIssuer<State>, Processor, Cancellable {
     init {
         require(bufferSize > 0) {
             "bufferSize must be positive. Was: $bufferSize"

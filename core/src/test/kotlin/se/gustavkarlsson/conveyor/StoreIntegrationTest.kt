@@ -174,7 +174,7 @@ object StoreIntegrationTest : Spek({
     }
     describe("A store with one simple start action") {
         val store by memoized {
-            buildStore(initialState, startActions = listOf(fixedStateAction1))
+            buildStore(initialState, openActions = listOf(fixedStateAction1))
         }
 
         it("the state does not change before starting") {
@@ -206,7 +206,7 @@ object StoreIntegrationTest : Spek({
     }
     describe("A started store with one delayed start action") {
         val store by memoized {
-            buildStore(initialState, startActions = listOf(delayAction10))
+            buildStore(initialState, openActions = listOf(delayAction10))
         }
         beforeEachTest {
             store.open(scope)
@@ -227,7 +227,7 @@ object StoreIntegrationTest : Spek({
     }
     describe("A started store with two delayed start actions") {
         val store by memoized {
-            buildStore(initialState, startActions = listOf(delayAction10, delayAction20))
+            buildStore(initialState, openActions = listOf(delayAction10, delayAction20))
         }
         beforeEachTest {
             store.open(scope)

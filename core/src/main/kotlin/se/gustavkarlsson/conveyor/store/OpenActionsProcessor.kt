@@ -6,10 +6,10 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.CommandIssuer
 import java.util.concurrent.atomic.AtomicReference
 
-internal class StartActionsProcessorImpl<State>(
+internal class OpenActionsProcessor<State>(
     actions: Iterable<Action<State>>,
     private val commandIssuer: CommandIssuer<State>,
-) : StartActionsProcessor {
+) : Processor {
     private val actions = AtomicReference(actions.toList())
 
     override suspend fun process(scope: CoroutineScope) {

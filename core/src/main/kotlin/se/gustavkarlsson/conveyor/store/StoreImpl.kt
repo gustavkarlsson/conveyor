@@ -18,16 +18,16 @@ import java.util.concurrent.atomic.AtomicReference
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     private val stateHolder: StateHolder<State>,
-    private val commandProcessor: CommandProcessor<State>,
     private val commandIssuer: CommandIssuer<State>,
-    private val startActionsProcessor: StartActionsProcessor,
-    private val liveActionsProcessor: LiveActionsProcessor,
+    private val liveActionsCounter: LiveActionsCounter,
+    private val processors: Iterable<Processor>,
+    private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateHolder.flow
-        .onStart { liveActionsProcessor.increaseLiveCount() }
-        .onCompletion { liveActionsProcessor.decreaseLiveCount() }
+        .onStart { liveActionsCounter.increaseLiveCount() }
+        .onCompletion { liveActionsCounter.decreaseLiveCount() }
 
-    override val currentState get() = stateHolder.get()
+    override val currentState get() = stateHolder.state
 
     private val stage = AtomicReference<Stage>(Stage.Initial)
 
@@ -36,15 +36,15 @@ internal class StoreImpl<State>(
             throw StoreOpenedException
         }
         val job = scope.launch {
-            launch { commandProcessor.process(scope) }
-            launch { startActionsProcessor.process(scope) }
-            launch { liveActionsProcessor.process(scope) }
+            for (processor in processors) {
+                launch { processor.process(scope) }
+            }
         }
         job.invokeOnCompletion { throwable ->
             stage.set(Stage.Closed(throwable))
-            liveActionsProcessor.cancel(throwable)
-            commandProcessor.cancel(throwable)
-            stateHolder.cancel(throwable)
+            for (cancellable in cancellables) {
+                cancellable.cancel(throwable)
+            }
         }
         return job
     }
