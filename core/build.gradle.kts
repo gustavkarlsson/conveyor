@@ -3,12 +3,29 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version Versions.kotlin
     `maven-publish`
+    id("org.jetbrains.dokka") version Versions.dokka
     id("io.gitlab.arturbosch.detekt") version Versions.detekt
     jacoco
 }
 
 group = "se.gustavkarlsson.conveyor"
 version = "1.0-SNAPSHOT"
+
+task<Jar>("javadocJar") {
+    from(tasks["dokkaJavadoc"].outputs)
+    archiveClassifier.set("javadoc")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            artifactId = "conveyor-rx2"
+            artifact(tasks["kotlinSourcesJar"])
+            artifact(tasks["dokkaJavadoc"])
+            from(components["java"])
+        }
+    }
+}
 
 repositories {
     mavenCentral()
