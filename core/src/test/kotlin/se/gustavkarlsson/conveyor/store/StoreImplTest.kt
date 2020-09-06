@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor
+package se.gustavkarlsson.conveyor.store
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -10,6 +10,10 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.Change
+import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.StoreStartedException
+import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.actions.SingleAction
 import se.gustavkarlsson.conveyor.actions.VoidAction
 import se.gustavkarlsson.conveyor.test.FixedStateCommand

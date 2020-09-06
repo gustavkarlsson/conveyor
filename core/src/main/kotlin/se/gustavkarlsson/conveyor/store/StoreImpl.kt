@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor
+package se.gustavkarlsson.conveyor.store
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -16,6 +16,12 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.CommandIssuer
+import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.StoreStartedException
+import se.gustavkarlsson.conveyor.StoreStoppedException
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
