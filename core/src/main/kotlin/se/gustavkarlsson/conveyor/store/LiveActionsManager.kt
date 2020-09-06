@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.mapLatest
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.offerOrThrow
+import se.gustavkarlsson.conveyor.utils.offerOrThrow
 import java.util.concurrent.atomic.AtomicInteger
 
 @ExperimentalCoroutinesApi
