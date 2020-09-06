@@ -8,9 +8,6 @@ plugins {
     jacoco
 }
 
-group = "se.gustavkarlsson.conveyor"
-version = "1.0-SNAPSHOT"
-
 task<Jar>("javadocJar") {
     from(tasks["dokkaJavadoc"].outputs)
     archiveClassifier.set("javadoc")
@@ -19,7 +16,9 @@ task<Jar>("javadocJar") {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            artifactId = "conveyor-core"
+            groupId = "se.gustavkarlsson.conveyor"
+            artifactId = "${rootProject.name}-${project.name}"
+            version = "1.0-SNAPSHOT"
             artifact(tasks["kotlinSourcesJar"])
             artifact(tasks["javadocJar"])
             from(components["java"])
