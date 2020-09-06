@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.store
+package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
