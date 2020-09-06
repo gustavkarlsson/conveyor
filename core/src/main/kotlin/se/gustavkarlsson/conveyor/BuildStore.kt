@@ -17,7 +17,11 @@ public fun <State> buildStore(
     commandBufferSize: Int = 64,
 ): Store<State> {
     val stateManager = StateManager(initialState)
-    val commandManager = CommandManager(commandBufferSize, { stateManager.state }, { stateManager.state = it })
+    val commandManager = CommandManager(
+        bufferSize = commandBufferSize,
+        getState = { stateManager.currentState },
+        setState = { stateManager.currentState = it }
+    )
     val openActionsProcessor = OpenActionsProcessor(openActions)
     val liveActionsManager = LiveActionsManager(liveActions)
     val processors = listOf(commandManager, openActionsProcessor, liveActionsManager)

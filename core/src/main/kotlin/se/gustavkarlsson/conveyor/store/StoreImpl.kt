@@ -17,17 +17,17 @@ import java.util.concurrent.atomic.AtomicReference
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    private val stateHolder: StateHolder<State>,
+    private val stateContainer: StateContainer<State>,
     private val commandIssuer: CommandIssuer<State>,
-    private val liveActionsCounter: LiveActionsCounter,
+    liveActionsCounter: LiveActionsCounter,
     private val processors: Iterable<Processor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateHolder.flow
+    override val state = stateContainer.state
         .onStart { liveActionsCounter.increaseLiveCount() }
         .onCompletion { liveActionsCounter.decreaseLiveCount() }
 
-    override val currentState get() = stateHolder.state
+    override val currentState get() = stateContainer.currentState
 
     private val stage = AtomicReference<Stage>(Stage.Initial)
 

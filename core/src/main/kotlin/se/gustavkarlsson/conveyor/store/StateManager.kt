@@ -10,20 +10,20 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal class StateManager<State>(initialState: State) : StateHolder<State>, Cancellable {
+internal class StateManager<State>(initialState: State) : StateContainer<State>, Cancellable {
     private val channel = ConflatedBroadcastChannel(initialState)
 
-    override var state: State
+    override val state: Flow<State> =
+        channel.asFlow()
+            .distinctUntilChanged { old, new -> old === new }
+
+    override var currentState: State
         get() = channel.value
         set(value) {
             check(channel.offer(value)) {
                 "Failed to set state, channel over capacity"
             }
         }
-
-    override val flow: Flow<State> =
-        channel.asFlow()
-            .distinctUntilChanged { old, new -> old === new }
 
     override fun cancel(cause: Throwable?) {
         channel.cancel(cause as? CancellationException)

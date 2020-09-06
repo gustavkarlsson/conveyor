@@ -15,20 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger
 internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
 ) : LiveActionsCounter, Processor<State>, Cancellable {
-    private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
-
-    private var actions: Iterable<Action<State>>? = actions.toList()
-
-    private val flow = toggleChannel.consumeAsFlow()
-        .distinctUntilChanged()
-        .mapLatest { toggle ->
-            when (toggle) {
-                Toggle.Enable -> requireNotNull(this.actions)
-                Toggle.Disable -> emptyList()
-            }
-        }
-
     private val liveCount = AtomicInteger(0)
+    private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
 
     override suspend fun increaseLiveCount() {
         if (liveCount.incrementAndGet() == 1) {
@@ -41,6 +29,17 @@ internal class LiveActionsManager<State>(
             toggleChannel.send(Toggle.Disable)
         }
     }
+
+    private var actions: Iterable<Action<State>>? = actions.toList()
+
+    private val flow = toggleChannel.consumeAsFlow()
+        .distinctUntilChanged()
+        .mapLatest { toggle ->
+            when (toggle) {
+                Toggle.Enable -> requireNotNull(this.actions)
+                Toggle.Disable -> emptyList()
+            }
+        }
 
     override suspend fun process(onAction: (Action<State>) -> Unit) =
         flow.collectLatest { actions ->
