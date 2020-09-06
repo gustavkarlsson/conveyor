@@ -21,7 +21,7 @@ publishing {
         create<MavenPublication>("maven") {
             artifactId = "conveyor-rx2"
             artifact(tasks["kotlinSourcesJar"])
-            artifact(tasks["dokkaJavadoc"])
+            artifact(tasks["javadocJar"])
             from(components["java"])
         }
     }
