@@ -1,5 +1,6 @@
 rootProject.name = "conveyor"
 
 include(
-    "core"
+    "core",
+    "rx2"
 )
