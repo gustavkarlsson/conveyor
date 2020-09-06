@@ -19,7 +19,7 @@ task<Jar>("javadocJar") {
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            artifactId = "conveyor-rx2"
+            artifactId = "conveyor-core"
             artifact(tasks["kotlinSourcesJar"])
             artifact(tasks["javadocJar"])
             from(components["java"])
