@@ -1,16 +1,14 @@
 package se.gustavkarlsson.conveyor.rx2.actions
 
-import io.reactivex.Single
+import io.reactivex.Completable
 import kotlinx.coroutines.rx2.await
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.Command
 import se.gustavkarlsson.conveyor.CommandIssuer
 
-public class RxSingleAction<State : Any>(
-    private val single: Single<Command<State>>,
+public class CompletableAction<State : Any>(
+    private val completable: Completable,
 ) : Action<State> {
     override suspend fun execute(issuer: CommandIssuer<State>) {
-        val command = single.await()
-        issuer.issue(command)
+        completable.await()
     }
 }
