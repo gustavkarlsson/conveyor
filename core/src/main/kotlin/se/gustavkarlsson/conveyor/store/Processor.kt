@@ -1,7 +1,7 @@
 package se.gustavkarlsson.conveyor.store
 
-import kotlinx.coroutines.CoroutineScope
+import se.gustavkarlsson.conveyor.Action
 
-internal interface Processor {
-    suspend fun process(scope: CoroutineScope)
+internal interface Processor<State> {
+    suspend fun process(onAction: (Action<State>) -> Unit)
 }

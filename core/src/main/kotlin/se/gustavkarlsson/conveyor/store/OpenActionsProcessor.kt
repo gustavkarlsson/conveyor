@@ -1,23 +1,19 @@
 package se.gustavkarlsson.conveyor.store
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.CommandIssuer
 import java.util.concurrent.atomic.AtomicReference
 
 internal class OpenActionsProcessor<State>(
     actions: Iterable<Action<State>>,
-    private val commandIssuer: CommandIssuer<State>,
-) : Processor {
+) : Processor<State> {
     private val actions = AtomicReference(actions.toList())
 
-    override suspend fun process(scope: CoroutineScope) {
+    override suspend fun process(onAction: (Action<State>) -> Unit) {
         with(consumeActions()) {
             while (hasNext()) {
                 val action = next()
                 remove()
-                scope.launch { action.execute(commandIssuer) }
+                onAction(action)
             }
         }
     }

@@ -8,14 +8,16 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Change
 import se.gustavkarlsson.conveyor.Command
-import se.gustavkarlsson.conveyor.actions.SingleAction
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
+import se.gustavkarlsson.conveyor.test.NullAction
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.contains
+import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 import strikt.assertions.message
@@ -26,13 +28,6 @@ object CommandManagerTest : Spek({
     val afterCommandState = "after_command"
     val bufferSize = 8
     val scope by memoized(
-        factory = { TestCoroutineScope(Job()) },
-        destructor = {
-            it.cancel("Test ended")
-            it.cleanupTestCoroutines()
-        }
-    )
-    val processingScope by memoized(
         factory = { TestCoroutineScope(Job()) },
         destructor = {
             it.cancel("Test ended")
@@ -80,15 +75,18 @@ object CommandManagerTest : Spek({
         }
         it("suspends on process") {
             expectSuspends {
-                subject.process(scope)
+                subject.process {}
             }
         }
 
         describe("that is processing") {
+            val executedActions by memoized {
+                mutableListOf<Action<String>>()
+            }
             lateinit var processingJob: Job
             beforeEachTest {
-                processingJob = processingScope.launch {
-                    subject.process(this)
+                processingJob = scope.launch {
+                    subject.process { executedActions += it }
                 }
             }
             afterEachTest {
@@ -108,19 +106,20 @@ object CommandManagerTest : Spek({
                 }
                 expectThat(stateHolder.get()).isEqualTo(afterCommandState)
             }
-            it("issued command with action changes state") {
+            it("issued command with action executes action") {
+                val action = NullAction<String>()
                 val actionCommand = Command<String> {
-                    Change(initialState, SingleAction { command })
+                    Change(initialState, action)
                 }
                 runBlockingTest {
                     subject.issue(actionCommand)
                 }
-                expectThat(stateHolder.get()).isEqualTo(afterCommandState)
+                expectThat(executedActions).containsExactly(action)
             }
             it("throws if processing again") {
                 expectThrows<IllegalStateException> {
                     runBlockingTest {
-                        subject.process(processingScope)
+                        subject.process {}
                     }
                 }
             }
@@ -143,7 +142,7 @@ object CommandManagerTest : Spek({
             }
             it("does not suspend on process") {
                 runBlockingTest {
-                    subject.process(scope)
+                    subject.process {}
                 }
             }
             it("can be cancelled again") {
@@ -166,7 +165,7 @@ object CommandManagerTest : Spek({
 
                 it("state does not change after processing") {
                     runBlockingTest {
-                        subject.process(scope)
+                        subject.process {}
                     }
                     expectThat(stateHolder.get()).isEqualTo(initialState)
                 }
@@ -174,8 +173,8 @@ object CommandManagerTest : Spek({
             describe("that is processing") {
                 lateinit var processingJob: Job
                 beforeEachTest {
-                    processingJob = processingScope.launch {
-                        subject.process(this)
+                    processingJob = scope.launch {
+                        subject.process {}
                     }
                 }
                 afterEachTest {

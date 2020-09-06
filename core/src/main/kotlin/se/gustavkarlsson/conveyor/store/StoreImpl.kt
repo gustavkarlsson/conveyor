@@ -20,7 +20,7 @@ internal class StoreImpl<State>(
     private val stateHolder: StateHolder<State>,
     private val commandIssuer: CommandIssuer<State>,
     private val liveActionsCounter: LiveActionsCounter,
-    private val processors: Iterable<Processor>,
+    private val processors: Iterable<Processor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateHolder.flow
@@ -37,7 +37,11 @@ internal class StoreImpl<State>(
         }
         val job = scope.launch {
             for (processor in processors) {
-                launch { processor.process(scope) }
+                launch {
+                    processor.process { action ->
+                        launch { action.execute(commandIssuer) }
+                    }
+                }
             }
         }
         job.invokeOnCompletion { throwable ->

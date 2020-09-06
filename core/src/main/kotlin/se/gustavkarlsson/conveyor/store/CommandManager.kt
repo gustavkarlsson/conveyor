@@ -1,11 +1,10 @@
 package se.gustavkarlsson.conveyor.store
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
+import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Command
 import se.gustavkarlsson.conveyor.CommandIssuer
 
@@ -14,7 +13,7 @@ internal class CommandManager<State>(
     bufferSize: Int,
     private val getState: () -> State,
     private val setState: (State) -> Unit,
-) : CommandIssuer<State>, Processor, Cancellable {
+) : CommandIssuer<State>, Processor<State>, Cancellable {
     init {
         require(bufferSize > 0) {
             "bufferSize must be positive. Was: $bufferSize"
@@ -25,13 +24,13 @@ internal class CommandManager<State>(
 
     override suspend fun issue(command: Command<State>) = channel.send(command)
 
-    override suspend fun process(scope: CoroutineScope) =
+    override suspend fun process(onAction: (Action<State>) -> Unit) =
         channel.consumeEach { command ->
             val oldState = getState()
             val (newState, actions) = command.reduce(oldState)
             setState(newState)
             for (action in actions) {
-                scope.launch { action.execute(this@CommandManager) }
+                onAction(action)
             }
         }
 
