@@ -37,4 +37,5 @@ object FlowActionTest : Spek({
                 .containsExactly(command1, command2, command1, command2)
         }
     }
-})
+}
+)

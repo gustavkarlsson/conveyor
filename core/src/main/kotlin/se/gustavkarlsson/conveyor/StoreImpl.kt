@@ -45,7 +45,7 @@ internal class StoreImpl<State>(
     private val stage = AtomicReference(Stage.Initial)
 
     override fun start(scope: CoroutineScope): Job {
-        if(!stage.compareAndSet(Stage.Initial, Stage.Started)) {
+        if (!stage.compareAndSet(Stage.Initial, Stage.Started)) {
             throw StoreStartedException
         }
         val job = scope.launch {
@@ -63,7 +63,7 @@ internal class StoreImpl<State>(
     }
 
     override suspend fun issue(command: Command<State>) {
-        if(stage.get() == Stage.Stopped) {
+        if (stage.get() == Stage.Stopped) {
             throw StoreStoppedException
         }
         commandProcessor.issue(command)
