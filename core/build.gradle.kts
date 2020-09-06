@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version Versions.kotlin
-    id("org.jlleitschuh.gradle.ktlint") version Versions.ktlintPlugin
     id("io.gitlab.arturbosch.detekt") version Versions.detekt
 }
 
@@ -26,6 +25,7 @@ dependencies {
 
     testImplementation("io.strikt:strikt-core:${Versions.strikt}")
     testImplementation("io.mockk:mockk:${Versions.mockk}")
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
 }
 
 kotlin {
@@ -35,13 +35,6 @@ kotlin {
 tasks.test {
     useJUnitPlatform {
         includeEngines("spek2")
-    }
-}
-
-ktlint {
-    version.set(Versions.ktlint)
-    filter {
-        exclude("**/*Test.kt") // Spek doesn't play well with some ktlint rules
     }
 }
 
