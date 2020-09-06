@@ -19,10 +19,6 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 
-// TODO Add support for watchers?
-// TODO Add support for side effects/events/interceptors
-// TODO React to state/changes?
-
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
