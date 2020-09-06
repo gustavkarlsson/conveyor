@@ -7,8 +7,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.CommandIssuer
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.StoreStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
@@ -17,20 +17,12 @@ import java.util.concurrent.atomic.AtomicReference
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    initialState: State,
-    startActions: Iterable<Action<State>> = emptyList(),
-    liveActions: Iterable<Action<State>> = emptyList(),
-    commandBufferSize: Int = 64,
+    private val stateHolder: StateHolder<State>,
+    private val commandProcessor: CommandProcessor<State>,
+    private val commandIssuer: CommandIssuer<State>,
+    private val startActionsProcessor: StartActionsProcessor,
+    private val liveActionsProcessor: LiveActionsProcessor,
 ) : Store<State> {
-
-    private val stateHolder = StateHolderImpl(initialState)
-
-    private val commandProcessor = CommandManager(commandBufferSize, stateHolder::get, stateHolder::set)
-
-    private val startActionsProcessor = StartActionsProcessorImpl(startActions, commandProcessor)
-
-    private val liveActionsProcessor = LiveActionsProcessorImpl(liveActions, commandProcessor)
-
     override val state = stateHolder.flow
         .onStart { liveActionsProcessor.increaseLiveCount() }
         .onCompletion { liveActionsProcessor.decreaseLiveCount() }
@@ -61,7 +53,7 @@ internal class StoreImpl<State>(
         if (stage.get() == Stage.Stopped) {
             throw StoreStoppedException
         }
-        commandProcessor.issue(command)
+        commandIssuer.issue(command)
     }
 
     private enum class Stage { Initial, Started, Stopped }

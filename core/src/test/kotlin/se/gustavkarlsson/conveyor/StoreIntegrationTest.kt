@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.store
+package se.gustavkarlsson.conveyor
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -10,10 +10,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Change
-import se.gustavkarlsson.conveyor.Command
-import se.gustavkarlsson.conveyor.StoreStartedException
-import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.actions.SingleAction
 import se.gustavkarlsson.conveyor.actions.VoidAction
 import se.gustavkarlsson.conveyor.test.FixedStateCommand
@@ -28,7 +24,7 @@ import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
 import strikt.assertions.message
 
-object StoreImplTest : Spek({
+object StoreIntegrationTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
@@ -57,14 +53,14 @@ object StoreImplTest : Spek({
     describe("Store creation") {
         it("throws exception with empty command buffer") {
             expectThrows<IllegalArgumentException> {
-                StoreImpl(Unit, commandBufferSize = 0)
+                buildStore(Unit, commandBufferSize = 0)
             }.message
                 .isNotNull()
                 .contains("positive")
         }
         it("throws exception with negative command buffer size") {
             expectThrows<IllegalArgumentException> {
-                StoreImpl(Unit, commandBufferSize = -1)
+                buildStore(Unit, commandBufferSize = -1)
             }.message
                 .isNotNull()
                 .contains("positive")
@@ -72,7 +68,7 @@ object StoreImplTest : Spek({
     }
     describe("A minimal store") {
         val store by memoized {
-            StoreImpl(initialState)
+            buildStore(initialState)
         }
 
         it("state emits initial") {
@@ -178,7 +174,7 @@ object StoreImplTest : Spek({
     }
     describe("A store with one simple start action") {
         val store by memoized {
-            StoreImpl(initialState, startActions = listOf(fixedStateAction1))
+            buildStore(initialState, startActions = listOf(fixedStateAction1))
         }
 
         it("the state does not change before starting") {
@@ -191,7 +187,7 @@ object StoreImplTest : Spek({
     }
     describe("A store with one simple live action") {
         val store by memoized {
-            StoreImpl(initialState, liveActions = listOf(fixedStateAction1))
+            buildStore(initialState, liveActions = listOf(fixedStateAction1))
         }
 
         it("the state does not change before starting") {
@@ -210,7 +206,7 @@ object StoreImplTest : Spek({
     }
     describe("A started store with one delayed start action") {
         val store by memoized {
-            StoreImpl(initialState, startActions = listOf(delayAction10))
+            buildStore(initialState, startActions = listOf(delayAction10))
         }
         beforeEachTest {
             store.start(scope)
@@ -231,7 +227,7 @@ object StoreImplTest : Spek({
     }
     describe("A started store with two delayed start actions") {
         val store by memoized {
-            StoreImpl(initialState, startActions = listOf(delayAction10, delayAction20))
+            buildStore(initialState, startActions = listOf(delayAction10, delayAction20))
         }
         beforeEachTest {
             store.start(scope)
