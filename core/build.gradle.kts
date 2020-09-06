@@ -3,7 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version Versions.kotlin
     id("io.gitlab.arturbosch.detekt") version Versions.detekt
+    jacoco
 }
+
+group = "se.gustavkarlsson.conveyor"
+version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -47,5 +51,14 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-group = "se.gustavkarlsson.conveyor"
-version = "1.0-SNAPSHOT"
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.isEnabled = true
+        html.isEnabled = true
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+}
