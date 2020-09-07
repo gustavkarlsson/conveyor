@@ -96,10 +96,10 @@ object StoreIntegrationTest : Spek({
         }
         it("state emits initial and new state when issuing command that changes state and then starting") {
             val result = runBlockingTest {
-                val job = async { store.state.take(2).toList() }
+                val deferred = async { store.state.take(2).toList() }
                 store.issue(fixedStateCommand1)
                 store.open(scope)
-                job.await()
+                deferred.await()
             }
             expectThat(result).containsExactly(initialState, state1)
         }
