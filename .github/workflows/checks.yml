@@ -86,6 +86,6 @@ jobs:
           coverage: none
           tools: cs2pr
 
-      - name: Report on PR
+      - name: Report errors
         if: ${{ always() }}
         run: cs2pr --graceful-warnings core/build/reports/detekt/detekt.xml # TODO Add all report files somehow
