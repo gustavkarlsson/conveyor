@@ -1,19 +1,17 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 
 object StateManagerTest : Spek({
-    val collected by memoized { mutableListOf<String>() }
     val initialState = "initial"
     val state1 = "state1"
 
@@ -24,29 +22,39 @@ object StateManagerTest : Spek({
             expectThat(subject.currentState).isEqualTo(initialState)
         }
         it("state emits initial") {
-            runBlockingTest {
-                val job = launch {
-                    subject.state.collect {
-                        collected += it
-                    }
+            val result = runBlockingTest {
+                val deferred = async {
+                    subject.state.toList()
                 }
-                job.cancel()
+                deferred.cancel()
+                deferred.await()
             }
-            expectThat(collected).containsExactly(initialState)
+            expectThat(result).containsExactly(initialState)
         }
         it("currentState is state1 after setting it to state1") {
             subject.currentState = state1
             expectThat(subject.currentState).isEqualTo(state1)
         }
-        it("currentState is state1 after setting it to state1") {
-            runBlockingTest {
-                val job = launch {
-                    subject.state.collect { collected += it }
+        it("state emits initial and state1 when setting it to state1 after collecting") {
+            val result = runBlockingTest {
+                val deferred = async {
+                    subject.state.toList()
                 }
                 subject.currentState = state1
-                job.cancel()
+                deferred.cancel()
+                deferred.await()
             }
-            expectThat(collected).containsExactly(initialState, state1)
+            expectThat(result).containsExactly(initialState, state1)
+        }
+        it("state emits initial and ends when cancelling") {
+            val result = runBlockingTest {
+                val deferred = async {
+                    subject.state.single()
+                }
+                subject.cancel()
+                deferred.await()
+            }
+            expectThat(result).isEqualTo(initialState)
         }
 
         describe("that was cancelled") {
@@ -54,16 +62,27 @@ object StateManagerTest : Spek({
                 subject.cancel()
             }
 
-            it("currentState throws") {
+            it("currentState is currentState") {
+                val result = subject.currentState
+                expectThat(result).isEqualTo(initialState)
+            }
+            it("setting currentState throws") {
                 expectThrows<IllegalStateException> {
-                    subject.currentState
+                    subject.currentState = "shouldThrow"
+                    Unit
                 }
             }
-            it("state emits nothing") {
+            it("getting currentState after trying to set currentState returns initial state") {
+                try {
+                    subject.currentState = "shouldThrow"
+                } catch (ignore: Throwable) {}
+                expectThat(subject.currentState).isEqualTo(initialState)
+            }
+            it("state emits initial and then ends") {
                 val result = runBlockingTest {
-                    subject.state.toList()
+                    subject.state.single()
                 }
-                expectThat(result).isEmpty()
+                expectThat(result).isEqualTo(initialState)
             }
             it("cancel is successful") {
                 subject.cancel()

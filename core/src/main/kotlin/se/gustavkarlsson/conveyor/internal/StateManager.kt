@@ -7,6 +7,7 @@ import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -16,13 +17,20 @@ internal class StateManager<State>(initialState: State) :
     Cancellable {
     private val channel = ConflatedBroadcastChannel(initialState)
 
-    override val state: Flow<State> =
-        channel.asFlow()
-            .distinctUntilChanged { old, new -> old === new }
+    private val channelFlow = channel.asFlow().distinctUntilChanged { old, new -> old === new }
 
-    override var currentState: State
-        get() = channel.value
-        set(value) = channel.offerOrThrow(value)
+    override val state: Flow<State>
+        get() = if (channel.isClosedForSend) {
+            flowOf(currentState)
+        } else {
+            channelFlow
+        }
+
+    override var currentState: State = initialState
+        set(value) {
+            channel.offerOrThrow(value)
+            field = value
+        }
 
     override fun cancel(cause: Throwable?) {
         channel.cancel(cause as? CancellationException)
