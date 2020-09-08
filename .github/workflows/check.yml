@@ -13,7 +13,7 @@ jobs:
     name: Test
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout
+      - name: Check out
         uses: actions/checkout@v2
 
       - name: Set up JDK
@@ -21,7 +21,7 @@ jobs:
         with:
           java-version: 8
 
-      - name: Restore Gradle Cache
+      - name: Restore cache
         uses: actions/cache@v2
         with:
           path: |
@@ -40,14 +40,14 @@ jobs:
         with:
           name: reports
           path: |
-            '**/build/reports/tests/'
-            '**/build/reports/jacoco/'
+            **/build/reports/tests/
+            **/build/reports/jacoco/
 
   lint:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Check out
         uses: actions/checkout@v2
 
       - name: Set up JDK
@@ -55,7 +55,7 @@ jobs:
         with:
           java-version: 8
 
-      - name: Restore Gradle Cache
+      - name: Restore cache
         uses: actions/cache@v2
         with:
           path: |
