@@ -29,7 +29,9 @@ jobs:
         if: ${{ always() }}
         with:
           name: reports
-          path: '**/build/reports/'
+          path: |
+            '**/build/reports/tests/'
+            '**/build/reports/jacoco/'
 
   lint:
     name: Lint
@@ -51,4 +53,4 @@ jobs:
         if: ${{ always() }}
         with:
           name: reports
-          path: '**/build/reports/'
+          path: '**/build/reports/detekt/'
