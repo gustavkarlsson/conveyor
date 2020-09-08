@@ -8,6 +8,7 @@ object Versions {
     // Skip 1.12.0 as it has breaking bug: https://github.com/allegro/axion-release-plugin/issues/339
     val detekt = "1.12.0"
     val dokka = "1.4.0"
+    val jacoco = "0.8.5"
 
     // Dependencies
     val kotlinxCoroutines = "1.3.9"

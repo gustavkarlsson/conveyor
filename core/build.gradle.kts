@@ -77,5 +77,5 @@ tasks.jacocoTestReport {
 }
 
 jacoco {
-    toolVersion = "0.8.5"
+    toolVersion = Versions.jacoco
 }
