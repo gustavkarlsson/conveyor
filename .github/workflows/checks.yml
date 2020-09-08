@@ -77,3 +77,15 @@ jobs:
         with:
           name: reports
           path: '**/build/reports/detekt/'
+
+      - name: Set up PHP with cs2pr
+        uses: shivammathur/setup-php@v1
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          php-version: 7.3
+          coverage: none
+          tools: cs2pr
+
+      - name: Report on PR
+        if: ${{ github.event_name == 'pull_request' }}
+        run: cs2pr core/build/reports/detekt/detekt.xml # TODO Add all report files somehow
