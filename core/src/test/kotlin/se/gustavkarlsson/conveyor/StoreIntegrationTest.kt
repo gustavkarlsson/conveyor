@@ -150,7 +150,7 @@ object StoreIntegrationTest : Spek({
                 }
 
                 it("throws exception when started") {
-                    expectThrows<StoreOpenedException> {
+                    expectThrows<StoreClosedException> {
                         store.open(scope)
                     }
                 }
