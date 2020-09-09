@@ -32,8 +32,13 @@ internal class StoreImpl<State>(
     private val stage = AtomicReference<Stage>(Stage.Initial)
 
     override fun open(scope: CoroutineScope): Job {
-        if (!stage.compareAndSet(Stage.Initial, Stage.Opened)) {
-            throw StoreOpenedException
+        // TODO Does getAndUpdate work on Android?
+        stage.getAndUpdate { current ->
+            when (current) {
+                Stage.Initial -> Stage.Opened
+                Stage.Opened -> throw StoreOpenedException
+                is Stage.Closed -> throw StoreClosedException(current.cause)
+            }
         }
         val job = scope.launch {
             for (processor in processors) {
