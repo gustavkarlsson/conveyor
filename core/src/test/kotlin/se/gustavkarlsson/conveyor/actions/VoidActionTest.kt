@@ -14,9 +14,7 @@ object VoidActionTest : Spek({
         override suspend fun issue(command: Command<Nothing>) = Unit
     }
     val blockInvocationCount by memoized { AtomicInteger() }
-    val action by memoized {
-        VoidAction<Nothing> { blockInvocationCount.incrementAndGet() }
-    }
+    val subject = VoidAction<Nothing> { blockInvocationCount.incrementAndGet() }
 
     describe("An action") {
         it("does not run block automatically") {
@@ -24,14 +22,14 @@ object VoidActionTest : Spek({
         }
         it("runs block when executed") {
             runBlockingTest {
-                action.execute(nullIssuer)
+                subject.execute(nullIssuer)
             }
             expectThat(blockInvocationCount.get()).isEqualTo(1)
         }
         it("runs block twice when executed twice") {
             runBlockingTest {
-                action.execute(nullIssuer)
-                action.execute(nullIssuer)
+                subject.execute(nullIssuer)
+                subject.execute(nullIssuer)
             }
             expectThat(blockInvocationCount.get()).isEqualTo(2)
         }

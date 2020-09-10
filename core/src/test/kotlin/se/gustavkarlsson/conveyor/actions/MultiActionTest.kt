@@ -13,11 +13,9 @@ object MultiActionTest : Spek({
     val command1 = FixedStateCommand(Unit)
     val command2 = FixedStateCommand(Unit)
     val issuer by memoized { TrackingCommandIssuer<Unit>() }
-    val action by memoized {
-        MultiAction<Unit> {
-            issue(command1)
-            issue(command2)
-        }
+    val subject = MultiAction<Unit> {
+        issue(command1)
+        issue(command2)
     }
 
     describe("An action") {
@@ -26,14 +24,14 @@ object MultiActionTest : Spek({
         }
         it("issues all commands when executed") {
             runBlockingTest {
-                action.execute(issuer)
+                subject.execute(issuer)
             }
             expectThat(issuer.issuedCommands).containsExactly(command1, command2)
         }
         it("issues all commands twice when executed twice") {
             runBlockingTest {
-                action.execute(issuer)
-                action.execute(issuer)
+                subject.execute(issuer)
+                subject.execute(issuer)
             }
             expectThat(issuer.issuedCommands)
                 .containsExactly(command1, command2, command1, command2)

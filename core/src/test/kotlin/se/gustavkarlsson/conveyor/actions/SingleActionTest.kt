@@ -12,7 +12,7 @@ import strikt.assertions.isEmpty
 object SingleActionTest : Spek({
     val command = FixedStateCommand(Unit)
     val issuer by memoized { TrackingCommandIssuer<Unit>() }
-    val action by memoized { SingleAction { command } }
+    val subject = SingleAction { command }
 
     describe("An action") {
         it("does not issue any commands automatically") {
@@ -20,14 +20,14 @@ object SingleActionTest : Spek({
         }
         it("issues command when executed") {
             runBlockingTest {
-                action.execute(issuer)
+                subject.execute(issuer)
             }
             expectThat(issuer.issuedCommands).containsExactly(command)
         }
         it("issues commands twice when executed twice") {
             runBlockingTest {
-                action.execute(issuer)
-                action.execute(issuer)
+                subject.execute(issuer)
+                subject.execute(issuer)
             }
             expectThat(issuer.issuedCommands).containsExactly(command, command)
         }

@@ -1,5 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
@@ -17,13 +19,14 @@ import strikt.assertions.isEqualTo
 import java.util.concurrent.atomic.AtomicInteger
 
 object LiveActionsManagerTest : Spek({
+    val cancellationException by memoized { CancellationException("Manually cancelled") }
     val executedActions by memoized { mutableListOf<Action<String>>() }
     val nullAction = NullAction<String>()
 
     describe("A manager with a single null action") {
         val subject by memoized { LiveActionsManager(listOf(nullAction)) }
 
-        it("throws exception if live count is decreased") {
+        it("decreased throws exception") {
             expectThrows<IllegalStateException> {
                 runBlockingTest {
                     subject.decrement()
@@ -35,9 +38,30 @@ object LiveActionsManagerTest : Spek({
                 val job = launch {
                     subject.process { executedActions += it }
                 }
-                job.cancel()
+                job.cancel("Cancelled to end processing")
             }
             expectThat(executedActions).isEmpty()
+        }
+
+        describe("that was cancelled") {
+            beforeEachTest {
+                subject.cancel(cancellationException)
+            }
+
+            it("increment throws exception") {
+                expectThrows<IllegalStateException> {
+                    subject.increment()
+                }
+            }
+            it("cancel succeeds") {
+                subject.cancel(cancellationException)
+            }
+            it("process throws exception") {
+                expectThrows<CancellationException> {
+                    subject.process {}
+                }
+                // FIXME is cancellationException or caused by cancellationException
+            }
         }
 
         describe("that was incremented once") {
@@ -50,7 +74,7 @@ object LiveActionsManagerTest : Spek({
                     val job = launch {
                         subject.process { executedActions += it }
                     }
-                    job.cancel()
+                    job.cancel("Cancelled to end processing")
                 }
                 expectThat(executedActions).containsExactly(nullAction)
             }
@@ -62,9 +86,21 @@ object LiveActionsManagerTest : Spek({
                     }
                     subject.decrement()
                     subject.increment()
-                    job.cancel()
+                    job.cancel("Cancelled to end processing")
                 }
                 expectThat(executedActions).containsExactly(nullAction, nullAction)
+            }
+
+            describe("that was cancelled") {
+                beforeEachTest {
+                    subject.cancel(cancellationException)
+                }
+
+                it("decrement throws exception") {
+                    expectThrows<IllegalStateException> {
+                        subject.decrement()
+                    }
+                }
             }
 
             describe("and then decremented once") {
@@ -77,7 +113,7 @@ object LiveActionsManagerTest : Spek({
                         val job = launch {
                             subject.process { executedActions += it }
                         }
-                        job.cancel()
+                        job.cancel("Cancelled to end processing")
                     }
                     expectThat(executedActions).isEmpty()
                 }
@@ -95,7 +131,7 @@ object LiveActionsManagerTest : Spek({
                     val job = launch {
                         subject.process { executedActions += it }
                     }
-                    job.cancel()
+                    job.cancel("Cancelled to end processing")
                 }
                 expectThat(executedActions).containsExactly(nullAction)
             }
@@ -110,7 +146,7 @@ object LiveActionsManagerTest : Spek({
                         val job = launch {
                             subject.process { executedActions += it }
                         }
-                        job.cancel()
+                        job.cancel("Cancelled to end processing")
                     }
                     expectThat(executedActions).containsExactly(nullAction)
                 }
@@ -138,7 +174,7 @@ object LiveActionsManagerTest : Spek({
                 subject.decrement()
                 advanceTimeBy(10)
                 expectThat(counter.get()).isEqualTo(1)
-                job.cancel()
+                job.cancel("Cancelled to end processing")
             }
         }
     }
