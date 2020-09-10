@@ -9,9 +9,7 @@ public abstract class VoidAction<State> : Action<State> {
     protected abstract suspend fun execute()
 
     public companion object {
-        public operator fun <State> invoke(block: suspend () -> Unit): Action<State> {
-            return ConstructorBlockVoidAction(block)
-        }
+        public operator fun <State> invoke(block: suspend () -> Unit): Action<State> = ConstructorBlockVoidAction(block)
     }
 }
 
