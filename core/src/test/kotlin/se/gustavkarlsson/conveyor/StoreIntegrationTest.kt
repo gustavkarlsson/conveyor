@@ -67,54 +67,54 @@ object StoreIntegrationTest : Spek({
         }
     }
     describe("A minimal store") {
-        val store by memoized {
+        val subject by memoized {
             buildStore(initialState)
         }
 
         it("state emits initial") {
             val result = runBlockingTest {
-                store.state.first()
+                subject.state.first()
             }
             expectThat(result).isEqualTo(initialState)
         }
         it("currentState returns initial") {
-            val result = store.currentState
+            val result = subject.currentState
             expectThat(result).isEqualTo(initialState)
         }
         it("state emits initial after issuing command that changes state") {
             val result = runBlockingTest {
-                store.issue(fixedStateCommand1)
-                store.state.first()
+                subject.issue(fixedStateCommand1)
+                subject.state.first()
             }
             expectThat(result).isEqualTo(initialState)
         }
         it("currentState returns initial even after issuing command") {
             runBlockingTest {
-                store.issue(fixedStateCommand1)
+                subject.issue(fixedStateCommand1)
             }
-            expectThat(store.currentState).isEqualTo(initialState)
+            expectThat(subject.currentState).isEqualTo(initialState)
         }
         it("state emits initial and new state when issuing command that changes state and then starting") {
             val result = runBlockingTest {
-                val deferred = async { store.state.take(2).toList() }
-                store.issue(fixedStateCommand1)
-                store.open(scope)
+                val deferred = async { subject.state.take(2).toList() }
+                subject.issue(fixedStateCommand1)
+                subject.open(scope)
                 deferred.await()
             }
             expectThat(result).containsExactly(initialState, state1)
         }
         it("currentState returns new state after issuing command that changes state and then starting") {
             runBlockingTest {
-                store.issue(fixedStateCommand1)
+                subject.issue(fixedStateCommand1)
             }
-            store.open(scope)
-            expectThat(store.currentState).isEqualTo(state1)
+            subject.open(scope)
+            expectThat(subject.currentState).isEqualTo(state1)
         }
 
         describe("that was started") {
             lateinit var job: Job
             beforeEachTest {
-                job = store.open(scope)
+                job = subject.open(scope)
             }
 
             it("has an active job") {
@@ -122,7 +122,7 @@ object StoreIntegrationTest : Spek({
             }
             it("throws exception when started") {
                 expectThrows<StoreOpenedException> {
-                    store.open(scope)
+                    subject.open(scope)
                 }
             }
             it("has its job cancelled after its scope was cancelled") {
@@ -131,13 +131,13 @@ object StoreIntegrationTest : Spek({
             }
             it("state emits initial") {
                 val result = runBlockingTest {
-                    store.state.first()
+                    subject.state.first()
                 }
                 expectThat(result).isEqualTo(initialState)
             }
             it("existing state subscription ends when job is cancelled") {
                 val result = runBlockingTest {
-                    val deferred = async { store.state.toList() }
+                    val deferred = async { subject.state.toList() }
                     job.cancel("Purposefully cancelled")
                     deferred.await()
                 }
@@ -151,21 +151,21 @@ object StoreIntegrationTest : Spek({
 
                 it("throws exception when started") {
                     expectThrows<StoreClosedException> {
-                        store.open(scope)
+                        subject.open(scope)
                     }
                 }
                 it("throws exception when a command is issued") {
                     expectThrows<StoreClosedException> {
-                        store.issue { Change("shouldThrow") }
+                        subject.issue { Change("shouldThrow") }
                     }
                 }
                 it("currentState returns initial") {
-                    val result = store.currentState
+                    val result = subject.currentState
                     expectThat(result).isEqualTo(initialState)
                 }
                 it("state emits initial and then closes") {
                     val result = runBlockingTest {
-                        store.state.toList()
+                        subject.state.toList()
                     }
                     expectThat(result).containsExactly(initialState)
                 }

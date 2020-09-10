@@ -86,11 +86,11 @@ object StoreImplTest : Spek({
             }
 
             describe("that was closed") {
-                val cancellationException by memoized { CancellationException() }
+                val cancellationException by memoized { CancellationException("Job cancelled at beginning of test") }
                 beforeEachTest { job.cancel(cancellationException) }
 
                 it("closing again succeeds") {
-                    job.cancel()
+                    job.cancel("Closed again")
                 }
                 it("open again throws with cancellationException as reason") {
                     expectThrows<StoreClosedException> {
