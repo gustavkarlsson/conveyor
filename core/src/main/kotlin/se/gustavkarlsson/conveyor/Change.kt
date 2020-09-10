@@ -9,3 +9,5 @@ public data class Change<State>(
         vararg actions: Action<State>,
     ) : this(newState, actions.asList())
 }
+
+public fun <State> State.only(): Change<State> = Change(this)
