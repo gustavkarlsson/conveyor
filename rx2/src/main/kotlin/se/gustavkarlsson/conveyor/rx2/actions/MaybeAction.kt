@@ -17,7 +17,7 @@ public abstract class MaybeAction<State : Any> : Action<State> {
     protected abstract val maybe: Maybe<Command<State>>
 
     public companion object {
-        public operator fun <State : Any> invoke(maybe: Maybe<Command<State>>): Action<State> =
+        public operator fun <State : Any> invoke(maybe: Maybe<Command<State>>): MaybeAction<State> =
             ConstructorBlockMaybeAction(maybe)
     }
 }

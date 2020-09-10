@@ -15,7 +15,7 @@ public abstract class SingleAction<State : Any> : Action<State> {
     protected abstract val single: Single<Command<State>>
 
     public companion object {
-        public operator fun <State : Any> invoke(single: Single<Command<State>>): Action<State> =
+        public operator fun <State : Any> invoke(single: Single<Command<State>>): SingleAction<State> =
             ConstructorBlockSingleAction(single)
     }
 }

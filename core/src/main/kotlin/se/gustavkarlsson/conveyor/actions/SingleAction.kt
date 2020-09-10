@@ -13,7 +13,7 @@ public abstract class SingleAction<State> : Action<State> {
     protected abstract suspend fun execute(): Command<State>
 
     public companion object {
-        public operator fun <State> invoke(block: suspend () -> Command<State>): Action<State> =
+        public operator fun <State> invoke(block: suspend () -> Command<State>): SingleAction<State> =
             ConstructorBlockSingleAction(block)
     }
 }

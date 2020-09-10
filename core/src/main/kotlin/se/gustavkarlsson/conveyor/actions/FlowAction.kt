@@ -15,7 +15,8 @@ public abstract class FlowAction<State> : Action<State> {
     protected abstract val flow: Flow<Command<State>>
 
     public companion object {
-        public operator fun <State> invoke(flow: Flow<Command<State>>): Action<State> = ConstructorBlockFlowAction(flow)
+        public operator fun <State> invoke(flow: Flow<Command<State>>): FlowAction<State> =
+            ConstructorBlockFlowAction(flow)
     }
 }
 

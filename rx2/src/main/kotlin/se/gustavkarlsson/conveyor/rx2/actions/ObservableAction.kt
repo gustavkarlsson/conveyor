@@ -19,7 +19,7 @@ public abstract class ObservableAction<State : Any> : Action<State> {
     protected abstract val observable: Observable<Command<State>>
 
     public companion object {
-        public operator fun <State : Any> invoke(observable: Observable<Command<State>>): Action<State> =
+        public operator fun <State : Any> invoke(observable: Observable<Command<State>>): ObservableAction<State> =
             ConstructorBlockObservableAction(observable)
     }
 }

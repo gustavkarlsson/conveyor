@@ -11,7 +11,7 @@ public abstract class CompletableAction<State : Any> : Action<State> {
     protected abstract val completable: Completable
 
     public companion object {
-        public operator fun <State : Any> invoke(completable: Completable): Action<State> =
+        public operator fun <State : Any> invoke(completable: Completable): CompletableAction<State> =
             ConstructorBlockCompletableAction(completable)
     }
 }

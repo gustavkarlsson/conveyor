@@ -17,7 +17,7 @@ public abstract class FlowableAction<State : Any> : Action<State> {
     protected abstract val flowable: Flowable<Command<State>>
 
     public companion object {
-        public operator fun <State : Any> invoke(flowable: Flowable<Command<State>>): Action<State> =
+        public operator fun <State : Any> invoke(flowable: Flowable<Command<State>>): FlowableAction<State> =
             ConstructorBlockFlowableAction(flowable)
     }
 }

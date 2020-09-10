@@ -5,7 +5,7 @@ import se.gustavkarlsson.conveyor.CommandIssuer
 
 public abstract class MultiAction<State> : Action<State> {
     public companion object {
-        public operator fun <State> invoke(block: suspend CommandIssuer<State>.() -> Unit): Action<State> =
+        public operator fun <State> invoke(block: suspend CommandIssuer<State>.() -> Unit): MultiAction<State> =
             ConstructorBlockMultiAction(block)
     }
 }
