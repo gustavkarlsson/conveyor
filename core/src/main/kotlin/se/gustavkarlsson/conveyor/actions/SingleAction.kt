@@ -5,7 +5,10 @@ import se.gustavkarlsson.conveyor.Command
 import se.gustavkarlsson.conveyor.CommandIssuer
 
 public abstract class SingleAction<State> : Action<State> {
-    final override suspend fun execute(issuer: CommandIssuer<State>): Unit = issuer.issue(execute())
+    final override suspend fun execute(issuer: CommandIssuer<State>) {
+        val command = execute()
+        issuer.issue(command)
+    }
 
     protected abstract suspend fun execute(): Command<State>
 
@@ -16,7 +19,7 @@ public abstract class SingleAction<State> : Action<State> {
 }
 
 private class ConstructorBlockSingleAction<State>(
-    private val block: suspend () -> Command<State>
+    private val block: suspend () -> Command<State>,
 ) : SingleAction<State>() {
     override suspend fun execute() = block()
 }

@@ -11,7 +11,7 @@ public abstract class MultiAction<State> : Action<State> {
 }
 
 private class ConstructorBlockMultiAction<State>(
-    private val block: suspend CommandIssuer<State>.() -> Unit
+    private val block: suspend CommandIssuer<State>.() -> Unit,
 ) : MultiAction<State>() {
     override suspend fun execute(issuer: CommandIssuer<State>) = issuer.block()
 }

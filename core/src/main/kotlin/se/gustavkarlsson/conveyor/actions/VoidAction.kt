@@ -14,7 +14,7 @@ public abstract class VoidAction<State> : Action<State> {
 }
 
 private class ConstructorBlockVoidAction<State>(
-    private val block: suspend () -> Unit
+    private val block: suspend () -> Unit,
 ) : VoidAction<State>() {
     override suspend fun execute() = block()
 }
