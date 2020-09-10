@@ -1,7 +1,6 @@
 * Add watchers
 * Add interceptors?
 * Auto run action on state change?
-* Should actions be open for extension?
 * Should actions have access to state?
 * Should SingleAction be able return nullable?
 * Should the Store API accept actions? Or should there be a non-state-changing Command? (ActionCommand?)
