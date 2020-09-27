@@ -9,7 +9,7 @@ class TrackingCommandIssuer<State> : CommandIssuer<State> {
     private val _issuedCommands = mutableListOf<Command<State>>()
     val issuedCommands: List<Command<State>> = _issuedCommands
 
-    override suspend fun issue(command: Command<State>) {
+    override fun issue(command: Command<State>) {
         _issuedCommands.add(command)
     }
 }

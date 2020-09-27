@@ -58,15 +58,8 @@ object CommandManagerTest : Spek({
         it("state is initial") {
             expectThat(stateContainer.currentState).isEqualTo(initialState)
         }
-        it("does not suspend when issuing commands to fill the buffer") {
-            runBlockingTest {
-                repeat(bufferSize) {
-                    subject.issue(command)
-                }
-            }
-        }
-        it("suspends when issuing more commands than buffer contains") {
-            expectSuspends {
+        it("throws when issuing more commands than buffer contains") {
+            expectThrows<IllegalStateException> {
                 repeat(bufferSize + 1) {
                     subject.issue(command)
                 }
@@ -100,9 +93,7 @@ object CommandManagerTest : Spek({
                         Change(initialState)
                     }
                 }
-                runBlockingTest {
-                    subject.issue(conditionalCommand)
-                }
+                subject.issue(conditionalCommand)
                 expectThat(stateContainer.currentState).isEqualTo(afterCommandState)
             }
             it("issued command with action executes action") {
@@ -110,9 +101,7 @@ object CommandManagerTest : Spek({
                 val actionCommand = Command<String> {
                     Change(initialState, action)
                 }
-                runBlockingTest {
-                    subject.issue(actionCommand)
-                }
+                subject.issue(actionCommand)
                 expectThat(executedActions).containsExactly(action)
             }
             it("throws if processing again") {
@@ -134,9 +123,7 @@ object CommandManagerTest : Spek({
 
             it("throws exception when command is issued") {
                 expectThrows<IllegalStateException> {
-                    runBlockingTest {
-                        subject.issue(command)
-                    }
+                    subject.issue(command)
                 }
             }
             it("does not suspend on process") {
@@ -150,9 +137,7 @@ object CommandManagerTest : Spek({
         }
         describe("with a command issued") {
             beforeEachTest {
-                runBlockingTest {
-                    subject.issue(command)
-                }
+                subject.issue(command)
             }
 
             it("state is initial") {

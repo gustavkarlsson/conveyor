@@ -1,12 +1,10 @@
 package se.gustavkarlsson.conveyor.rx2.internal
 
-import io.reactivex.Completable
 import io.reactivex.Flowable
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.rx2.asFlowable
-import kotlinx.coroutines.rx2.rxCompletable
 import se.gustavkarlsson.conveyor.Command
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.rx2.RxStore
@@ -31,6 +29,5 @@ internal class RxStoreImpl<State : Any>(
         return JobDisposable(job)
     }
 
-    override fun issue(command: Command<State>): Completable =
-        rxCompletable { store.issue(command) }
+    override fun issue(command: Command<State>) = store.issue(command)
 }
