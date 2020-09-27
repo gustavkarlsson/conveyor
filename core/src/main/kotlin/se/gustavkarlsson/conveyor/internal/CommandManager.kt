@@ -21,7 +21,7 @@ internal class CommandManager<State>(
 
     private val channel = Channel<Command<State>>(bufferSize)
 
-    override suspend fun issue(command: Command<State>) = channel.send(command)
+    override fun issue(command: Command<State>) = channel.offerOrThrow(command)
 
     override suspend fun process(onAction: suspend (Action<State>) -> Unit) =
         channel.consumeEach { command ->

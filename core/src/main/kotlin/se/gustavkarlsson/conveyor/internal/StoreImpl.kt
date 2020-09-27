@@ -58,7 +58,7 @@ internal class StoreImpl<State>(
         return job
     }
 
-    override suspend fun issue(command: Command<State>) {
+    override fun issue(command: Command<State>) {
         val currentStage = stage.get()
         if (currentStage is Stage.Closed) {
             throw StoreClosedException(currentStage.cause)

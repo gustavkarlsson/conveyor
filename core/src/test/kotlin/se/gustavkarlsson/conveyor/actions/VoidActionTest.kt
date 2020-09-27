@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 object VoidActionTest : Spek({
     val nullIssuer = object : CommandIssuer<Nothing> {
-        override suspend fun issue(command: Command<Nothing>) = Unit
+        override fun issue(command: Command<Nothing>) = Unit
     }
     val blockInvocationCount by memoized { AtomicInteger() }
     val subject = VoidAction<Nothing> { blockInvocationCount.incrementAndGet() }
