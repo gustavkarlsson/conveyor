@@ -5,7 +5,7 @@ import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.rx2.asFlowable
-import se.gustavkarlsson.conveyor.Command
+import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.rx2.RxStore
 import kotlin.coroutines.CoroutineContext
@@ -29,5 +29,5 @@ internal class RxStoreImpl<State : Any>(
         return JobDisposable(job)
     }
 
-    override fun issue(command: Command<State>) = store.issue(command)
+    override fun issue(action: Action<State>) = store.issue(action)
 }

@@ -11,10 +11,10 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.Reducer
 import se.gustavkarlsson.conveyor.StoreClosedException
 import se.gustavkarlsson.conveyor.StoreOpenedException
-import se.gustavkarlsson.conveyor.test.FixedStateCommand
-import se.gustavkarlsson.conveyor.test.TrackingCommandIssuer
+import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -24,9 +24,10 @@ import strikt.assertions.isEqualTo
 object StoreImplTest : Spek({
     val initialState = "initial"
     val secondState = "second"
-    val command = FixedStateCommand("dummy")
+    val action = Action<String> {}
     val stateContainer by memoized { SimpleStateManager(initialState, secondState) }
-    val commandIssuer by memoized { TrackingCommandIssuer<String>() }
+    val reducer by memoized { TODO() as Reducer<String> }
+    val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
     val foreverProcessor = object : Processor<String> {
         override suspend fun process(onAction: suspend (Action<String>) -> Unit) {
@@ -39,7 +40,8 @@ object StoreImplTest : Spek({
         val subject by memoized {
             StoreImpl(
                 stateContainer,
-                commandIssuer,
+                reducer,
+                actionIssuer,
                 liveActionsCounter,
                 processors = listOf(foreverProcessor),
                 cancellables = emptyList()
@@ -56,11 +58,11 @@ object StoreImplTest : Spek({
             }
             expectThat(result).containsExactly(initialState, secondState)
         }
-        it("issueCommand issues command") {
+        it("issueAction issues action") {
             runBlockingTest {
-                subject.issue(command)
+                subject.issue(action)
             }
-            expectThat(commandIssuer.issuedCommands).containsExactly(command)
+            expectThat(actionIssuer.issuedActions).containsExactly(action)
         }
 
         describe("that was opened") {
@@ -78,11 +80,11 @@ object StoreImplTest : Spek({
                     subject.open(openScope)
                 }
             }
-            it("issueCommand issues command") {
+            it("issueAction issues action") {
                 runBlockingTest {
-                    subject.issue(command)
+                    subject.issue(action)
                 }
-                expectThat(commandIssuer.issuedCommands).containsExactly(command)
+                expectThat(actionIssuer.issuedActions).containsExactly(action)
             }
 
             describe("that was closed") {
@@ -99,9 +101,9 @@ object StoreImplTest : Spek({
                         }
                     }.get { reason }.isEqualTo(cancellationException)
                 }
-                it("issuing command throws with cancellationException as reason") {
+                it("issuing action throws with cancellationException as reason") {
                     expectThrows<StoreClosedException> {
-                        subject.issue(command)
+                        subject.issue(action)
                     }.get { reason }.isEqualTo(cancellationException)
                 }
             }

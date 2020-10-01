@@ -8,5 +8,5 @@ public interface Store<State> {
     public val state: Flow<State>
     public val currentState: State
     public fun open(scope: CoroutineScope): Job
-    public fun issue(command: Command<State>)
+    public fun issue(action: Action<State>)
 }

@@ -7,18 +7,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import se.gustavkarlsson.conveyor.Command
-import se.gustavkarlsson.conveyor.CommandIssuer
-import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.StoreClosedException
-import se.gustavkarlsson.conveyor.StoreOpenedException
+import se.gustavkarlsson.conveyor.*
 import java.util.concurrent.atomic.AtomicReference
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     private val stateContainer: ReadableStateContainer<State>,
-    private val commandIssuer: CommandIssuer<State>,
+    private val reducer: Reducer<State>,
+    private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val processors: Iterable<Processor<State>>,
     private val cancellables: Iterable<Cancellable>,
@@ -44,7 +41,7 @@ internal class StoreImpl<State>(
             for (processor in processors) {
                 launch {
                     processor.process { action ->
-                        launch { action.execute(commandIssuer) }
+                        launch { action.execute(reducer) }
                     }
                 }
             }
@@ -58,12 +55,12 @@ internal class StoreImpl<State>(
         return job
     }
 
-    override fun issue(command: Command<State>) {
+    override fun issue(action: Action<State>) {
         val currentStage = stage.get()
         if (currentStage is Stage.Closed) {
             throw StoreClosedException(currentStage.cause)
         }
-        commandIssuer.issue(command)
+        actionIssuer.issue(action)
     }
 
     private sealed class Stage {

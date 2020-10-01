@@ -31,16 +31,16 @@ object StateManagerTest : Spek({
             }
             expectThat(result).containsExactly(initialState)
         }
-        it("currentState is state1 after setting it to state1") {
-            subject.currentState = state1
+        it("currentState is state1 after reducing it to state1") {
+            subject.reduce { state1 }
             expectThat(subject.currentState).isEqualTo(state1)
         }
-        it("state emits initial and state1 when setting it to state1 after collecting") {
+        it("state emits initial and state1 when reducing it to state1 after collecting") {
             val result = runBlockingTest {
                 val deferred = async {
                     subject.state.toList()
                 }
-                subject.currentState = state1
+                subject.reduce { state1 }
                 deferred.cancel()
                 deferred.await()
             }
@@ -68,13 +68,13 @@ object StateManagerTest : Spek({
             }
             it("setting currentState throws") {
                 expectThrows<IllegalStateException> {
-                    subject.currentState = "shouldThrow"
+                    subject.reduce { "shouldThrow" }
                     Unit
                 }
             }
             it("getting currentState after trying to set currentState returns initial state") {
                 try {
-                    subject.currentState = "shouldThrow"
+                    subject.reduce { "shouldThrow" }
                 } catch (ignore: Throwable) {}
                 expectThat(subject.currentState).isEqualTo(initialState)
             }
