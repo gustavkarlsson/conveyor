@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     private val stateContainer: ReadableStateContainer<State>,
-    private val reducer: Reducer<State>,
+    private val updateState: UpdateState<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val processors: Iterable<Processor<State>>,
@@ -33,7 +33,7 @@ internal class StoreImpl<State>(
         stage.getAndUpdate { current ->
             when (current) {
                 Stage.Initial -> Stage.Opened
-                Stage.Opened -> throw StoreOpenedException
+                Stage.Opened -> throw StoreOpenedException()
                 is Stage.Closed -> throw StoreClosedException(current.cause)
             }
         }
@@ -41,7 +41,7 @@ internal class StoreImpl<State>(
             for (processor in processors) {
                 launch {
                     processor.process { action ->
-                        launch { action.execute(reducer) }
+                        launch { action.execute(updateState) }
                     }
                 }
             }

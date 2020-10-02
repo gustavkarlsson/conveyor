@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.test.FixedStateAction
+import se.gustavkarlsson.conveyor.test.SetStateAction
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expect
 import strikt.api.expectThat
@@ -26,18 +26,20 @@ object StoreIntegrationTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
-    val fixedStateAction1 = FixedStateAction(state1)
+    val fixedStateAction1 = SetStateAction(state1)
     val delay5 = 5L
     val delay10 = 10L
     val delay20 = 20L
     val delayAction5 = Action<String> {
         delay(delay5)
     }
-    val delayAction10 = Action<String> {
+    val delayAction10 = Action<String> { updateState ->
         delay(delay10)
+        updateState { state1 }
     }
-    val delayAction20 = Action<String> {
+    val delayAction20 = Action<String> { updateState ->
         delay(delay20)
+        updateState { state2 }
     }
     val scope by memoized(
         factory = { TestCoroutineScope(Job()) },
@@ -202,7 +204,7 @@ object StoreIntegrationTest : Spek({
         }
     }
     describe("A started store with one delayed start action") {
-        val store by memoized<Store<String>> {
+        val store by memoized {
             buildStore(initialState, openActions = listOf(delayAction10))
         }
         beforeEachTest {
@@ -223,7 +225,7 @@ object StoreIntegrationTest : Spek({
         }
     }
     describe("A started store with two delayed start actions") {
-        val store by memoized<Store<String>> {
+        val store by memoized {
             buildStore(initialState, openActions = listOf(delayAction10, delayAction20))
         }
         beforeEachTest {

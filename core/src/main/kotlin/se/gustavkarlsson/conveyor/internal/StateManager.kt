@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEmpty
-import se.gustavkarlsson.conveyor.Reducer
+import se.gustavkarlsson.conveyor.UpdateState
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StateManager<State>(initialState: State) :
     ReadableStateContainer<State>,
-    Reducer<State>,
+    UpdateState<State>,
     Cancellable {
     private val channel = ConflatedBroadcastChannel(initialState)
 
@@ -29,7 +29,7 @@ internal class StateManager<State>(initialState: State) :
         }
 
     @Synchronized
-    override fun reduce(block: (State) -> State): State {
+    override fun invoke(block: (State) -> State): State {
         val newState = block(currentState)
         currentState = newState
         return newState

@@ -11,9 +11,9 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.Reducer
 import se.gustavkarlsson.conveyor.StoreClosedException
 import se.gustavkarlsson.conveyor.StoreOpenedException
+import se.gustavkarlsson.conveyor.test.StateHoldingUpdateState
 import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
@@ -26,7 +26,7 @@ object StoreImplTest : Spek({
     val secondState = "second"
     val action = Action<String> {}
     val stateContainer by memoized { SimpleStateManager(initialState, secondState) }
-    val reducer by memoized { TODO() as Reducer<String> }
+    val updateState by memoized { StateHoldingUpdateState("") }
     val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
     val foreverProcessor = object : Processor<String> {
@@ -40,7 +40,7 @@ object StoreImplTest : Spek({
         val subject by memoized {
             StoreImpl(
                 stateContainer,
-                reducer,
+                updateState,
                 actionIssuer,
                 liveActionsCounter,
                 processors = listOf(foreverProcessor),
