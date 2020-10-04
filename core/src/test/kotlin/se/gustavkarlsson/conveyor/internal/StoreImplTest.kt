@@ -11,10 +11,11 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StoreClosedException
-import se.gustavkarlsson.conveyor.StoreOpenedException
-import se.gustavkarlsson.conveyor.test.FixedStateCommand
-import se.gustavkarlsson.conveyor.test.TrackingCommandIssuer
+import se.gustavkarlsson.conveyor.StoreCancelledException
+import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
+import se.gustavkarlsson.conveyor.StoreNotYetStartedException
+import se.gustavkarlsson.conveyor.test.StateHoldingStateAccess
+import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -24,11 +25,12 @@ import strikt.assertions.isEqualTo
 object StoreImplTest : Spek({
     val initialState = "initial"
     val secondState = "second"
-    val command = FixedStateCommand("dummy")
-    val stateContainer by memoized { SimpleStateManager(initialState, secondState) }
-    val commandIssuer by memoized { TrackingCommandIssuer<String>() }
+    val action = Action<String> {}
+    val stateFlowProvider by memoized { SimpleStateFlowProvider(initialState, secondState) }
+    val stateAccess by memoized { StateHoldingStateAccess(initialState) }
+    val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
-    val foreverProcessor = object : Processor<String> {
+    val foreverProcessor = object : ActionProcessor<String> {
         override suspend fun process(onAction: suspend (Action<String>) -> Unit) {
             delay(Long.MAX_VALUE)
         }
@@ -38,11 +40,12 @@ object StoreImplTest : Spek({
     describe("A minimal store") {
         val subject by memoized {
             StoreImpl(
-                stateContainer,
-                commandIssuer,
-                liveActionsCounter,
-                processors = listOf(foreverProcessor),
-                cancellables = emptyList()
+                stateFlowProvider = stateFlowProvider,
+                stateAccess = stateAccess,
+                actionIssuer = actionIssuer,
+                liveActionsCounter = liveActionsCounter,
+                actionProcessors = listOf(foreverProcessor),
+                cancellables = emptyList(),
             )
         }
 
@@ -56,33 +59,32 @@ object StoreImplTest : Spek({
             }
             expectThat(result).containsExactly(initialState, secondState)
         }
-        it("issueCommand issues command") {
-            runBlockingTest {
-                subject.issue(command)
+        it("throws when action issued") {
+            expectThrows<StoreNotYetStartedException> {
+                subject.issue(action)
             }
-            expectThat(commandIssuer.issuedCommands).containsExactly(command)
         }
 
         describe("that was opened") {
             val openScope by memoized { TestCoroutineScope() }
             lateinit var job: Job
             beforeEachTest {
-                job = subject.open(openScope)
+                job = subject.start(openScope)
             }
             afterEachTest {
                 job.cancel("Test ended")
             }
 
             it("opening again throws exception") {
-                expectThrows<StoreOpenedException> {
-                    subject.open(openScope)
+                expectThrows<StoreAlreadyStartedException> {
+                    subject.start(openScope)
                 }
             }
-            it("issueCommand issues command") {
+            it("issueAction issues action") {
                 runBlockingTest {
-                    subject.issue(command)
+                    subject.issue(action)
                 }
-                expectThat(commandIssuer.issuedCommands).containsExactly(command)
+                expectThat(actionIssuer.issuedActions).containsExactly(action)
             }
 
             describe("that was closed") {
@@ -93,15 +95,15 @@ object StoreImplTest : Spek({
                     job.cancel("Closed again")
                 }
                 it("open again throws with cancellationException as reason") {
-                    expectThrows<StoreClosedException> {
+                    expectThrows<StoreCancelledException> {
                         runBlockingTest {
-                            subject.open(this)
+                            subject.start(this)
                         }
                     }.get { reason }.isEqualTo(cancellationException)
                 }
-                it("issuing command throws with cancellationException as reason") {
-                    expectThrows<StoreClosedException> {
-                        subject.issue(command)
+                it("issuing action throws with cancellationException as reason") {
+                    expectThrows<StoreCancelledException> {
+                        subject.issue(action)
                     }.get { reason }.isEqualTo(cancellationException)
                 }
             }
@@ -109,8 +111,8 @@ object StoreImplTest : Spek({
     }
 })
 
-private class SimpleStateManager<T>(override val currentState: T, secondState: T) : ReadableStateContainer<T> {
-    override val state: Flow<T> = flowOf(currentState, secondState)
+private class SimpleStateFlowProvider<T>(firstState: T, secondState: T) : StateFlowProvider<T> {
+    override val stateFlow: Flow<T> = flowOf(firstState, secondState)
 }
 
 private class TrackingLiveActionsCounter(var count: Int = 0) : LiveActionsCounter {

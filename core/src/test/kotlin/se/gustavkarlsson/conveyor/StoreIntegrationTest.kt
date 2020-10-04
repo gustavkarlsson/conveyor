@@ -10,37 +10,33 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.actions.SingleAction
-import se.gustavkarlsson.conveyor.actions.VoidAction
-import se.gustavkarlsson.conveyor.test.FixedStateCommand
+import se.gustavkarlsson.conveyor.test.SetStateAction
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
 import strikt.assertions.isTrue
-import strikt.assertions.message
 
 object StoreIntegrationTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
-    val fixedStateCommand1 = FixedStateCommand(state1)
-    val fixedStateCommand2 = FixedStateCommand(state2)
-    val fixedStateAction1 = SingleAction { fixedStateCommand1 }
+    val fixedStateAction1 = SetStateAction(state1)
     val delay5 = 5L
     val delay10 = 10L
     val delay20 = 20L
-    val delayAction10 = SingleAction {
-        delay(delay10)
-        fixedStateCommand1
+    val delayAction5 = Action<String> {
+        delay(delay5)
     }
-    val delayAction20 = SingleAction {
+    val delayAction10 = Action<String> { stateAccess ->
+        delay(delay10)
+        stateAccess.update { state1 }
+    }
+    val delayAction20 = Action<String> { stateAccess ->
         delay(delay20)
-        fixedStateCommand2
+        stateAccess.update { state2 }
     }
     val scope by memoized(
         factory = { TestCoroutineScope(Job()) },
@@ -50,22 +46,6 @@ object StoreIntegrationTest : Spek({
         }
     )
 
-    describe("Store creation") {
-        it("throws exception with empty command buffer") {
-            expectThrows<IllegalArgumentException> {
-                buildStore(Unit, commandBufferSize = 0)
-            }.message
-                .isNotNull()
-                .contains("positive")
-        }
-        it("throws exception with negative command buffer size") {
-            expectThrows<IllegalArgumentException> {
-                buildStore(Unit, commandBufferSize = -1)
-            }.message
-                .isNotNull()
-                .contains("positive")
-        }
-    }
     describe("A minimal store") {
         val subject by memoized {
             buildStore(initialState)
@@ -81,48 +61,24 @@ object StoreIntegrationTest : Spek({
             val result = subject.currentState
             expectThat(result).isEqualTo(initialState)
         }
-        it("state emits initial after issuing command that changes state") {
-            val result = runBlockingTest {
-                subject.issue(fixedStateCommand1)
-                subject.state.first()
+        it("throws when issuing action") {
+            expectThrows<StoreNotYetStartedException> {
+                subject.issue(fixedStateAction1)
             }
-            expectThat(result).isEqualTo(initialState)
-        }
-        it("currentState returns initial even after issuing command") {
-            runBlockingTest {
-                subject.issue(fixedStateCommand1)
-            }
-            expectThat(subject.currentState).isEqualTo(initialState)
-        }
-        it("state emits initial and new state when issuing command that changes state and then starting") {
-            val result = runBlockingTest {
-                val deferred = async { subject.state.take(2).toList() }
-                subject.issue(fixedStateCommand1)
-                subject.open(scope)
-                deferred.await()
-            }
-            expectThat(result).containsExactly(initialState, state1)
-        }
-        it("currentState returns new state after issuing command that changes state and then starting") {
-            runBlockingTest {
-                subject.issue(fixedStateCommand1)
-            }
-            subject.open(scope)
-            expectThat(subject.currentState).isEqualTo(state1)
         }
 
         describe("that was started") {
             lateinit var job: Job
             beforeEachTest {
-                job = subject.open(scope)
+                job = subject.start(scope)
             }
 
             it("has an active job") {
                 expectThat(job.isActive).isTrue()
             }
             it("throws exception when started") {
-                expectThrows<StoreOpenedException> {
-                    subject.open(scope)
+                expectThrows<StoreAlreadyStartedException> {
+                    subject.start(scope)
                 }
             }
             it("has its job cancelled after its scope was cancelled") {
@@ -150,13 +106,13 @@ object StoreIntegrationTest : Spek({
                 }
 
                 it("throws exception when started") {
-                    expectThrows<StoreClosedException> {
-                        subject.open(scope)
+                    expectThrows<StoreCancelledException> {
+                        subject.start(scope)
                     }
                 }
-                it("throws exception when a command is issued") {
-                    expectThrows<StoreClosedException> {
-                        subject.issue { Change("shouldThrow") }
+                it("throws exception when an action is issued") {
+                    expectThrows<StoreCancelledException> {
+                        subject.issue(Action {})
                     }
                 }
                 it("currentState returns initial") {
@@ -181,7 +137,7 @@ object StoreIntegrationTest : Spek({
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("the state changes when starting") {
-            store.open(scope)
+            store.start(scope)
             expectThat(store.currentState).isEqualTo(state1)
         }
     }
@@ -194,11 +150,11 @@ object StoreIntegrationTest : Spek({
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("the state does not change when starting") {
-            store.open(scope)
+            store.start(scope)
             expectThat(store.currentState).isEqualTo(initialState)
         }
         it("the state changes after started and first collector runs") {
-            store.open(scope)
+            store.start(scope)
             runBlockingTest {
                 store.state.first { it == state1 }
             }
@@ -209,7 +165,7 @@ object StoreIntegrationTest : Spek({
             buildStore(initialState, openActions = listOf(delayAction10))
         }
         beforeEachTest {
-            store.open(scope)
+            store.start(scope)
         }
 
         it("the state does not change immediately") {
@@ -230,7 +186,7 @@ object StoreIntegrationTest : Spek({
             buildStore(initialState, openActions = listOf(delayAction10, delayAction20))
         }
         beforeEachTest {
-            store.open(scope)
+            store.start(scope)
         }
 
         it("the state changes after the first delay has passed") {
@@ -241,9 +197,9 @@ object StoreIntegrationTest : Spek({
             scope.advanceTimeBy(delay20)
             expectThat(store.currentState).isEqualTo(state2)
         }
-        it("a command changes state immediately") {
+        it("an action changes state immediately") {
             runBlockingTest {
-                store.issue(fixedStateCommand1)
+                store.issue(fixedStateAction1)
             }
             expectThat(store.currentState).isEqualTo(state1)
             expect {
@@ -251,12 +207,9 @@ object StoreIntegrationTest : Spek({
                 that(store.currentState).isEqualTo(state1)
             }
         }
-        it("a command with a delayed action does not delay start actions") {
-            val command = Command<String> { oldState ->
-                Change(oldState, VoidAction { delay(delay5) })
-            }
+        it("an action with a delayed action does not delay start actions") {
             runBlockingTest {
-                store.issue(command)
+                store.issue(delayAction5)
             }
             scope.advanceTimeBy(delay10)
             expect {
