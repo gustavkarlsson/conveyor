@@ -8,28 +8,27 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.ActionIssuer
+import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.StoreClosedException
 import se.gustavkarlsson.conveyor.StoreOpenedException
-import se.gustavkarlsson.conveyor.UpdateState
 import java.util.concurrent.atomic.AtomicReference
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    private val stateContainer: ReadableStateContainer<State>,
-    private val updateState: UpdateState<State>,
+    stateFlowProvider: StateFlowProvider<State>,
+    private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val processors: Iterable<Processor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateContainer.state
+    override val state = stateFlowProvider.stateFlow
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
 
-    override val currentState get() = stateContainer.currentState
+    override val currentState get() = stateAccess.currentState
 
     private val stage = AtomicReference<Stage>(Stage.Initial)
 
@@ -46,7 +45,7 @@ internal class StoreImpl<State>(
             for (processor in processors) {
                 launch {
                     processor.process { action ->
-                        launch { action.execute(updateState) }
+                        launch { action.execute(stateAccess) }
                     }
                 }
             }

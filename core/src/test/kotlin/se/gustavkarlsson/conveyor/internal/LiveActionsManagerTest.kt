@@ -8,7 +8,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.test.NullAction
-import se.gustavkarlsson.conveyor.test.StateHoldingUpdateState
+import se.gustavkarlsson.conveyor.test.StateHoldingStateAccess
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -162,10 +162,10 @@ object LiveActionsManagerTest : Spek({
         beforeEachTest { subject.increment() }
 
         it("stops executing after decrementing") {
-            val updateState = StateHoldingUpdateState("")
+            val stateAccess = StateHoldingStateAccess("")
             runBlockingTest {
                 val job = launch {
-                    subject.process { it.execute(updateState) }
+                    subject.process { it.execute(stateAccess) }
                 }
                 expectThat(counter.get()).isEqualTo(0)
                 advanceTimeBy(10)

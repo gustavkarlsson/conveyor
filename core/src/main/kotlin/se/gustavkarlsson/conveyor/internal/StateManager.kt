@@ -8,17 +8,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEmpty
-import se.gustavkarlsson.conveyor.UpdateState
+import se.gustavkarlsson.conveyor.StateAccess
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StateManager<State>(initialState: State) :
-    ReadableStateContainer<State>,
-    UpdateState<State>,
+    StateFlowProvider<State>,
+    StateAccess<State>,
     Cancellable {
     private val channel = ConflatedBroadcastChannel(initialState)
 
-    override val state: Flow<State> = channel.asFlow()
+    override val stateFlow: Flow<State> = channel.asFlow()
         .distinctUntilChanged { old, new -> old === new }
         .onEmpty { emit(currentState) }
 
@@ -29,7 +29,7 @@ internal class StateManager<State>(initialState: State) :
         }
 
     @Synchronized
-    override fun invoke(block: (State) -> State): State {
+    override fun update(block: (State) -> State): State {
         val newState = block(currentState)
         currentState = newState
         return newState

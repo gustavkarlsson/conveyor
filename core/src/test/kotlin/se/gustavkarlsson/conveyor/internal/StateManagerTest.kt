@@ -24,7 +24,7 @@ object StateManagerTest : Spek({
         it("state emits initial") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.state.toList()
+                    subject.stateFlow.toList()
                 }
                 deferred.cancel()
                 deferred.await()
@@ -32,15 +32,15 @@ object StateManagerTest : Spek({
             expectThat(result).containsExactly(initialState)
         }
         it("currentState is state1 after updating it to state1") {
-            subject.invoke { state1 }
+            subject.update { state1 }
             expectThat(subject.currentState).isEqualTo(state1)
         }
         it("state emits initial and state1 when updating it to state1 after collecting") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.state.toList()
+                    subject.stateFlow.toList()
                 }
-                subject.invoke { state1 }
+                subject.update { state1 }
                 deferred.cancel()
                 deferred.await()
             }
@@ -49,7 +49,7 @@ object StateManagerTest : Spek({
         it("state emits initial and ends when cancelling") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.state.single()
+                    subject.stateFlow.single()
                 }
                 subject.cancel()
                 deferred.await()
@@ -68,19 +68,19 @@ object StateManagerTest : Spek({
             }
             it("setting currentState throws") {
                 expectThrows<IllegalStateException> {
-                    subject.invoke { "shouldThrow" }
+                    subject.update { "shouldThrow" }
                     Unit
                 }
             }
             it("getting currentState after trying to set currentState returns initial state") {
                 try {
-                    subject.invoke { "shouldThrow" }
+                    subject.update { "shouldThrow" }
                 } catch (ignore: Throwable) {}
                 expectThat(subject.currentState).isEqualTo(initialState)
             }
             it("state emits initial and then ends") {
                 val result = runBlockingTest {
-                    subject.state.single()
+                    subject.stateFlow.single()
                 }
                 expectThat(result).isEqualTo(initialState)
             }

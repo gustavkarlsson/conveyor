@@ -13,7 +13,7 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StoreClosedException
 import se.gustavkarlsson.conveyor.StoreOpenedException
-import se.gustavkarlsson.conveyor.test.StateHoldingUpdateState
+import se.gustavkarlsson.conveyor.test.StateHoldingStateAccess
 import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
@@ -25,8 +25,8 @@ object StoreImplTest : Spek({
     val initialState = "initial"
     val secondState = "second"
     val action = Action<String> {}
-    val stateContainer by memoized { SimpleStateManager(initialState, secondState) }
-    val updateState by memoized { StateHoldingUpdateState("") }
+    val stateFlowProvider by memoized { SimpleStateFlowProvider(initialState, secondState) }
+    val stateAccess by memoized { StateHoldingStateAccess(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
     val foreverProcessor = object : Processor<String> {
@@ -39,10 +39,10 @@ object StoreImplTest : Spek({
     describe("A minimal store") {
         val subject by memoized {
             StoreImpl(
-                stateContainer,
-                updateState,
-                actionIssuer,
-                liveActionsCounter,
+                stateFlowProvider = stateFlowProvider,
+                stateAccess = stateAccess,
+                actionIssuer = actionIssuer,
+                liveActionsCounter = liveActionsCounter,
                 processors = listOf(foreverProcessor),
                 cancellables = emptyList()
             )
@@ -111,8 +111,8 @@ object StoreImplTest : Spek({
     }
 })
 
-private class SimpleStateManager<T>(override val currentState: T, secondState: T) : ReadableStateContainer<T> {
-    override val state: Flow<T> = flowOf(currentState, secondState)
+private class SimpleStateFlowProvider<T>(firstState: T, secondState: T) : StateFlowProvider<T> {
+    override val stateFlow: Flow<T> = flowOf(firstState, secondState)
 }
 
 private class TrackingLiveActionsCounter(var count: Int = 0) : LiveActionsCounter {

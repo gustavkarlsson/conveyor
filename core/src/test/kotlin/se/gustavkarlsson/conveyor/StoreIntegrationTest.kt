@@ -33,13 +33,13 @@ object StoreIntegrationTest : Spek({
     val delayAction5 = Action<String> {
         delay(delay5)
     }
-    val delayAction10 = Action<String> { updateState ->
+    val delayAction10 = Action<String> { stateAccess ->
         delay(delay10)
-        updateState { state1 }
+        stateAccess.update { state1 }
     }
-    val delayAction20 = Action<String> { updateState ->
+    val delayAction20 = Action<String> { stateAccess ->
         delay(delay20)
-        updateState { state2 }
+        stateAccess.update { state2 }
     }
     val scope by memoized(
         factory = { TestCoroutineScope(Job()) },

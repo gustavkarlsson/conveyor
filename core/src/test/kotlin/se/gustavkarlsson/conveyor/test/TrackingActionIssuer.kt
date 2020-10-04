@@ -1,7 +1,7 @@
 package se.gustavkarlsson.conveyor.test
 
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.ActionIssuer
+import se.gustavkarlsson.conveyor.internal.ActionIssuer
 import strikt.api.Assertion
 import strikt.assertions.containsExactly
 

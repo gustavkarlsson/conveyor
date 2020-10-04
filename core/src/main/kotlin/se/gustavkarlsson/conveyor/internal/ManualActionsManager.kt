@@ -5,7 +5,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.ActionIssuer
 
 @ExperimentalCoroutinesApi
 internal class ManualActionsManager<State>(
