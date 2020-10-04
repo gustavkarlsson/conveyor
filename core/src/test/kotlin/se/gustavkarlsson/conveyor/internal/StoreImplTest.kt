@@ -11,8 +11,9 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StoreClosedException
-import se.gustavkarlsson.conveyor.StoreOpenedException
+import se.gustavkarlsson.conveyor.StoreCancelledException
+import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
+import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.test.StateHoldingStateAccess
 import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.test.runBlockingTest
@@ -58,26 +59,25 @@ object StoreImplTest : Spek({
             }
             expectThat(result).containsExactly(initialState, secondState)
         }
-        it("issueAction issues action") {
-            runBlockingTest {
+        it("throws when action issued") {
+            expectThrows<StoreNotYetStartedException> {
                 subject.issue(action)
             }
-            expectThat(actionIssuer.issuedActions).containsExactly(action)
         }
 
         describe("that was opened") {
             val openScope by memoized { TestCoroutineScope() }
             lateinit var job: Job
             beforeEachTest {
-                job = subject.open(openScope)
+                job = subject.start(openScope)
             }
             afterEachTest {
                 job.cancel("Test ended")
             }
 
             it("opening again throws exception") {
-                expectThrows<StoreOpenedException> {
-                    subject.open(openScope)
+                expectThrows<StoreAlreadyStartedException> {
+                    subject.start(openScope)
                 }
             }
             it("issueAction issues action") {
@@ -95,14 +95,14 @@ object StoreImplTest : Spek({
                     job.cancel("Closed again")
                 }
                 it("open again throws with cancellationException as reason") {
-                    expectThrows<StoreClosedException> {
+                    expectThrows<StoreCancelledException> {
                         runBlockingTest {
-                            subject.open(this)
+                            subject.start(this)
                         }
                     }.get { reason }.isEqualTo(cancellationException)
                 }
                 it("issuing action throws with cancellationException as reason") {
-                    expectThrows<StoreClosedException> {
+                    expectThrows<StoreCancelledException> {
                         subject.issue(action)
                     }.get { reason }.isEqualTo(cancellationException)
                 }

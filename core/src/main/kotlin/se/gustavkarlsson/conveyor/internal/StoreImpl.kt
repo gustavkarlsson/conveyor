@@ -10,8 +10,9 @@ import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.StoreClosedException
-import se.gustavkarlsson.conveyor.StoreOpenedException
+import se.gustavkarlsson.conveyor.StoreCancelledException
+import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
+import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import java.util.concurrent.atomic.AtomicReference
 
 @FlowPreview
@@ -30,46 +31,55 @@ internal class StoreImpl<State>(
 
     override val currentState get() = stateAccess.currentState
 
-    private val stage = AtomicReference<Stage>(Stage.Initial)
+    private val stage = AtomicReference<Stage>(Stage.NotYetStarted)
 
-    override fun open(scope: CoroutineScope): Job {
-        // TODO Does getAndUpdate work on Android?
-        stage.getAndUpdate { current ->
-            when (current) {
-                Stage.Initial -> Stage.Opened
-                Stage.Opened -> throw StoreOpenedException()
-                is Stage.Closed -> throw StoreClosedException(current.cause)
-            }
-        }
-        val job = scope.launch {
-            for (processor in processors) {
-                launch {
-                    processor.process { action ->
-                        launch { action.execute(stateAccess) }
-                    }
-                }
-            }
-        }
-        job.invokeOnCompletion { throwable ->
-            stage.set(Stage.Closed(throwable))
-            for (cancellable in cancellables) {
-                cancellable.cancel(throwable)
-            }
-        }
+    override fun start(scope: CoroutineScope): Job {
+        setStart()
+        val job = scope.startProcessing()
+        job.invokeOnCompletion(::cancel)
         return job
     }
 
+    // TODO Does getAndUpdate work on Android?
+    private fun setStart() {
+        stage.getAndUpdate { current ->
+            when (current) {
+                Stage.NotYetStarted -> Stage.Started
+                Stage.Started -> throw StoreAlreadyStartedException()
+                is Stage.Cancelled -> throw StoreCancelledException(current.reason)
+            }
+        }
+    }
+
+    private fun CoroutineScope.startProcessing(): Job = launch {
+        for (processor in processors) {
+            launch {
+                processor.process { action ->
+                    launch { action.execute(stateAccess) }
+                }
+            }
+        }
+    }
+
+    private fun cancel(throwable: Throwable?) {
+        stage.set(Stage.Cancelled(throwable))
+        for (cancellable in cancellables) {
+            cancellable.cancel(throwable)
+        }
+    }
+
     override fun issue(action: Action<State>) {
-        val currentStage = stage.get()
-        if (currentStage is Stage.Closed) {
-            throw StoreClosedException(currentStage.cause)
+        when (val currentStage = stage.get()) {
+            is Stage.NotYetStarted -> throw StoreNotYetStartedException()
+            is Stage.Started -> Unit
+            is Stage.Cancelled -> throw StoreCancelledException(currentStage.reason)
         }
         actionIssuer.issue(action)
     }
 
     private sealed class Stage {
-        object Initial : Stage()
-        object Opened : Stage()
-        data class Closed(val cause: Throwable?) : Stage()
+        object NotYetStarted : Stage()
+        object Started : Stage()
+        data class Cancelled(val reason: Throwable?) : Stage()
     }
 }

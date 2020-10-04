@@ -25,7 +25,7 @@ internal class RxStoreImpl<State : Any>(
     override val currentState: State get() = store.currentState
 
     override fun open(): Disposable {
-        val job = store.open(GlobalScope)
+        val job = store.start(GlobalScope)
         return JobDisposable(job)
     }
 

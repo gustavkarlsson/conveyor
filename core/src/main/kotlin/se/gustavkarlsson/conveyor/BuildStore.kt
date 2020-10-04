@@ -14,10 +14,9 @@ public fun <State> buildStore(
     initialState: State,
     openActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
-    actionBufferSize: Int = 64,
 ): Store<State> {
     val stateManager = StateManager(initialState)
-    val manualActionsManager = ManualActionsManager<State>(actionBufferSize)
+    val manualActionsManager = ManualActionsManager<State>()
     val openActionsProcessor = OpenActionsProcessor(openActions)
     val liveActionsManager = LiveActionsManager(liveActions)
     val processors = listOf(manualActionsManager, openActionsProcessor, liveActionsManager)

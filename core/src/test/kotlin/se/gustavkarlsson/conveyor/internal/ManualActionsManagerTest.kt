@@ -8,13 +8,9 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.contains
 import strikt.assertions.containsExactly
-import strikt.assertions.isNotNull
-import strikt.assertions.message
 
 object ManualActionsManagerTest : Spek({
-    val bufferSize = 8
     val scope by memoized(
         factory = { TestCoroutineScope(Job()) },
         destructor = {
@@ -23,33 +19,9 @@ object ManualActionsManagerTest : Spek({
         }
     )
     val action = Action<String> {}
-
-    describe("Creation") {
-        it("throws exception with zero bufferSize") {
-            expectThrows<IllegalArgumentException> {
-                ManualActionsManager<Unit>(0)
-            }.message
-                .isNotNull()
-                .contains("positive")
-        }
-        it("throws exception with negative bufferSize") {
-            expectThrows<IllegalArgumentException> {
-                ManualActionsManager<Unit>(-1)
-            }.message
-                .isNotNull()
-                .contains("positive")
-        }
-    }
     describe("A ManualActionsManager") {
-        val subject by memoized { ManualActionsManager<String>(bufferSize) }
+        val subject by memoized { ManualActionsManager<String>() }
 
-        it("throws when issuing more actions than buffer contains") {
-            expectThrows<IllegalStateException> {
-                repeat(bufferSize + 1) {
-                    subject.issue(action)
-                }
-            }
-        }
         it("suspends on process") {
             expectSuspends {
                 subject.process {}

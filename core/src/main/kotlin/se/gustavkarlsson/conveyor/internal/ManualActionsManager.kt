@@ -7,16 +7,8 @@ import kotlinx.coroutines.channels.consumeEach
 import se.gustavkarlsson.conveyor.Action
 
 @ExperimentalCoroutinesApi
-internal class ManualActionsManager<State>(
-    bufferSize: Int,
-) : ActionIssuer<State>, Processor<State>, Cancellable {
-    init {
-        require(bufferSize > 0) {
-            "bufferSize must be positive. Was: $bufferSize"
-        }
-    }
-
-    private val channel = Channel<Action<State>>(bufferSize)
+internal class ManualActionsManager<State> : ActionIssuer<State>, Processor<State>, Cancellable {
+    private val channel = Channel<Action<State>>(Channel.UNLIMITED)
 
     override fun issue(action: Action<State>) = channel.offerOrThrow(action)
 
