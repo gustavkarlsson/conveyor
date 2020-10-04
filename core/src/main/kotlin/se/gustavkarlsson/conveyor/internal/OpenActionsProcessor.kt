@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 internal class OpenActionsProcessor<State>(
     actions: Iterable<Action<State>>,
-) : Processor<State> {
+) : ActionProcessor<State> {
     private val actions = AtomicReference(actions.toList())
 
     override suspend fun process(onAction: suspend (Action<State>) -> Unit) {

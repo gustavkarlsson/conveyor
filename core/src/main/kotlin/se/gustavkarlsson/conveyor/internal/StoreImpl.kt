@@ -22,7 +22,7 @@ internal class StoreImpl<State>(
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
-    private val processors: Iterable<Processor<State>>,
+    private val actionProcessors: Iterable<ActionProcessor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateFlowProvider.stateFlow
@@ -52,7 +52,7 @@ internal class StoreImpl<State>(
     }
 
     private fun CoroutineScope.startProcessing(): Job = launch {
-        for (processor in processors) {
+        for (processor in actionProcessors) {
             launch {
                 processor.process { action ->
                     launch { action.execute(stateAccess) }

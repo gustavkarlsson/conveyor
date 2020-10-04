@@ -30,7 +30,7 @@ object StoreImplTest : Spek({
     val stateAccess by memoized { StateHoldingStateAccess(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
-    val foreverProcessor = object : Processor<String> {
+    val foreverProcessor = object : ActionProcessor<String> {
         override suspend fun process(onAction: suspend (Action<String>) -> Unit) {
             delay(Long.MAX_VALUE)
         }
@@ -44,8 +44,8 @@ object StoreImplTest : Spek({
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
                 liveActionsCounter = liveActionsCounter,
-                processors = listOf(foreverProcessor),
-                cancellables = emptyList()
+                actionProcessors = listOf(foreverProcessor),
+                cancellables = emptyList(),
             )
         }
 

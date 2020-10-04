@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @ExperimentalCoroutinesApi
 internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
-) : LiveActionsCounter, Processor<State>, Cancellable {
+) : LiveActionsCounter, ActionProcessor<State>, Cancellable {
     private val liveCount = AtomicInteger(0)
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
 

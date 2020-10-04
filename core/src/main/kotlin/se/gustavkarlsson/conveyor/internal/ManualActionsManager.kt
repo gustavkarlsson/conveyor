@@ -7,7 +7,7 @@ import kotlinx.coroutines.channels.consumeEach
 import se.gustavkarlsson.conveyor.Action
 
 @ExperimentalCoroutinesApi
-internal class ManualActionsManager<State> : ActionIssuer<State>, Processor<State>, Cancellable {
+internal class ManualActionsManager<State> : ActionIssuer<State>, ActionProcessor<State>, Cancellable {
     private val channel = Channel<Action<State>>(Channel.UNLIMITED)
 
     override fun issue(action: Action<State>) = channel.offerOrThrow(action)
