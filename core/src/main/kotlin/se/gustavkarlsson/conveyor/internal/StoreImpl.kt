@@ -1,19 +1,9 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
-import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StateAccess
-import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.StoreCancelledException
-import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
-import se.gustavkarlsson.conveyor.StoreNotYetStartedException
-import java.util.concurrent.atomic.AtomicReference
+import se.gustavkarlsson.conveyor.*
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -31,22 +21,20 @@ internal class StoreImpl<State>(
 
     override val currentState get() = stateAccess.currentState
 
-    private val stage = AtomicReference<Stage>(Stage.NotYetStarted)
+    private var stage: Stage = Stage.NotYetStarted
 
     override fun start(scope: CoroutineScope): Job {
         setStart()
-        val job = scope.startProcessing()
-        job.invokeOnCompletion(::cancel)
-        return job
+        return scope.startProcessing()
+            .also { it.invokeOnCompletion(::cancel) }
     }
 
-    // TODO Does getAndUpdate work on Android?
     private fun setStart() {
-        stage.getAndUpdate { current ->
-            when (current) {
+        synchronized(stage) {
+            when (val currentStage = stage) {
                 Stage.NotYetStarted -> Stage.Started
                 Stage.Started -> throw StoreAlreadyStartedException()
-                is Stage.Cancelled -> throw StoreCancelledException(current.reason)
+                is Stage.Cancelled -> throw StoreCancelledException(currentStage.reason)
             }
         }
     }
@@ -62,17 +50,19 @@ internal class StoreImpl<State>(
     }
 
     private fun cancel(throwable: Throwable?) {
-        stage.set(Stage.Cancelled(throwable))
+        synchronized(stage) { stage = Stage.Cancelled(throwable) }
         for (cancellable in cancellables) {
             cancellable.cancel(throwable)
         }
     }
 
     override fun issue(action: Action<State>) {
-        when (val currentStage = stage.get()) {
-            is Stage.NotYetStarted -> throw StoreNotYetStartedException()
-            is Stage.Started -> Unit
-            is Stage.Cancelled -> throw StoreCancelledException(currentStage.reason)
+        synchronized(stage) {
+            when (val currentStage = stage) {
+                is Stage.NotYetStarted -> throw StoreNotYetStartedException()
+                is Stage.Started -> Unit
+                is Stage.Cancelled -> throw StoreCancelledException(currentStage.reason)
+            }
         }
         actionIssuer.issue(action)
     }
