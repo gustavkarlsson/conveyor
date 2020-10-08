@@ -10,10 +10,6 @@ import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.StoreCancelledException
-import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
-import se.gustavkarlsson.conveyor.StoreNotYetStartedException
-import java.util.concurrent.atomic.AtomicReference
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -31,24 +27,13 @@ internal class StoreImpl<State>(
 
     override val currentState get() = stateAccess.currentState
 
-    private val stage = AtomicReference<Stage>(Stage.NotYetStarted)
+    private val stage = Stage()
 
     override fun start(scope: CoroutineScope): Job {
-        setStart()
+        stage.start()
         val job = scope.startProcessing()
-        job.invokeOnCompletion(::cancel)
+        job.invokeOnCompletion(::stop)
         return job
-    }
-
-    // TODO Does getAndUpdate work on Android?
-    private fun setStart() {
-        stage.getAndUpdate { current ->
-            when (current) {
-                Stage.NotYetStarted -> Stage.Started
-                Stage.Started -> throw StoreAlreadyStartedException()
-                is Stage.Cancelled -> throw StoreCancelledException(current.reason)
-            }
-        }
     }
 
     private fun CoroutineScope.startProcessing(): Job = launch {
@@ -61,25 +46,15 @@ internal class StoreImpl<State>(
         }
     }
 
-    private fun cancel(throwable: Throwable?) {
-        stage.set(Stage.Cancelled(throwable))
+    private fun stop(throwable: Throwable?) {
+        stage.stop(throwable)
         for (cancellable in cancellables) {
             cancellable.cancel(throwable)
         }
     }
 
     override fun issue(action: Action<State>) {
-        when (val currentStage = stage.get()) {
-            is Stage.NotYetStarted -> throw StoreNotYetStartedException()
-            is Stage.Started -> Unit
-            is Stage.Cancelled -> throw StoreCancelledException(currentStage.reason)
-        }
+        stage.requireStarted()
         actionIssuer.issue(action)
-    }
-
-    private sealed class Stage {
-        object NotYetStarted : Stage()
-        object Started : Stage()
-        data class Cancelled(val reason: Throwable?) : Stage()
     }
 }

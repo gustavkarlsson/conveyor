@@ -5,7 +5,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
@@ -106,12 +105,12 @@ object StoreIntegrationTest : Spek({
                 }
 
                 it("throws exception when started") {
-                    expectThrows<StoreCancelledException> {
+                    expectThrows<StoreStoppedException> {
                         subject.start(scope)
                     }
                 }
                 it("throws exception when an action is issued") {
-                    expectThrows<StoreCancelledException> {
+                    expectThrows<StoreStoppedException> {
                         subject.issue(Action {})
                     }
                 }
@@ -119,7 +118,7 @@ object StoreIntegrationTest : Spek({
                     val result = subject.currentState
                     expectThat(result).isEqualTo(initialState)
                 }
-                it("state emits initial and then closes") {
+                it("state emits initial and then stops") {
                     val result = runBlockingTest {
                         subject.state.toList()
                     }

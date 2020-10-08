@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StoreCancelledException
+import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.test.StateHoldingStateAccess
@@ -87,24 +87,24 @@ object StoreImplTest : Spek({
                 expectThat(actionIssuer.issuedActions).containsExactly(action)
             }
 
-            describe("that was closed") {
+            describe("that was stopped") {
                 val cancellationException by memoized { CancellationException("Job cancelled at beginning of test") }
                 beforeEachTest { job.cancel(cancellationException) }
 
-                it("closing again succeeds") {
-                    job.cancel("Closed again")
+                it("stopping again succeeds") {
+                    job.cancel("Stopped again")
                 }
                 it("open again throws with cancellationException as reason") {
-                    expectThrows<StoreCancelledException> {
+                    expectThrows<StoreStoppedException> {
                         runBlockingTest {
                             subject.start(this)
                         }
-                    }.get { reason }.isEqualTo(cancellationException)
+                    }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
                 it("issuing action throws with cancellationException as reason") {
-                    expectThrows<StoreCancelledException> {
+                    expectThrows<StoreStoppedException> {
                         subject.issue(action)
-                    }.get { reason }.isEqualTo(cancellationException)
+                    }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
             }
         }
