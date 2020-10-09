@@ -7,7 +7,6 @@ public class StoreStoppedException(
 private fun createMessage(reason: Throwable?) =
     if (reason == null) {
         "Store has been stopped"
-    }
-    else {
+    } else {
         "Store has been stopped due to cancellation"
     }
