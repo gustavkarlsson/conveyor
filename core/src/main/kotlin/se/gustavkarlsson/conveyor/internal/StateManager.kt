@@ -20,20 +20,19 @@ internal class StateManager<State>(initialState: State) :
 
     override val stateFlow: Flow<State> = channel.asFlow()
         .distinctUntilChanged { old, new -> old === new }
-        .onEmpty { emit(currentState) }
+        .onEmpty { emit(get()) }
 
-    override var currentState: State = initialState
-        private set(value) {
-            channel.offerOrThrow(value)
-            field = value
-        }
+    private var currentState: State = initialState
+
+    override fun get(): State = currentState
+
+    override fun set(state: State) {
+        channel.offerOrThrow(state)
+        currentState = state
+    }
 
     @Synchronized
-    override fun update(block: (State) -> State): State {
-        val newState = block(currentState)
-        currentState = newState
-        return newState
-    }
+    override fun update(block: (State) -> State): State = block(get()).also(::set)
 
     override fun cancel(cause: Throwable?) {
         channel.cancel(cause as? CancellationException)

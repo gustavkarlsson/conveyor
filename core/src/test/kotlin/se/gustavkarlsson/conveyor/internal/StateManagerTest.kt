@@ -18,8 +18,8 @@ object StateManagerTest : Spek({
     describe("A manager") {
         val subject by memoized { StateManager(initialState) }
 
-        it("currentState is initial") {
-            expectThat(subject.currentState).isEqualTo(initialState)
+        it("get returns initial") {
+            expectThat(subject.get()).isEqualTo(initialState)
         }
         it("state emits initial") {
             val result = runBlockingTest {
@@ -31,9 +31,9 @@ object StateManagerTest : Spek({
             }
             expectThat(result).containsExactly(initialState)
         }
-        it("currentState is state1 after updating it to state1") {
+        it("get returns state1 after updating it to state1") {
             subject.update { state1 }
-            expectThat(subject.currentState).isEqualTo(state1)
+            expectThat(subject.get()).isEqualTo(state1)
         }
         it("state emits initial and state1 when updating it to state1 after collecting") {
             val result = runBlockingTest {
@@ -62,8 +62,8 @@ object StateManagerTest : Spek({
                 subject.cancel()
             }
 
-            it("currentState is currentState") {
-                val result = subject.currentState
+            it("get returns currentState") {
+                val result = subject.get()
                 expectThat(result).isEqualTo(initialState)
             }
             it("setting currentState throws") {
@@ -76,7 +76,7 @@ object StateManagerTest : Spek({
                 try {
                     subject.update { "shouldThrow" }
                 } catch (ignore: Throwable) {}
-                expectThat(subject.currentState).isEqualTo(initialState)
+                expectThat(subject.get()).isEqualTo(initialState)
             }
             it("state emits initial and then ends") {
                 val result = runBlockingTest {

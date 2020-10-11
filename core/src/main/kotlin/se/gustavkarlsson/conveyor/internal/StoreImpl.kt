@@ -25,7 +25,7 @@ internal class StoreImpl<State>(
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
 
-    override val currentState get() = stateAccess.currentState
+    override val currentState get() = stateAccess.get()
 
     private val stage = Stage()
 
