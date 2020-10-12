@@ -15,14 +15,17 @@ public fun <State> buildStore(
     openActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
     stateWatchers: Iterable<Watcher<State>> = emptyList(),
+    actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
     val stateMappers = stateWatchers.map { it.toMapper() }.asIterable()
+    val actionMappers = actionWatchers.map { it.toMapper() }.asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenOpenActions = openActions.override(plugins) { overrideOpenActions(it) }
     val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
     val overriddenStateMappers = stateMappers.override(plugins) { overrideStateMappers(it) }
+    val overriddenActionMappers = actionMappers.override(plugins) { overrideActionMappers(it) }
 
     val stateManager = StateManager(overriddenInitialState, overriddenStateMappers)
     val openActionsProcessor = OpenActionsProcessor(overriddenOpenActions)
@@ -37,6 +40,7 @@ public fun <State> buildStore(
         actionIssuer = manualActionsManager,
         liveActionsCounter = liveActionsManager,
         actionProcessors = actionProcessors,
+        actionMappers = overriddenActionMappers,
         cancellables = cancellables,
     )
 }

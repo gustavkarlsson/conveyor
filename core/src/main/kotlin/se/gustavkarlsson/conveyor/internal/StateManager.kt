@@ -36,13 +36,7 @@ internal class StateManager<State>(
     override fun get(): State = currentState
 
     override fun set(state: State) {
-        val mappedState = stateMappers.fold(state as State?) { acc, mapper ->
-            if (acc != null) {
-                mapper.map(acc)
-            } else {
-                acc
-            }
-        }
+        val mappedState = stateMappers.fold(state)
         if (mappedState != null) {
             channel.offerOrThrow(mappedState)
             currentState = mappedState

@@ -16,4 +16,8 @@ public interface Plugin<State> {
     public fun overrideStateMappers(
         stateMappers: Iterable<Mapper<State>>,
     ): Iterable<Mapper<State>> = stateMappers
+
+    public fun overrideActionMappers(
+        actionMappers: Iterable<Mapper<Action<State>>>,
+    ): Iterable<Mapper<Action<State>>> = actionMappers
 }

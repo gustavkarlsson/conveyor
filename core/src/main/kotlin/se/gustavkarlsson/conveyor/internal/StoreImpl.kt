@@ -20,9 +20,9 @@ internal class StoreImpl<State>(
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val actionProcessors: Iterable<ActionProcessor<State>>,
+    private val actionMappers: Iterable<Mapper<Action<State>>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    // FIXME map State?
     override val state = stateFlowProvider.stateFlow
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
@@ -42,8 +42,10 @@ internal class StoreImpl<State>(
         for (processor in actionProcessors) {
             launch {
                 processor.process { action ->
-                    // FIXME map Action?
-                    launch { action.execute(stateAccess) }
+                    val mappedAction = actionMappers.fold(action)
+                    if (mappedAction != null) {
+                        launch { action.execute(stateAccess) }
+                    }
                 }
             }
         }
