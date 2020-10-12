@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.Mapper
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
 
@@ -21,6 +22,7 @@ internal class StoreImpl<State>(
     private val actionProcessors: Iterable<ActionProcessor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
+    // FIXME map State?
     override val state = stateFlowProvider.stateFlow
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
@@ -40,6 +42,7 @@ internal class StoreImpl<State>(
         for (processor in actionProcessors) {
             launch {
                 processor.process { action ->
+                    // FIXME map Action?
                     launch { action.execute(stateAccess) }
                 }
             }

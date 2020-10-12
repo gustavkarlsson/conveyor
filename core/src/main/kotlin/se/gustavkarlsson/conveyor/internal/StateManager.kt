@@ -8,27 +8,45 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEmpty
+import se.gustavkarlsson.conveyor.Mapper
 import se.gustavkarlsson.conveyor.StateAccess
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal class StateManager<State>(initialState: State) :
-    StateFlowProvider<State>,
+internal class StateManager<State>(
+    initialState: State,
+    private val stateMappers: Iterable<Mapper<State>>,
+) : StateFlowProvider<State>,
     StateAccess<State>,
     Cancellable {
-    private val channel = ConflatedBroadcastChannel(initialState)
+
+    private val channel = ConflatedBroadcastChannel<State>()
+
+    private var currentState: State
+
+    init {
+        channel.offerOrThrow(initialState)
+        currentState = initialState
+    }
 
     override val stateFlow: Flow<State> = channel.asFlow()
         .distinctUntilChanged { old, new -> old === new }
         .onEmpty { emit(get()) }
 
-    private var currentState: State = initialState
-
     override fun get(): State = currentState
 
     override fun set(state: State) {
-        channel.offerOrThrow(state)
-        currentState = state
+        val mappedState = stateMappers.fold(state as State?) { acc, mapper ->
+            if (acc != null) {
+                mapper.map(acc)
+            } else {
+                acc
+            }
+        }
+        if (mappedState != null) {
+            channel.offerOrThrow(mappedState)
+            currentState = mappedState
+        }
     }
 
     @Synchronized

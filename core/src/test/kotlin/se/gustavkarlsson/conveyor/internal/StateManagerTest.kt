@@ -15,8 +15,8 @@ object StateManagerTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
 
-    describe("A manager") {
-        val subject by memoized { StateManager(initialState) }
+    describe("A minimal manager") {
+        val subject by memoized { StateManager(initialState, emptyList()) }
 
         it("get returns initial") {
             expectThat(subject.get()).isEqualTo(initialState)
