@@ -3,7 +3,6 @@ package se.gustavkarlsson.conveyor.plugin.vcr.internal
 import kotlinx.coroutines.flow.*
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
-import se.gustavkarlsson.conveyor.plugin.vcr.Mode
 
 internal class PlaybackAction<State>(
     private val mode: Flow<Mode<State>>,
