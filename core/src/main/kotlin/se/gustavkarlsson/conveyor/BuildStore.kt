@@ -48,7 +48,7 @@ public fun <State> buildStore(
 private fun <T> Watcher<T>.toMapper(): Mapper<T> = WatchingMapper(this)
 
 private class WatchingMapper<T>(private val watcher: Watcher<T>) : Mapper<T> {
-    override fun map(value: T): T? {
+    override suspend fun map(value: T): T? {
         watcher.watch(value)
         return value
     }

@@ -45,6 +45,7 @@ object StoreImplTest : Spek({
                 actionIssuer = actionIssuer,
                 liveActionsCounter = liveActionsCounter,
                 actionProcessors = listOf(foreverProcessor),
+                actionMappers = emptyList(),
                 cancellables = emptyList(),
             )
         }

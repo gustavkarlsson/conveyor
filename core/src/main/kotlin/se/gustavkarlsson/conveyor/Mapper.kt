@@ -1,5 +1,5 @@
 package se.gustavkarlsson.conveyor
 
-public fun interface Mapper<T> {
-    public fun map(value: T): T?
+public interface Mapper<T> {
+    public suspend fun map(value: T): T?
 }

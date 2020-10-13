@@ -1,5 +1,5 @@
 package se.gustavkarlsson.conveyor
 
-public fun interface Watcher<T> {
-    public fun watch(value: T)
+public interface Watcher<T> {
+    public suspend fun watch(value: T)
 }
