@@ -2,5 +2,6 @@ rootProject.name = "conveyor"
 
 include(
     "core",
-    "rx2"
+    "rx2",
+    "plugin-vcr"
 )
