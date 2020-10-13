@@ -32,7 +32,9 @@ object StateManagerTest : Spek({
             expectThat(result).containsExactly(initialState)
         }
         it("get returns state1 after updating it to state1") {
-            subject.update { state1 }
+            runBlockingTest {
+                subject.update { state1 }
+            }
             expectThat(subject.get()).isEqualTo(state1)
         }
         it("state emits initial and state1 when updating it to state1 after collecting") {
@@ -74,7 +76,9 @@ object StateManagerTest : Spek({
             }
             it("getting currentState after trying to set currentState returns initial state") {
                 try {
-                    subject.update { "shouldThrow" }
+                    runBlockingTest {
+                        subject.update { "shouldThrow" }
+                    }
                 } catch (ignore: Throwable) {}
                 expectThat(subject.get()).isEqualTo(initialState)
             }

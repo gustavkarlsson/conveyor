@@ -35,7 +35,8 @@ internal class StateManager<State>(
 
     override fun get(): State = currentState
 
-    override fun set(state: State) {
+    // FIXME synchronize, so that multiple invocations will set the state in sequence
+    override suspend fun set(state: State) {
         val mappedState = stateMappers.fold(state)
         if (mappedState != null) {
             channel.offerOrThrow(mappedState)
@@ -43,8 +44,12 @@ internal class StateManager<State>(
         }
     }
 
-    @Synchronized
-    override fun update(block: (State) -> State): State = block(get()).also(::set)
+    // FIXME synchronize, so that multiple invocations will set the state in sequence
+    override suspend fun update(block: suspend (State) -> State): State {
+        val newState = block(get())
+        set(newState)
+        return newState
+    }
 
     override fun cancel(cause: Throwable?) {
         channel.cancel(cause as? CancellationException)
