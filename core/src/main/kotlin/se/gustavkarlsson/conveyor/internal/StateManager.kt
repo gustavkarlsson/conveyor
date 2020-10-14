@@ -8,14 +8,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.onEmpty
-import se.gustavkarlsson.conveyor.Mapper
 import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.Transformer
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StateManager<State>(
     initialState: State,
-    private val stateMappers: Iterable<Mapper<State>>,
+    private val stateTransformers: Iterable<Transformer<State>>,
 ) : StateFlowProvider<State>,
     StateAccess<State>,
     Cancellable {
@@ -37,11 +37,8 @@ internal class StateManager<State>(
 
     // FIXME synchronize, so that multiple invocations will set the state in sequence
     override suspend fun set(state: State) {
-        val mappedState = stateMappers.fold(state)
-        if (mappedState != null) {
-            channel.offerOrThrow(mappedState)
-            currentState = mappedState
-        }
+        channel.offerOrThrow(state)
+        currentState = state
     }
 
     // FIXME synchronize, so that multiple invocations will set the state in sequence

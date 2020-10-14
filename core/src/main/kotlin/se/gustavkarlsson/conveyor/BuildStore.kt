@@ -2,11 +2,9 @@ package se.gustavkarlsson.conveyor
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import se.gustavkarlsson.conveyor.internal.LiveActionsManager
-import se.gustavkarlsson.conveyor.internal.ManualActionsManager
-import se.gustavkarlsson.conveyor.internal.OpenActionsProcessor
-import se.gustavkarlsson.conveyor.internal.StateManager
-import se.gustavkarlsson.conveyor.internal.StoreImpl
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.onEach
+import se.gustavkarlsson.conveyor.internal.*
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -18,16 +16,18 @@ public fun <State> buildStore(
     actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val stateMappers = stateWatchers.map { it.toMapper() }.asIterable()
-    val actionMappers = actionWatchers.map { it.toMapper() }.asIterable()
+    val stateTransformers: Iterable<Transformer<State>> =
+        stateWatchers.map { it.toMapper() }.asIterable()
+    val actionTransformers: Iterable<Transformer<Action<State>>> =
+        actionWatchers.map { it.toMapper() }.asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenOpenActions = openActions.override(plugins) { overrideOpenActions(it) }
     val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
-    val overriddenStateMappers = stateMappers.override(plugins) { overrideStateMappers(it) }
-    val overriddenActionMappers = actionMappers.override(plugins) { overrideActionMappers(it) }
+    val overriddenStateTransformers = stateTransformers.override(plugins) { overrideStateTransformers(it) }
+    val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
-    val stateManager = StateManager(overriddenInitialState, overriddenStateMappers)
+    val stateManager = StateManager(overriddenInitialState, overriddenStateTransformers)
     val openActionsProcessor = OpenActionsProcessor(overriddenOpenActions)
     val manualActionsManager = ManualActionsManager<State>()
     val liveActionsManager = LiveActionsManager(overriddenLiveActions)
@@ -40,18 +40,15 @@ public fun <State> buildStore(
         actionIssuer = manualActionsManager,
         liveActionsCounter = liveActionsManager,
         actionProcessors = actionProcessors,
-        actionMappers = overriddenActionMappers,
+        actionTransformers = overriddenActionTransformers,
         cancellables = cancellables,
     )
 }
 
-private fun <T> Watcher<T>.toMapper(): Mapper<T> = WatchingMapper(this)
+private fun <T> Watcher<T>.toMapper() = WatchingTransformer(this)
 
-private class WatchingMapper<T>(private val watcher: Watcher<T>) : Mapper<T> {
-    override suspend fun map(value: T): T? {
-        watcher.watch(value)
-        return value
-    }
+private class WatchingTransformer<T>(private val watcher: Watcher<T>) : Transformer<T> {
+    override suspend fun transform(flow: Flow<T>): Flow<T> = flow.onEach { watcher.watch(it) }
 }
 
 private fun <State, T> T.override(

@@ -1,16 +1,12 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.Mapper
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.Transformer
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -20,7 +16,7 @@ internal class StoreImpl<State>(
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val actionProcessors: Iterable<ActionProcessor<State>>,
-    private val actionMappers: Iterable<Mapper<Action<State>>>,
+    private val actionTransformers: Iterable<Transformer<Action<State>>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateFlowProvider.stateFlow
@@ -42,10 +38,7 @@ internal class StoreImpl<State>(
         for (processor in actionProcessors) {
             launch {
                 processor.process { action ->
-                    val mappedAction = actionMappers.fold(action)
-                    if (mappedAction != null) {
-                        launch { action.execute(stateAccess) }
-                    }
+                    launch { action.execute(stateAccess) }
                 }
             }
         }
