@@ -1,15 +1,17 @@
 package se.gustavkarlsson.conveyor.plugin.vcr.internal
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combineTransform
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.Mapper
+import se.gustavkarlsson.conveyor.Transformer
 
 internal class PlaybackActionFilter<State>(
-    private val getMode: () -> Mode<State>
-) : Mapper<Action<State>> {
-    override suspend fun map(value: Action<State>): Action<State>? =
-        if (getMode() is Mode.Playing<State>) {
-            null
-        } else {
-            value
+    private val mode: Flow<Mode<State>>
+) : Transformer<Action<State>> {
+    override suspend fun transform(flow: Flow<Action<State>>): Flow<Action<State>> =
+        combineTransform(flow, mode) { state, mode ->
+            if (mode !is Mode.Playing<*>) {
+                emit(state)
+            }
         }
 }

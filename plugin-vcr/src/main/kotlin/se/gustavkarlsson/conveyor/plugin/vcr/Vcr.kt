@@ -2,11 +2,16 @@ package se.gustavkarlsson.conveyor.plugin.vcr
 
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.mapNotNull
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.Mapper
 import se.gustavkarlsson.conveyor.Plugin
-import se.gustavkarlsson.conveyor.plugin.vcr.internal.*
+import se.gustavkarlsson.conveyor.Transformer
+import se.gustavkarlsson.conveyor.plugin.vcr.internal.Mode
+import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackAction
+import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackActionFilter
+import se.gustavkarlsson.conveyor.plugin.vcr.internal.Recorder
 import kotlin.properties.Delegates.notNull
 
 public class Vcr<State> : Plugin<State>, Control<State> {
@@ -15,17 +20,17 @@ public class Vcr<State> : Plugin<State>, Control<State> {
 
     private val mode = modeChannel.asFlow()
 
-    override fun overrideStateMappers(
-        stateMappers: Iterable<Mapper<State>>
-    ): Iterable<Mapper<State>> = stateMappers + Recorder(modeChannel::value)
+    override fun overrideStateTransformers(
+        stateTransformers: Iterable<Transformer<State>>
+    ): Iterable<Transformer<State>> = stateTransformers + Recorder(mode)
 
     override fun overrideOpenActions(
         openActions: Iterable<Action<State>>
     ): Iterable<Action<State>> = openActions + PlaybackAction(mode)
 
-    override fun overrideActionMappers(
-        actionMappers: Iterable<Mapper<Action<State>>>
-    ): Iterable<Mapper<Action<State>>> = actionMappers + PlaybackActionFilter(modeChannel::value)
+    override fun overrideActionTransformers(
+        actionTransformers: Iterable<Transformer<Action<State>>>
+    ): Iterable<Transformer<Action<State>>> = actionTransformers + PlaybackActionFilter(mode)
 
     override fun play(tape: ReadableTape<Sample<State>>) {
         val newFlow = tape.read()

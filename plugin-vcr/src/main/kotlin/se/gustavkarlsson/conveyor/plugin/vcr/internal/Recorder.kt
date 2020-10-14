@@ -1,20 +1,21 @@
 package se.gustavkarlsson.conveyor.plugin.vcr.internal
 
-import se.gustavkarlsson.conveyor.Mapper
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
 
-// FIXME still doesn't handle first state
 internal class Recorder<State>(
-    private val getMode: () -> Mode<State>
-) : Mapper<State> {
-    override suspend fun map(value: State): State? {
-        val mode = getMode()
-        if (mode is Mode.Recording<State>) {
-            val tape = mode.tape
-            val delta = mode.trackPosition.getDelta()
-            tape.write(Sample.Delay(delta))
-            tape.write(Sample.State(value))
+    private val mode: Flow<Mode<State>>
+) : Transformer<State> {
+    override suspend fun transform(flow: Flow<State>): Flow<State> =
+        combine(flow, mode) { state, mode ->
+            if (mode is Mode.Recording<State>) {
+                val tape = mode.tape
+                val delta = mode.trackPosition.getDelta()
+                tape.write(Sample.Delay(delta))
+                tape.write(Sample.State(state))
+            }
+            state
         }
-        return value
-    }
 }
