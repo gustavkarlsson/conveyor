@@ -13,11 +13,11 @@ public interface Plugin<State> {
         liveActions: Iterable<Action<State>>,
     ): Iterable<Action<State>> = liveActions
 
-    public fun overrideStateMappers(
-        stateMappers: Iterable<Mapper<State>>,
-    ): Iterable<Mapper<State>> = stateMappers
+    public fun overrideStateTransformers(
+        stateTransformers: Iterable<Transformer<State>>,
+    ): Iterable<Transformer<State>> = stateTransformers
 
-    public fun overrideActionMappers(
-        actionMappers: Iterable<Mapper<Action<State>>>,
-    ): Iterable<Mapper<Action<State>>> = actionMappers
+    public fun overrideActionTransformers(
+        actionTransformers: Iterable<Transformer<Action<State>>>,
+    ): Iterable<Transformer<Action<State>>> = actionTransformers
 }
