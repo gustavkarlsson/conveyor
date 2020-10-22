@@ -13,9 +13,9 @@ public interface Plugin<State> {
         liveActions: Iterable<Action<State>>,
     ): Iterable<Action<State>> = liveActions
 
-    public fun overrideStateTransformers(
-        stateTransformers: Iterable<Transformer<State>>,
-    ): Iterable<Transformer<State>> = stateTransformers
+    public fun overrideStateSelectors(
+        stateSelectors: Iterable<Selector<State>>,
+    ): Iterable<Selector<State>> = stateSelectors
 
     public fun overrideActionTransformers(
         actionTransformers: Iterable<Transformer<Action<State>>>,

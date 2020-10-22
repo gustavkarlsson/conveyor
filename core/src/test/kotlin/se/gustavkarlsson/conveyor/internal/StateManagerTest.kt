@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toList
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -12,11 +13,12 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 object StateManagerTest : Spek({
+    val scope by memoizedTestCoroutineScope()
     val initialState = "initial"
     val state1 = "state1"
 
     describe("A minimal manager") {
-        val subject by memoized { StateManager(initialState, emptyList()) }
+        val subject by memoized { StateManager(initialState, emptyList(), scope) }
 
         it("get returns initial") {
             expectThat(subject.get()).isEqualTo(initialState)
@@ -70,8 +72,9 @@ object StateManagerTest : Spek({
             }
             it("setting currentState throws") {
                 expectThrows<IllegalStateException> {
-                    subject.update { "shouldThrow" }
-                    Unit
+                    runBlockingTest {
+                        subject.update { "shouldThrow" }
+                    }
                 }
             }
             it("getting currentState after trying to set currentState returns initial state") {
@@ -79,7 +82,8 @@ object StateManagerTest : Spek({
                     runBlockingTest {
                         subject.update { "shouldThrow" }
                     }
-                } catch (ignore: Throwable) {}
+                } catch (ignore: Throwable) {
+                }
                 expectThat(subject.get()).isEqualTo(initialState)
             }
             it("state emits initial and then ends") {

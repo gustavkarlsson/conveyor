@@ -1,23 +1,17 @@
 package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 
 object ManualActionsManagerTest : Spek({
-    val scope by memoized(
-        factory = { TestCoroutineScope(Job()) },
-        destructor = {
-            it.cancel("Test ended")
-            it.cleanupTestCoroutines()
-        }
-    )
+    val scope by memoizedTestCoroutineScope()
     val action = Action<String> {}
     describe("A ManualActionsManager") {
         val subject by memoized { ManualActionsManager<String>() }

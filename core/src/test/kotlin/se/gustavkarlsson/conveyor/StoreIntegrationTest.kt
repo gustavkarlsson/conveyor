@@ -6,10 +6,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.SetStateAction
+import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expect
 import strikt.api.expectThat
@@ -37,17 +37,11 @@ object StoreIntegrationTest : Spek({
         delay(delay20)
         stateAccess.update { state2 }
     }
-    val scope by memoized(
-        factory = { TestCoroutineScope(Job()) },
-        destructor = {
-            it.cancel("Test ended")
-            it.cleanupTestCoroutines()
-        }
-    )
+    val scope by memoizedTestCoroutineScope()
 
     describe("A minimal store") {
         val subject by memoized {
-            buildStore(initialState)
+            buildStore(initialState, scope = scope)
         }
 
         it("state emits initial") {
@@ -129,7 +123,7 @@ object StoreIntegrationTest : Spek({
     }
     describe("A store with one simple start action") {
         val store by memoized {
-            buildStore(initialState, openActions = listOf(fixedStateAction1))
+            buildStore(initialState, openActions = listOf(fixedStateAction1), scope = scope)
         }
 
         it("the state does not change before starting") {
@@ -142,7 +136,7 @@ object StoreIntegrationTest : Spek({
     }
     describe("A store with one simple live action") {
         val store by memoized {
-            buildStore(initialState, liveActions = listOf(fixedStateAction1))
+            buildStore(initialState, liveActions = listOf(fixedStateAction1), scope = scope)
         }
 
         it("the state does not change before starting") {
@@ -161,7 +155,7 @@ object StoreIntegrationTest : Spek({
     }
     describe("A started store with one delayed start action") {
         val store by memoized {
-            buildStore(initialState, openActions = listOf(delayAction10))
+            buildStore(initialState, openActions = listOf(delayAction10), scope = scope)
         }
         beforeEachTest {
             store.start(scope)
@@ -182,7 +176,7 @@ object StoreIntegrationTest : Spek({
     }
     describe("A started store with two delayed start actions") {
         val store by memoized {
-            buildStore(initialState, openActions = listOf(delayAction10, delayAction20))
+            buildStore(initialState, openActions = listOf(delayAction10, delayAction20), scope = scope)
         }
         beforeEachTest {
             store.start(scope)
