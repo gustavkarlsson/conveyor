@@ -14,14 +14,13 @@ import se.gustavkarlsson.conveyor.Store
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    stateFlowProvider: StateFlowProvider<State>,
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val actionProcessors: Iterable<ActionProcessor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateFlowProvider.stateFlow
+    override val state = stateAccess.flow
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
 

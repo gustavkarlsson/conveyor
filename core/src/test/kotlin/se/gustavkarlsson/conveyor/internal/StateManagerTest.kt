@@ -24,7 +24,7 @@ object StateManagerTest : Spek({
         it("state emits initial") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.stateFlow.toList()
+                    subject.flow.toList()
                 }
                 deferred.cancel()
                 deferred.await()
@@ -38,7 +38,7 @@ object StateManagerTest : Spek({
         it("state emits initial and state1 when updating it to state1 after collecting") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.stateFlow.toList()
+                    subject.flow.toList()
                 }
                 subject.update { state1 }
                 deferred.cancel()
@@ -49,7 +49,7 @@ object StateManagerTest : Spek({
         it("state emits initial and ends when cancelling") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.stateFlow.single()
+                    subject.flow.single()
                 }
                 subject.cancel()
                 deferred.await()
@@ -80,7 +80,7 @@ object StateManagerTest : Spek({
             }
             it("state emits initial and then ends") {
                 val result = runBlockingTest {
-                    subject.stateFlow.single()
+                    subject.flow.single()
                 }
                 expectThat(result).isEqualTo(initialState)
             }

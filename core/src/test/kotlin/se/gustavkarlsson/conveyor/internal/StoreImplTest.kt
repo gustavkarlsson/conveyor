@@ -5,7 +5,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
@@ -24,9 +26,7 @@ import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
     val initialState = "initial"
-    val secondState = "second"
     val action = Action<String> {}
-    val stateFlowProvider by memoized { SimpleStateFlowProvider(initialState, secondState) }
     val stateAccess by memoized { StateHoldingStateAccess(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
@@ -40,7 +40,6 @@ object StoreImplTest : Spek({
     describe("A minimal store") {
         val subject by memoized {
             StoreImpl(
-                stateFlowProvider = stateFlowProvider,
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
                 liveActionsCounter = liveActionsCounter,
@@ -55,9 +54,9 @@ object StoreImplTest : Spek({
         }
         it("state returns state") {
             val result = runBlockingTest {
-                subject.state.toList()
+                subject.state.first()
             }
-            expectThat(result).containsExactly(initialState, secondState)
+            expectThat(result).isEqualTo(initialState)
         }
         it("throws when action issued") {
             expectThrows<StoreNotYetStartedException> {
@@ -110,10 +109,6 @@ object StoreImplTest : Spek({
         }
     }
 })
-
-private class SimpleStateFlowProvider<T>(firstState: T, secondState: T) : StateFlowProvider<T> {
-    override val stateFlow: Flow<T> = flowOf(firstState, secondState)
-}
 
 private class TrackingLiveActionsCounter(var count: Int = 0) : LiveActionsCounter {
     override fun increment() {
