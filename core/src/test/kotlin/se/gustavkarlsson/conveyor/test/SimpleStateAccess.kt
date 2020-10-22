@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import se.gustavkarlsson.conveyor.StateAccess
 
-class StateHoldingStateAccess<T>(initialState: T) : StateAccess<T> {
+class SimpleStateAccess<T>(initialState: T) : StateAccess<T> {
 
     private val stateFlow = MutableStateFlow(initialState)
 

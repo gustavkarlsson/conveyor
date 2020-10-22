@@ -4,11 +4,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -16,7 +12,7 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
-import se.gustavkarlsson.conveyor.test.StateHoldingStateAccess
+import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
@@ -27,7 +23,7 @@ import strikt.assertions.isEqualTo
 object StoreImplTest : Spek({
     val initialState = "initial"
     val action = Action<String> {}
-    val stateAccess by memoized { StateHoldingStateAccess(initialState) }
+    val stateAccess by memoized { SimpleStateAccess(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
     val foreverProcessor = object : ActionProcessor<String> {
