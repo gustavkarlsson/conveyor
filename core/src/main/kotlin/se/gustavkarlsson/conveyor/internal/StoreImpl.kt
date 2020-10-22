@@ -15,7 +15,7 @@ internal class StoreImpl<State>(
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
     private val actionProcessors: Iterable<ActionProcessor<State>>,
-    private val actionTransformers: Iterable<Transformer<Action<State>>>,
+    private val actionTransformers: Iterable<Transformer<Action<State>>>, // FIXME use this!
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateAccess.flow
