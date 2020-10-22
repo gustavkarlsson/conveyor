@@ -11,7 +11,6 @@ import se.gustavkarlsson.conveyor.Transformer
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    stateFlowProvider: StateFlowProvider<State>,
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
@@ -19,7 +18,7 @@ internal class StoreImpl<State>(
     private val actionTransformers: Iterable<Transformer<Action<State>>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateFlowProvider.stateFlow
+    override val state = stateAccess.flow
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
 

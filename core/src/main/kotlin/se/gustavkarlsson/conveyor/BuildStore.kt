@@ -35,7 +35,6 @@ public fun <State> buildStore(
     val cancellables = listOf(liveActionsManager, manualActionsManager, stateManager)
 
     return StoreImpl(
-        stateFlowProvider = stateManager,
         stateAccess = stateManager,
         actionIssuer = manualActionsManager,
         liveActionsCounter = liveActionsManager,
