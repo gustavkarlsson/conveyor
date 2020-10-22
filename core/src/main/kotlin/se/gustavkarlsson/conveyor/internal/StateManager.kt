@@ -36,7 +36,7 @@ internal class StateManager<State>(
 
     // FIXME synchronize, so that multiple invocations will set the state in sequence
     override suspend fun set(state: State) {
-        channel.offerOrThrow(state)
+        channel.send(state)
         currentState = state
     }
 
