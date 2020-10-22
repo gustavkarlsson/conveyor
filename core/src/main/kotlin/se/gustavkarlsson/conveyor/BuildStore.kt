@@ -22,7 +22,6 @@ public fun <State> buildStore(
     val actionProcessors = listOf(manualActionsManager, openActionsProcessor, liveActionsManager)
     val cancellables = listOf(liveActionsManager, manualActionsManager, stateManager)
     return StoreImpl(
-        stateFlowProvider = stateManager,
         stateAccess = stateManager,
         actionIssuer = manualActionsManager,
         liveActionsCounter = liveActionsManager,

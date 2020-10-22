@@ -13,12 +13,11 @@ import se.gustavkarlsson.conveyor.StateAccess
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StateManager<State>(initialState: State) :
-    StateFlowProvider<State>,
     StateAccess<State>,
     Cancellable {
     private val channel = ConflatedBroadcastChannel(initialState)
 
-    override val stateFlow: Flow<State> = channel.asFlow()
+    override val flow: Flow<State> = channel.asFlow()
         .distinctUntilChanged { old, new -> old === new }
         .onEmpty { emit(get()) }
 
