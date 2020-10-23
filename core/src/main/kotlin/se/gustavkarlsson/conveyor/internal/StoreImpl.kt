@@ -1,8 +1,15 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
@@ -14,8 +21,8 @@ internal class StoreImpl<State>(
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
-    private val actionProcessors: Iterable<ActionProcessor<State>>,
-    private val actionTransformers: Iterable<Transformer<Action<State>>>, // FIXME use this!
+    private val actionFlowProviders: Iterable<ActionFlowProvider<State>>,
+    private val actionTransformers: Iterable<Transformer<Action<State>>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateAccess.flow
@@ -34,13 +41,11 @@ internal class StoreImpl<State>(
     }
 
     private fun CoroutineScope.startProcessing(): Job = launch {
-        for (processor in actionProcessors) {
-            launch {
-                processor.process { action ->
-                    launch { action.execute(stateAccess) }
-                }
+        actionFlowProviders.map { it.actionFlow }.merge()
+            .compose(actionTransformers)
+            .collect { action ->
+                launch { action.execute(stateAccess) }
             }
-        }
     }
 
     private fun stop(throwable: Throwable?) {
@@ -55,3 +60,8 @@ internal class StoreImpl<State>(
         actionIssuer.issue(action)
     }
 }
+
+private fun <T> Flow<T>.compose(transformers: Iterable<Transformer<T>>): Flow<T> =
+    transformers.fold(this) { flow, transformer ->
+        transformer.transform(flow)
+    }

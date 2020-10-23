@@ -1,19 +1,21 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import se.gustavkarlsson.conveyor.Action
 import java.util.concurrent.atomic.AtomicReference
 
-internal class OpenActionsProcessor<State>(
+internal class OpenActionFlowProvider<State>(
     actions: Iterable<Action<State>>,
-) : ActionProcessor<State> {
+) : ActionFlowProvider<State> {
     private val actions = AtomicReference(actions.toList())
 
-    override suspend fun process(onAction: suspend (Action<State>) -> Unit) {
+    override val actionFlow: Flow<Action<State>> = flow {
         with(consumeActions()) {
             while (hasNext()) {
                 val action = next()
                 remove()
-                onAction(action)
+                emit(action)
             }
         }
     }

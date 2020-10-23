@@ -6,7 +6,11 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
-import se.gustavkarlsson.conveyor.internal.*
+import se.gustavkarlsson.conveyor.internal.LiveActionsManager
+import se.gustavkarlsson.conveyor.internal.ManualActionsManager
+import se.gustavkarlsson.conveyor.internal.OpenActionFlowProvider
+import se.gustavkarlsson.conveyor.internal.StateManager
+import se.gustavkarlsson.conveyor.internal.StoreImpl
 
 @ExperimentalCoroutinesApi
 @FlowPreview
@@ -50,17 +54,17 @@ internal fun <State> buildStore(
     val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
     val stateManager = StateManager(overriddenInitialState, overriddenStateSelectors, scope)
-    val openActionsProcessor = OpenActionsProcessor(overriddenOpenActions)
+    val openActionFlowProvider = OpenActionFlowProvider(overriddenOpenActions)
     val manualActionsManager = ManualActionsManager<State>()
     val liveActionsManager = LiveActionsManager(overriddenLiveActions)
-    val actionProcessors = listOf(manualActionsManager, openActionsProcessor, liveActionsManager)
+    val actionFlowProviders = listOf(manualActionsManager, openActionFlowProvider, liveActionsManager)
     val cancellables = listOf(liveActionsManager, manualActionsManager, stateManager)
 
     return StoreImpl(
         stateAccess = stateManager,
         actionIssuer = manualActionsManager,
         liveActionsCounter = liveActionsManager,
-        actionProcessors = actionProcessors,
+        actionFlowProviders = actionFlowProviders,
         actionTransformers = overriddenActionTransformers,
         cancellables = cancellables,
     )

@@ -26,14 +26,14 @@ object StoreIntegrationTest : Spek({
     val delay5 = 5L
     val delay10 = 10L
     val delay20 = 20L
-    val delayAction5 = Action<String> {
+    val delayAction5 = action<String> {
         delay(delay5)
     }
-    val delayAction10 = Action<String> { stateAccess ->
+    val delayAction10 = action<String> { stateAccess ->
         delay(delay10)
         stateAccess.update { state1 }
     }
-    val delayAction20 = Action<String> { stateAccess ->
+    val delayAction20 = action<String> { stateAccess ->
         delay(delay20)
         stateAccess.update { state2 }
     }
@@ -105,7 +105,7 @@ object StoreIntegrationTest : Spek({
                 }
                 it("throws exception when an action is issued") {
                     expectThrows<StoreStoppedException> {
-                        subject.issue(Action {})
+                        subject.issue(action {})
                     }
                 }
                 it("currentState returns initial") {
