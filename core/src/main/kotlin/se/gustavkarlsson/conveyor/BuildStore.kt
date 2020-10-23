@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import se.gustavkarlsson.conveyor.internal.LiveActionsManager
 import se.gustavkarlsson.conveyor.internal.ManualActionsManager
-import se.gustavkarlsson.conveyor.internal.OpenActionFlowProvider
+import se.gustavkarlsson.conveyor.internal.StartActionFlowProvider
 import se.gustavkarlsson.conveyor.internal.StateManager
 import se.gustavkarlsson.conveyor.internal.StoreImpl
 
@@ -17,14 +17,14 @@ import se.gustavkarlsson.conveyor.internal.StoreImpl
 @FlowPreview
 public fun <State> buildStore(
     initialState: State,
-    openActions: Iterable<Action<State>> = emptyList(),
+    startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
     stateWatchers: Iterable<Watcher<State>> = emptyList(),
     actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> = buildStore(
     initialState = initialState,
-    openActions = openActions,
+    startActions = startActions,
     liveActions = liveActions,
     stateWatchers = stateWatchers,
     actionWatchers = actionWatchers,
@@ -36,7 +36,7 @@ public fun <State> buildStore(
 @FlowPreview
 internal fun <State> buildStore(
     initialState: State,
-    openActions: Iterable<Action<State>> = emptyList(),
+    startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
     stateWatchers: Iterable<Watcher<State>> = emptyList(),
     actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
@@ -49,16 +49,16 @@ internal fun <State> buildStore(
         actionWatchers.map { it.toTransformer() }.asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
-    val overriddenOpenActions = openActions.override(plugins) { overrideOpenActions(it) }
+    val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
     val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
     val overriddenStateSelectors = stateSelectors.override(plugins) { overrideStateSelectors(it) }
     val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
     val stateManager = StateManager(overriddenInitialState, overriddenStateSelectors, scope)
-    val openActionFlowProvider = OpenActionFlowProvider(overriddenOpenActions)
+    val startActionFlowProvider = StartActionFlowProvider(overriddenStartActions)
     val manualActionsManager = ManualActionsManager<State>()
     val liveActionsManager = LiveActionsManager(overriddenLiveActions)
-    val actionFlow = listOf(manualActionsManager, openActionFlowProvider, liveActionsManager)
+    val actionFlow = listOf(manualActionsManager, startActionFlowProvider, liveActionsManager)
         .map { it.actionFlow }
         .merge()
         .compose(overriddenActionTransformers)

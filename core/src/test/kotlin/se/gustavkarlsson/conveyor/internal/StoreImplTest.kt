@@ -56,19 +56,19 @@ object StoreImplTest : Spek({
             }
         }
 
-        describe("that was opened") {
-            val openScope by memoized { TestCoroutineScope() }
+        describe("that was started") {
+            val startScope by memoized { TestCoroutineScope() }
             lateinit var job: Job
             beforeEachTest {
-                job = subject.start(openScope)
+                job = subject.start(startScope)
             }
             afterEachTest {
                 job.cancel("Test ended")
             }
 
-            it("opening again throws exception") {
+            it("starting again throws exception") {
                 expectThrows<StoreAlreadyStartedException> {
-                    subject.start(openScope)
+                    subject.start(startScope)
                 }
             }
             it("issueAction issues action") {
@@ -85,7 +85,7 @@ object StoreImplTest : Spek({
                 it("stopping again succeeds") {
                     job.cancel("Stopped again")
                 }
-                it("open again throws with cancellationException as reason") {
+                it("start again throws with cancellationException as reason") {
                     expectThrows<StoreStoppedException> {
                         runBlockingTest {
                             subject.start(this)

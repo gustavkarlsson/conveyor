@@ -5,9 +5,9 @@ public interface Plugin<State> {
         initialState: State,
     ): State = initialState
 
-    public fun overrideOpenActions(
-        openActions: Iterable<Action<State>>,
-    ): Iterable<Action<State>> = openActions
+    public fun overrideStartActions(
+        startActions: Iterable<Action<State>>,
+    ): Iterable<Action<State>> = startActions
 
     public fun overrideLiveActions(
         liveActions: Iterable<Action<State>>,

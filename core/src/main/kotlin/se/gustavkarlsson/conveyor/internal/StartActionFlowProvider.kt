@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.flow
 import se.gustavkarlsson.conveyor.Action
 import java.util.concurrent.atomic.AtomicReference
 
-internal class OpenActionFlowProvider<State>(
+internal class StartActionFlowProvider<State>(
     actions: Iterable<Action<State>>,
 ) : ActionFlowProvider<State> {
     private val actions = AtomicReference(actions.toList())
