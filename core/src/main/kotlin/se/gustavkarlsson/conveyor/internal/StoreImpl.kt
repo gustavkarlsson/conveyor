@@ -1,25 +1,28 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.Transformer
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    stateFlowProvider: StateFlowProvider<State>,
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
-    private val actionProcessors: Iterable<ActionProcessor<State>>,
-    private val actionTransformers: Iterable<Transformer<Action<State>>>,
+    private val actionFlow: Flow<Action<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateFlowProvider.stateFlow
+    override val state = stateAccess.flow
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
 
@@ -35,12 +38,8 @@ internal class StoreImpl<State>(
     }
 
     private fun CoroutineScope.startProcessing(): Job = launch {
-        for (processor in actionProcessors) {
-            launch {
-                processor.process { action ->
-                    launch { action.execute(stateAccess) }
-                }
-            }
+        actionFlow.collect { action ->
+            launch { action.execute(stateAccess) }
         }
     }
 

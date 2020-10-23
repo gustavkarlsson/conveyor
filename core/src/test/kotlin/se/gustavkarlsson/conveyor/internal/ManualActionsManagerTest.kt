@@ -1,55 +1,51 @@
 package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.flow.collect
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 
 object ManualActionsManagerTest : Spek({
-    val scope by memoized(
-        factory = { TestCoroutineScope(Job()) },
-        destructor = {
-            it.cancel("Test ended")
-            it.cleanupTestCoroutines()
-        }
-    )
-    val action = Action<String> {}
+    val scope by memoizedTestCoroutineScope()
+    val action = action<String> {}
     describe("A ManualActionsManager") {
         val subject by memoized { ManualActionsManager<String>() }
 
-        it("suspends on process") {
+        it("suspends on collecting actionFlow") {
             expectSuspends {
-                subject.process {}
+                subject.actionFlow.collect {}
             }
         }
 
-        describe("that is processing") {
+        describe("that is collecting actionFlow") {
             val executedActions by memoized {
                 mutableListOf<Action<String>>()
             }
-            lateinit var processingJob: Job
+            lateinit var collectingJob: Job
             beforeEachTest {
-                processingJob = scope.launch {
-                    subject.process { executedActions += it }
+                collectingJob = scope.launch {
+                    subject.actionFlow.collect { executedActions += it }
                 }
             }
             afterEachTest {
-                processingJob.cancel("Test ended")
+                collectingJob.cancel("Test ended")
             }
 
             it("issued action executes") {
                 subject.issue(action)
                 expectThat(executedActions).containsExactly(action)
             }
-            it("throws if processing again") {
+            it("throws if collecting actionFlow again") {
                 expectThrows<IllegalStateException> {
                     runBlockingTest {
-                        subject.process {}
+                        subject.actionFlow.collect {}
                     }
                 }
             }
@@ -68,9 +64,9 @@ object ManualActionsManagerTest : Spek({
                     subject.issue(action)
                 }
             }
-            it("does not suspend on process") {
+            it("does not suspend on collecting actionFlow") {
                 runBlockingTest {
-                    subject.process {}
+                    subject.actionFlow.collect {}
                 }
             }
             it("can be cancelled again") {

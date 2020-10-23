@@ -3,12 +3,14 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.action
 import se.gustavkarlsson.conveyor.test.NullAction
-import se.gustavkarlsson.conveyor.test.StateHoldingStateAccess
+import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -32,12 +34,12 @@ object LiveActionsManagerTest : Spek({
                 }
             }
         }
-        it("processing does nothing") {
+        it("collecting actionFlow produces no items") {
             runBlockingTest {
                 val job = launch {
-                    subject.process { executedActions += it }
+                    subject.actionFlow.collect { executedActions += it }
                 }
-                job.cancel("Cancelled to end processing")
+                job.cancel("Cancelled to end collecting")
             }
             expectThat(executedActions).isEmpty()
         }
@@ -55,9 +57,9 @@ object LiveActionsManagerTest : Spek({
             it("cancel succeeds") {
                 subject.cancel(cancellationException)
             }
-            it("process throws exception") {
+            it("collecting actionFlow throws exception") {
                 expectThrows<CancellationException> {
-                    subject.process {}
+                    subject.actionFlow.collect {}
                 }
                 // FIXME is cancellationException or caused by cancellationException
             }
@@ -68,24 +70,24 @@ object LiveActionsManagerTest : Spek({
                 subject.increment()
             }
 
-            it("processing executes action") {
+            it("collecting actionFlow executes action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.process { executedActions += it }
+                        subject.actionFlow.collect { executedActions += it }
                     }
-                    job.cancel("Cancelled to end processing")
+                    job.cancel("Cancelled to end collecting")
                 }
                 expectThat(executedActions).containsExactly(nullAction)
             }
 
-            it("processing while decrementing back to 0 and incrementing again executes action twice") {
+            it("collecting actionFlow while decrementing back to 0 and incrementing again executes action twice") {
                 runBlockingTest {
                     val job = launch {
-                        subject.process { executedActions += it }
+                        subject.actionFlow.collect { executedActions += it }
                     }
                     subject.decrement()
                     subject.increment()
-                    job.cancel("Cancelled to end processing")
+                    job.cancel("Cancelled to end collecting")
                 }
                 expectThat(executedActions).containsExactly(nullAction, nullAction)
             }
@@ -107,12 +109,12 @@ object LiveActionsManagerTest : Spek({
                     subject.decrement()
                 }
 
-                it("processing does nothing") {
+                it("collecting actionFlow does nothing") {
                     runBlockingTest {
                         val job = launch {
-                            subject.process { executedActions += it }
+                            subject.actionFlow.collect { executedActions += it }
                         }
-                        job.cancel("Cancelled to end processing")
+                        job.cancel("Cancelled to end collecting")
                     }
                     expectThat(executedActions).isEmpty()
                 }
@@ -125,12 +127,12 @@ object LiveActionsManagerTest : Spek({
                 subject.increment()
             }
 
-            it("processing executes action") {
+            it("collecting actionFlow executes action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.process { executedActions += it }
+                        subject.actionFlow.collect { executedActions += it }
                     }
-                    job.cancel("Cancelled to end processing")
+                    job.cancel("Cancelled to end collecting")
                 }
                 expectThat(executedActions).containsExactly(nullAction)
             }
@@ -140,12 +142,12 @@ object LiveActionsManagerTest : Spek({
                     subject.decrement()
                 }
 
-                it("processing executes action") {
+                it("collecting actionFlow executes action") {
                     runBlockingTest {
                         val job = launch {
-                            subject.process { executedActions += it }
+                            subject.actionFlow.collect { executedActions += it }
                         }
-                        job.cancel("Cancelled to end processing")
+                        job.cancel("Cancelled to end collecting")
                     }
                     expectThat(executedActions).containsExactly(nullAction)
                 }
@@ -154,7 +156,7 @@ object LiveActionsManagerTest : Spek({
     }
     describe("A manager with two delayed actions that was incremented once") {
         val counter by memoized { AtomicInteger(0) }
-        val delayAction10 = Action<String> {
+        val delayAction10 = action<String> {
             delay(10)
             counter.incrementAndGet()
         }
@@ -162,10 +164,10 @@ object LiveActionsManagerTest : Spek({
         beforeEachTest { subject.increment() }
 
         it("stops executing after decrementing") {
-            val stateAccess = StateHoldingStateAccess("")
+            val stateAccess = SimpleStateAccess("")
             runBlockingTest {
                 val job = launch {
-                    subject.process { it.execute(stateAccess) }
+                    subject.actionFlow.collect { it.execute(stateAccess) }
                 }
                 expectThat(counter.get()).isEqualTo(0)
                 advanceTimeBy(10)
@@ -173,7 +175,7 @@ object LiveActionsManagerTest : Spek({
                 subject.decrement()
                 advanceTimeBy(10)
                 expectThat(counter.get()).isEqualTo(1)
-                job.cancel("Cancelled to end processing")
+                job.cancel("Cancelled to end collecting")
             }
         }
     }

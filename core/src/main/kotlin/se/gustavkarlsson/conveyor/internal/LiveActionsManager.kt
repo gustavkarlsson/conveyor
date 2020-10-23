@@ -2,18 +2,22 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import se.gustavkarlsson.conveyor.Action
 import java.util.concurrent.atomic.AtomicInteger
 
 @ExperimentalCoroutinesApi
 internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
-) : LiveActionsCounter, ActionProcessor<State>, Cancellable {
+) : LiveActionsCounter, ActionFlowProvider<State>, Cancellable {
     private val liveCount = AtomicInteger(0)
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
 
@@ -33,21 +37,16 @@ internal class LiveActionsManager<State>(
 
     private var actions: Iterable<Action<State>>? = actions.toList()
 
-    private val flow = toggleChannel.consumeAsFlow()
+    @FlowPreview
+    override val actionFlow: Flow<Action<State>> = toggleChannel.consumeAsFlow()
         .distinctUntilChanged()
-        .mapLatest { toggle ->
+        .flatMapLatest { toggle ->
             when (toggle) {
-                Toggle.Enable -> requireNotNull(this.actions)
-                Toggle.Disable -> emptyList()
+                Toggle.Enable -> requireNotNull(this.actions).asFlow()
+                Toggle.Disable -> emptyFlow()
             }
         }
-
-    override suspend fun process(onAction: suspend (Action<State>) -> Unit) =
-        flow.collectLatest { actions ->
-            for (action in actions) {
-                onAction(action)
-            }
-        }
+        .conflate()
 
     override fun cancel(cause: Throwable?) {
         toggleChannel.cancel(cause as? CancellationException)
