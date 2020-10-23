@@ -4,16 +4,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
+import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.action
 import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
@@ -29,9 +27,6 @@ object StoreImplTest : Spek({
     val stateAccess by memoized { SimpleStateAccess(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
-    val foreverFlowProvider = object : ActionFlowProvider<String> {
-        override val actionFlow: Flow<Action<String>> = flow { delay(Long.MAX_VALUE) }
-    }
 
     // TODO Add more tests with processors and cancellables
     describe("A minimal store") {
@@ -40,8 +35,7 @@ object StoreImplTest : Spek({
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
                 liveActionsCounter = liveActionsCounter,
-                actionFlowProviders = listOf(foreverFlowProvider),
-                actionTransformers = emptyList(),
+                actionFlow = flow { delay(Long.MAX_VALUE) }, // FIXME empty?
                 cancellables = emptyList(),
             )
         }

@@ -6,14 +6,12 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.Transformer
 
 @FlowPreview
 @ExperimentalCoroutinesApi
@@ -21,8 +19,7 @@ internal class StoreImpl<State>(
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
-    private val actionFlowProviders: Iterable<ActionFlowProvider<State>>,
-    private val actionTransformers: Iterable<Transformer<Action<State>>>,
+    private val actionFlow: Flow<Action<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateAccess.flow
@@ -41,11 +38,9 @@ internal class StoreImpl<State>(
     }
 
     private fun CoroutineScope.startProcessing(): Job = launch {
-        actionFlowProviders.map { it.actionFlow }.merge()
-            .compose(actionTransformers)
-            .collect { action ->
-                launch { action.execute(stateAccess) }
-            }
+        actionFlow.collect { action ->
+            launch { action.execute(stateAccess) }
+        }
     }
 
     private fun stop(throwable: Throwable?) {
@@ -60,8 +55,3 @@ internal class StoreImpl<State>(
         actionIssuer.issue(action)
     }
 }
-
-private fun <T> Flow<T>.compose(transformers: Iterable<Transformer<T>>): Flow<T> =
-    transformers.fold(this) { flow, transformer ->
-        transformer.transform(flow)
-    }
