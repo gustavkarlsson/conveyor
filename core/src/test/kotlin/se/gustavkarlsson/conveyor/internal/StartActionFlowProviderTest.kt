@@ -10,12 +10,12 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 
-object OpenActionFlowProviderTest : Spek({
+object StartActionFlowProviderTest : Spek({
     val executedActions by memoized { mutableListOf<Action<String>>() }
     val nullAction = NullAction<String>()
 
     describe("A provider with a single null action") {
-        val subject by memoized { OpenActionFlowProvider(listOf(nullAction)) }
+        val subject by memoized { StartActionFlowProvider(listOf(nullAction)) }
 
         it("collecting actionFlow executes action") {
             runBlockingTest {
