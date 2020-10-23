@@ -11,7 +11,7 @@ import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.Mode
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackAction
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackActionFilter
-import se.gustavkarlsson.conveyor.plugin.vcr.internal.Recorder
+import se.gustavkarlsson.conveyor.plugin.vcr.internal.RecordAction
 import kotlin.properties.Delegates.notNull
 
 public class Vcr<State> : Plugin<State>, Control<State> {
@@ -20,13 +20,9 @@ public class Vcr<State> : Plugin<State>, Control<State> {
 
     private val mode = modeChannel.asFlow()
 
-    override fun overrideStateTransformers(
-        stateTransformers: Iterable<Transformer<State>>
-    ): Iterable<Transformer<State>> = stateTransformers + Recorder(mode)
-
     override fun overrideOpenActions(
         openActions: Iterable<Action<State>>
-    ): Iterable<Action<State>> = openActions + PlaybackAction(mode)
+    ): Iterable<Action<State>> = openActions + RecordAction(mode) + PlaybackAction(mode)
 
     override fun overrideActionTransformers(
         actionTransformers: Iterable<Transformer<Action<State>>>

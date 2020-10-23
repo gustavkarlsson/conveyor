@@ -6,12 +6,12 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Transformer
 
 internal class PlaybackActionFilter<State>(
-    private val mode: Flow<Mode<State>>
+    private val mode: Flow<Mode<State>>,
 ) : Transformer<Action<State>> {
-    override suspend fun transform(flow: Flow<Action<State>>): Flow<Action<State>> =
-        combineTransform(flow, mode) { state, mode ->
-            if (mode !is Mode.Playing<*>) {
-                emit(state)
+    override fun transform(flow: Flow<Action<State>>): Flow<Action<State>> =
+        combineTransform(flow, mode) { action, mode ->
+            if (mode !is Mode.Playing<*> || action is PlaybackAction || action is RecordAction) {
+                emit(action)
             }
         }
 }
