@@ -21,9 +21,9 @@ public class Vcr<State> : Plugin<State>, Control<State> {
 
     private val mode = modeChannel.asFlow()
 
-    override fun overrideOpenActions(
-        openActions: Iterable<Action<State>>,
-    ): Iterable<Action<State>> = openActions + RecordAction(mode) + PlaybackAction(mode)
+    override fun overrideStartActions(
+        startActions: Iterable<Action<State>>,
+    ): Iterable<Action<State>> = startActions + RecordAction(mode) + PlaybackAction(mode)
 
     override fun overrideActionTransformers(
         actionTransformers: Iterable<Transformer<Action<State>>>,
