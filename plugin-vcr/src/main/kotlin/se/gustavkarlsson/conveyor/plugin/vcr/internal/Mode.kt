@@ -7,9 +7,9 @@ internal sealed class Mode<out State> {
     object Idle : Mode<Nothing>()
 
     data class Recording<State>(
-        val tape: WriteableTape<State>,
+        val writing: WriteableTape.Writing<State>,
         val trackPosition: TrackPosition,
     ) : Mode<State>()
 
-    data class Playing<State>(val tape: ReadableTape<State>) : Mode<State>()
+    data class Playing<State>(val reading: ReadableTape.Reading<State>) : Mode<State>()
 }

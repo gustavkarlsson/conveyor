@@ -30,13 +30,15 @@ public class Vcr<State> : Plugin<State>, Control<State> {
     ): Iterable<Transformer<Action<State>>> = actionTransformers + PlaybackActionFilter(mode)
 
     override fun play(tape: ReadableTape<State>) {
-        modeChannel.offer(Mode.Playing(tape))
+        val reading = tape.openForReading()
+        modeChannel.offer(Mode.Playing(reading))
     }
 
     override fun record(tape: WriteableTape<State>) {
+        val writing = tape.openForWriting()
         val trackPosition = TrackPosition(System::currentTimeMillis)
         trackPosition.start()
-        modeChannel.offer(Mode.Recording(tape, trackPosition))
+        modeChannel.offer(Mode.Recording(writing, trackPosition))
     }
 
     override fun stop() {

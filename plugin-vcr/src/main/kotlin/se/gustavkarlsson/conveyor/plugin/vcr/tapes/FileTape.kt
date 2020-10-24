@@ -2,9 +2,6 @@ package se.gustavkarlsson.conveyor.plugin.vcr.tapes
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import se.gustavkarlsson.conveyor.plugin.vcr.ReadableTape
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
@@ -23,22 +20,32 @@ public class FileTape<T>(
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : ReadableTape<T>, WriteableTape<T> {
-    override fun read(): Flow<Sample<T>> = channelFlow {
-        file.inputStream().buffered(bufferSize).use { reader ->
-            while (reader.available() > 0) {
-                val sample = reader.readSample(deserialize)
-                send(sample)
-            }
-        }
-    }.flowOn(dispatcher)
+    override fun openForReading(): ReadableTape.Reading<T> = Reading()
 
-    // FIXME should it be automatically opened and Closeable?
-    override suspend fun write(sample: Sample<T>) {
-        withContext(dispatcher) {
-            file.outputStream().buffered(bufferSize).use { writer ->
-                writer.writeSample(sample, serialize)
+    override fun openForWriting(): WriteableTape.Writing<T> = Writing()
+
+    private inner class Reading : ReadableTape.Reading<T> {
+        private val stream = file.inputStream().buffered(bufferSize)
+
+        override suspend fun read(): Sample<T>? =
+            withContext(dispatcher) {
+                if (stream.available() > 0) {
+                    stream.readSample(deserialize)
+                } else null
             }
-        }
+
+        override fun close() = stream.close()
+    }
+
+    private inner class Writing : WriteableTape.Writing<T> {
+        private val stream = file.outputStream().buffered(bufferSize)
+
+        override suspend fun write(sample: Sample<T>) =
+            withContext(dispatcher) {
+                stream.writeSample(sample, serialize)
+            }
+
+        override fun close() = stream.close()
     }
 }
 
