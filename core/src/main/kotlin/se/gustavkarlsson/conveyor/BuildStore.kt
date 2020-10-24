@@ -18,17 +18,12 @@ public fun <State> buildStore(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
-    stateWatchers: Iterable<Watcher<State>> = emptyList(),
-    actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val actionTransformers: Iterable<Transformer<Action<State>>> =
-        actionWatchers.map { WatchingTransformer(it) }
-    val watcherActions: Iterable<Action<State>> =
-        stateWatchers.map { WatchingAction(it) }
+    val actionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
-    val overriddenStartActions = (startActions + watcherActions).asIterable().override(plugins) { overrideStartActions(it) }
+    val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
     val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
     val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
@@ -49,18 +44,6 @@ public fun <State> buildStore(
         actionFlow = actionFlow,
         cancellables = cancellables,
     )
-}
-
-private class WatchingTransformer<T>(private val watcher: Watcher<T>) : Transformer<T> {
-    override fun transform(flow: Flow<T>): Flow<T> = flow.onEach { watcher.watch(it) }
-}
-
-private class WatchingAction<T>(private val watcher: Watcher<T>) : Action<T> {
-    override suspend fun execute(stateAccess: StateAccess<T>) {
-        stateAccess.flow.collect { state ->
-            watcher.watch(state)
-        }
-    }
 }
 
 private fun <State, T> T.override(
