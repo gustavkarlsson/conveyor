@@ -23,9 +23,9 @@ public fun <State> buildStore(
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
     val actionTransformers: Iterable<Transformer<Action<State>>> =
-        actionWatchers.map { it.toTransformer() }
+        actionWatchers.map { WatchingTransformer(it) }
     val watcherActions: Iterable<Action<State>> =
-        stateWatchers.map { it.toAction() }
+        stateWatchers.map { WatchingAction(it) }
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = (startActions + watcherActions).asIterable().override(plugins) { overrideStartActions(it) }
@@ -51,13 +51,9 @@ public fun <State> buildStore(
     )
 }
 
-private fun <T> Watcher<T>.toTransformer() = WatchingTransformer(this)
-
 private class WatchingTransformer<T>(private val watcher: Watcher<T>) : Transformer<T> {
     override fun transform(flow: Flow<T>): Flow<T> = flow.onEach { watcher.watch(it) }
 }
-
-private fun <T> Watcher<T>.toAction() = WatchingAction(this)
 
 private class WatchingAction<T>(private val watcher: Watcher<T>) : Action<T> {
     override suspend fun execute(stateAccess: StateAccess<T>) {
