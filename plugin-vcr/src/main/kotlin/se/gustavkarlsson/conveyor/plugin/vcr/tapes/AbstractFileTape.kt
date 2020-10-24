@@ -47,4 +47,6 @@ public abstract class AbstractFileTape<T>(
     protected abstract fun readSample(stream: InputStream): Sample<T>
 
     protected abstract fun writeSample(sample: Sample<T>, stream: OutputStream)
+
+    public fun delete(): Boolean = file.delete()
 }

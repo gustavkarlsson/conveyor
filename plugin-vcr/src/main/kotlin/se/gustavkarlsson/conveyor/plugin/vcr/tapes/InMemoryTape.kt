@@ -12,12 +12,6 @@ public class InMemoryTape<T> : Tape<T> {
 
     override fun openForWriting(): WriteableTape.Writing<T> = Writing()
 
-    override suspend fun delete(): Boolean {
-        val wasEmpty = data.isEmpty()
-        data.clear()
-        return !wasEmpty
-    }
-
     private inner class Reading : ReadableTape.Reading<T> {
         private val iterator = data.iterator()
 
