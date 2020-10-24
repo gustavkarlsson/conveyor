@@ -1,9 +1,7 @@
 package se.gustavkarlsson.conveyor
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -19,29 +17,9 @@ public fun <State> buildStore(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
-    stateWatchers: Iterable<Watcher<State>> = emptyList(),
-    actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
-    plugins: Iterable<Plugin<State>> = emptyList(),
-): Store<State> = buildStore(
-    initialState = initialState,
-    startActions = startActions,
-    liveActions = liveActions,
-    stateWatchers = stateWatchers,
-    actionWatchers = actionWatchers,
-    plugins = plugins,
-    scope = GlobalScope,
-)
-
-@ExperimentalCoroutinesApi
-@FlowPreview
-internal fun <State> buildStore(
-    initialState: State,
-    startActions: Iterable<Action<State>> = emptyList(),
-    liveActions: Iterable<Action<State>> = emptyList(),
     stateWatchers: Iterable<Watcher<State>> = emptyList(), // FIXME what do do with watchers?
     actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
-    scope: CoroutineScope,
 ): Store<State> {
     val actionTransformers: Iterable<Transformer<Action<State>>> =
         actionWatchers.map { it.toTransformer() }.asIterable()
@@ -51,7 +29,7 @@ internal fun <State> buildStore(
     val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
     val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
-    val stateManager = StateManager(overriddenInitialState, scope)
+    val stateManager = StateManager(overriddenInitialState)
     val startActionFlowProvider = StartActionFlowProvider(overriddenStartActions)
     val manualActionsManager = ManualActionsManager<State>()
     val liveActionsManager = LiveActionsManager(overriddenLiveActions)
