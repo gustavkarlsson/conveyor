@@ -13,18 +13,15 @@ import se.gustavkarlsson.conveyor.StateAccess
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal class StateManager<State>(
-    initialState: State,
-) : StateAccess<State>, Cancellable {
-    // TODO can we NOT use a separate internalState?
-    private var internalState: State = initialState
+internal class StateManager<State>(initialState: State) : StateAccess<State>, Cancellable {
+    private var currentState: State = initialState
     private val stateChannel = ConflatedBroadcastChannel<State>()
         .apply { offerOrThrow(initialState) }
 
     override val flow: Flow<State> = stateChannel.asFlow()
-        .onEmpty { emit(internalState) }
+        .onEmpty { emit(currentState) }
 
-    override fun get(): State = internalState
+    override fun get(): State = currentState
 
     private val writeMutex = Mutex()
 
@@ -36,15 +33,15 @@ internal class StateManager<State>(
 
     override suspend fun update(block: suspend (State) -> State) {
         writeMutex.withLock {
-            val state = block(internalState)
+            val state = block(currentState)
             setIfDifferent(state)
         }
     }
 
     private fun setIfDifferent(state: State) {
-        if (internalState !== state) {
+        if (currentState !== state) {
             stateChannel.offerOrThrow(state)
-            internalState = state
+            currentState = state
         }
     }
 
