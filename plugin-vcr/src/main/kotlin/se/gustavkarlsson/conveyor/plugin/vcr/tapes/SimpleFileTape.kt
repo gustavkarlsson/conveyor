@@ -2,58 +2,31 @@ package se.gustavkarlsson.conveyor.plugin.vcr.tapes
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import se.gustavkarlsson.conveyor.plugin.vcr.ReadableTape
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
-import se.gustavkarlsson.conveyor.plugin.vcr.WriteableTape
 import java.io.File
-import java.io.FilterInputStream
-import java.io.FilterOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
-public class FileTape<T>(
-    private val file: File,
+public class SimpleFileTape<T>(
+    file: File,
     private val deserialize: (ByteArray) -> T,
     private val serialize: (T) -> ByteArray,
-    private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-) : ReadableTape<T>, WriteableTape<T> {
-    override fun openForReading(): ReadableTape.Reading<T> = Reading()
+    bufferSize: Int = DEFAULT_BUFFER_SIZE,
+    dispatcher: CoroutineDispatcher = Dispatchers.IO,
+) : AbstractFileTape<T>(file, bufferSize, dispatcher) {
+    override fun readSample(stream: InputStream): Sample<T> =
+        stream.readSample(deserialize)
 
-    override fun openForWriting(): WriteableTape.Writing<T> = Writing()
-
-    private inner class Reading : ReadableTape.Reading<T> {
-        private val stream = file.inputStream().buffered(bufferSize)
-
-        override suspend fun read(): Sample<T>? =
-            withContext(dispatcher) {
-                if (stream.available() > 0) {
-                    stream.readSample(deserialize)
-                } else null
-            }
-
-        override fun close() = stream.close()
-    }
-
-    private inner class Writing : WriteableTape.Writing<T> {
-        private val stream = file.outputStream().buffered(bufferSize)
-
-        override suspend fun write(sample: Sample<T>) =
-            withContext(dispatcher) {
-                stream.writeSample(sample, serialize)
-            }
-
-        override fun close() = stream.close()
-    }
+    override fun writeSample(sample: Sample<T>, stream: OutputStream): Unit =
+        stream.writeSample(sample, serialize)
 }
 
 private enum class SampleType(val id: Int) {
     Delay(1), State(2)
 }
 
-private fun <T> FilterInputStream.readSample(deserialize: (ByteArray) -> T): Sample<T> =
+private fun <T> InputStream.readSample(deserialize: (ByteArray) -> T): Sample<T> =
     when (readSampleType()) {
         SampleType.Delay -> readDelay()
         SampleType.State -> readState(deserialize)
@@ -87,7 +60,7 @@ private fun InputStream.readLong(): Long {
     return ByteBuffer.wrap(bytes).long
 }
 
-private fun <T> FilterOutputStream.writeSample(sample: Sample<T>, serialize: (T) -> ByteArray) {
+private fun <T> OutputStream.writeSample(sample: Sample<T>, serialize: (T) -> ByteArray) {
     when (sample) {
         is Sample.Delay -> writeDelay(sample.timeMillis)
         is Sample.State -> writeState(sample.state, serialize)
