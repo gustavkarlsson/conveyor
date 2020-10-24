@@ -38,23 +38,20 @@ internal fun <State> buildStore(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
-    stateWatchers: Iterable<Watcher<State>> = emptyList(),
+    stateWatchers: Iterable<Watcher<State>> = emptyList(), // FIXME what do do with watchers?
     actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
     scope: CoroutineScope,
 ): Store<State> {
-    val stateSelectors: Iterable<Selector<State>> =
-        stateWatchers.map { it.toSelector() }.asIterable()
     val actionTransformers: Iterable<Transformer<Action<State>>> =
         actionWatchers.map { it.toTransformer() }.asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
     val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
-    val overriddenStateSelectors = stateSelectors.override(plugins) { overrideStateSelectors(it) }
     val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
-    val stateManager = StateManager(overriddenInitialState, overriddenStateSelectors, scope)
+    val stateManager = StateManager(overriddenInitialState, scope)
     val startActionFlowProvider = StartActionFlowProvider(overriddenStartActions)
     val manualActionsManager = ManualActionsManager<State>()
     val liveActionsManager = LiveActionsManager(overriddenLiveActions)
@@ -71,12 +68,6 @@ internal fun <State> buildStore(
         actionFlow = actionFlow,
         cancellables = cancellables,
     )
-}
-
-private fun <T> Watcher<T>.toSelector() = WatchingSelector(this)
-
-private class WatchingSelector<T>(private val watcher: Watcher<T>) : Selector<T> {
-    override suspend fun select(old: T, new: T): T = new.also { watcher.watch(it) }
 }
 
 private fun <T> Watcher<T>.toTransformer() = WatchingTransformer(this)
