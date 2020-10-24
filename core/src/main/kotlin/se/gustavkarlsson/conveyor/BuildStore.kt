@@ -3,6 +3,7 @@ package se.gustavkarlsson.conveyor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import se.gustavkarlsson.conveyor.internal.LiveActionsManager
@@ -17,12 +18,9 @@ public fun <State> buildStore(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
-    stateWatchers: Iterable<Watcher<State>> = emptyList(), // FIXME what do do with watchers?
-    actionWatchers: Iterable<Watcher<Action<State>>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val actionTransformers: Iterable<Transformer<Action<State>>> =
-        actionWatchers.map { it.toTransformer() }.asIterable()
+    val actionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
@@ -46,12 +44,6 @@ public fun <State> buildStore(
         actionFlow = actionFlow,
         cancellables = cancellables,
     )
-}
-
-private fun <T> Watcher<T>.toTransformer() = WatchingTransformer(this)
-
-private class WatchingTransformer<T>(private val watcher: Watcher<T>) : Transformer<T> {
-    override fun transform(flow: Flow<T>): Flow<T> = flow.onEach { watcher.watch(it) }
 }
 
 private fun <State, T> T.override(
