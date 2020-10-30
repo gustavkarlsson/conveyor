@@ -12,9 +12,10 @@ class SimpleStateAccess<T>(initialState: T) : StateAccess<T> {
 
     var currentState by stateFlow::value
 
-    override suspend fun update(block: suspend (T) -> T) {
+    override suspend fun update(block: suspend (T) -> T): T {
         val newState = block(currentState)
         currentState = newState
+        return newState
     }
 
     override fun get(): T = currentState
