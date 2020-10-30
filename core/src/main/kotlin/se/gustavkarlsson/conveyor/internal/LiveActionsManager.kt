@@ -46,7 +46,6 @@ internal class LiveActionsManager<State>(
                 Toggle.Disable -> emptyFlow()
             }
         }
-        .conflate()
 
     override fun cancel(cause: Throwable?) {
         toggleChannel.cancel(cause as? CancellationException)

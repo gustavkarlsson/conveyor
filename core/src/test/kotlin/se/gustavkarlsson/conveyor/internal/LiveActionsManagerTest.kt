@@ -27,7 +27,7 @@ object LiveActionsManagerTest : Spek({
     describe("A manager with a single null action") {
         val subject by memoized { LiveActionsManager(listOf(nullAction)) }
 
-        it("decreased throws exception") {
+        it("decrease throws exception") {
             expectThrows<IllegalStateException> {
                 runBlockingTest {
                     subject.decrement()
@@ -156,11 +156,16 @@ object LiveActionsManagerTest : Spek({
     }
     describe("A manager with two delayed actions that was incremented once") {
         val counter by memoized { AtomicInteger(0) }
-        val delayAction10 = action<String> {
+        val delayAction1 = action<String> {
             delay(10)
             counter.incrementAndGet()
         }
-        val subject by memoized { LiveActionsManager(listOf(delayAction10, delayAction10)) }
+        val delayAction2 = action<String> {
+            delay(10)
+            counter.incrementAndGet()
+            counter.incrementAndGet()
+        }
+        val subject by memoized { LiveActionsManager(listOf(delayAction1, delayAction2)) }
         beforeEachTest { subject.increment() }
 
         it("stops executing after decrementing") {
@@ -175,6 +180,21 @@ object LiveActionsManagerTest : Spek({
                 subject.decrement()
                 advanceTimeBy(10)
                 expectThat(counter.get()).isEqualTo(1)
+                job.cancel("Cancelled to end collecting")
+            }
+        }
+
+        it("executes actions sequentially") {
+            val stateAccess = SimpleStateAccess("")
+            runBlockingTest {
+                val job = launch {
+                    subject.actionFlow.collect { it.execute(stateAccess) }
+                }
+                expectThat(counter.get()).isEqualTo(0)
+                advanceTimeBy(10)
+                expectThat(counter.get()).isEqualTo(1)
+                advanceTimeBy(10)
+                expectThat(counter.get()).isEqualTo(3)
                 job.cancel("Cancelled to end collecting")
             }
         }

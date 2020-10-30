@@ -11,7 +11,7 @@ object Versions {
     val jacoco = "0.8.5"
 
     // Dependencies
-    val kotlinxCoroutines = "1.3.9"
+    val kotlinxCoroutines = "1.4.0"
 
     // Test
     val junit5 = "5.6.2"
