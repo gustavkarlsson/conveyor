@@ -31,12 +31,12 @@ internal class StateManager<State>(initialState: State) : StateAccess<State>, Ca
         }
     }
 
-    override suspend fun update(block: suspend (State) -> State) {
+    override suspend fun update(block: suspend (State) -> State): State =
         writeMutex.withLock {
             val state = block(currentState)
             setIfDifferent(state)
+            state
         }
-    }
 
     private fun setIfDifferent(state: State) {
         if (currentState !== state) {
