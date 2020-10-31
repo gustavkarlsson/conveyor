@@ -3,11 +3,9 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -19,7 +17,7 @@ internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
 ) : LiveActionsCounter, ActionFlowProvider<State>, Cancellable {
     private val liveCount = AtomicInteger(0)
-    private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
+    private val toggleChannel = ConflatedBroadcastChannel(Toggle.Disable)
 
     override fun increment() {
         if (liveCount.incrementAndGet() == 1) {
@@ -38,7 +36,7 @@ internal class LiveActionsManager<State>(
     private var actions: Iterable<Action<State>>? = actions.toList()
 
     @FlowPreview
-    override val actionFlow: Flow<Action<State>> = toggleChannel.consumeAsFlow()
+    override val actionFlow: Flow<Action<State>> = toggleChannel.asFlow()
         .distinctUntilChanged()
         .flatMapLatest { toggle ->
             when (toggle) {
