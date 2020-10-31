@@ -9,4 +9,7 @@ public interface Store<State> {
     public val currentState: State
     public fun start(scope: CoroutineScope): Job
     public fun issue(action: Action<State>)
+    public fun issue(block: suspend (StateAccess<State>) -> Unit) {
+        issue(Action(block))
+    }
 }
