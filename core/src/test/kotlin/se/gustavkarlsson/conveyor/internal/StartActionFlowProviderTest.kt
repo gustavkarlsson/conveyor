@@ -28,8 +28,8 @@ object StartActionFlowProviderTest : Spek({
         it("collecting actionFlow twice throws exception") {
             expectThrows<IllegalStateException> {
                 runBlockingTest {
-                    subject.actionFlow.collect {}
-                    subject.actionFlow.collect {}
+                    subject.actionFlow.collect()
+                    subject.actionFlow.collect()
                 }
             }
         }

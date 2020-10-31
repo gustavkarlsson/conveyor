@@ -59,7 +59,7 @@ object LiveActionsManagerTest : Spek({
             }
             it("collecting actionFlow throws exception") {
                 expectThrows<CancellationException> {
-                    subject.actionFlow.collect {}
+                    subject.actionFlow.collect()
                 }.and { message.isEqualTo(cancellationException.message) }
             }
         }
