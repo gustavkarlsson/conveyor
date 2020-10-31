@@ -4,6 +4,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 object LiveActionsManagerTest : Spek({
     val cancellationException = CancellationException("Manually cancelled")
-    val executedActions by memoized { mutableListOf<Action<String>>() }
+    val collectedActions by memoized { mutableListOf<Action<String>>() }
     val nullAction = NullAction<String>()
 
     describe("A LiveActionsManager with a single null action") {
@@ -36,11 +37,11 @@ object LiveActionsManagerTest : Spek({
         it("collecting actionFlow gets nothing") {
             runBlockingTest {
                 val job = launch {
-                    subject.actionFlow.collect { executedActions += it }
+                    subject.actionFlow.toCollection(collectedActions)
                 }
                 job.cancel("Cancelled to end collecting")
             }
-            expectThat(executedActions).isEmpty()
+            expectThat(collectedActions).isEmpty()
         }
 
         describe("that was cancelled") {
@@ -71,23 +72,23 @@ object LiveActionsManagerTest : Spek({
             it("collecting actionFlow gets action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.actionFlow.collect { executedActions += it }
+                        subject.actionFlow.toCollection(collectedActions)
                     }
                     job.cancel("Cancelled to end collecting")
                 }
-                expectThat(executedActions).containsExactly(nullAction)
+                expectThat(collectedActions).containsExactly(nullAction)
             }
 
             it("decrementing back to 0 and incrementing again while collecting actionFlow gets action twice") {
                 runBlockingTest {
                     val job = launch {
-                        subject.actionFlow.collect { executedActions += it }
+                        subject.actionFlow.toCollection(collectedActions)
                     }
                     subject.decrement()
                     subject.increment()
                     job.cancel("Cancelled to end collecting")
                 }
-                expectThat(executedActions).containsExactly(nullAction, nullAction)
+                expectThat(collectedActions).containsExactly(nullAction, nullAction)
             }
 
             describe("that was cancelled") {
@@ -110,11 +111,11 @@ object LiveActionsManagerTest : Spek({
                 it("collecting actionFlow gets nothing") {
                     runBlockingTest {
                         val job = launch {
-                            subject.actionFlow.collect { executedActions += it }
+                            subject.actionFlow.toCollection(collectedActions)
                         }
                         job.cancel("Cancelled to end collecting")
                     }
-                    expectThat(executedActions).isEmpty()
+                    expectThat(collectedActions).isEmpty()
                 }
             }
         }
@@ -128,11 +129,11 @@ object LiveActionsManagerTest : Spek({
             it("collecting actionFlow gets action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.actionFlow.collect { executedActions += it }
+                        subject.actionFlow.toCollection(collectedActions)
                     }
                     job.cancel("Cancelled to end collecting")
                 }
-                expectThat(executedActions).containsExactly(nullAction)
+                expectThat(collectedActions).containsExactly(nullAction)
             }
 
             describe("and then decremented once") {
@@ -143,11 +144,11 @@ object LiveActionsManagerTest : Spek({
                 it("collecting actionFlow gets action") {
                     runBlockingTest {
                         val job = launch {
-                            subject.actionFlow.collect { executedActions += it }
+                            subject.actionFlow.toCollection(collectedActions)
                         }
                         job.cancel("Cancelled to end collecting")
                     }
-                    expectThat(executedActions).containsExactly(nullAction)
+                    expectThat(collectedActions).containsExactly(nullAction)
                 }
             }
         }
