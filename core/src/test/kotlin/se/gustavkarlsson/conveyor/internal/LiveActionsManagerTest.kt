@@ -17,24 +17,23 @@ import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
+import strikt.assertions.isSameInstanceAs
 import java.util.concurrent.atomic.AtomicInteger
 
 object LiveActionsManagerTest : Spek({
-    val cancellationException by memoized { CancellationException("Manually cancelled") }
+    val cancellationException = CancellationException("Manually cancelled")
     val executedActions by memoized { mutableListOf<Action<String>>() }
     val nullAction = NullAction<String>()
 
-    describe("A manager with a single null action") {
+    describe("A LiveActionsManager with a single null action") {
         val subject by memoized { LiveActionsManager(listOf(nullAction)) }
 
         it("decrease throws exception") {
             expectThrows<IllegalStateException> {
-                runBlockingTest {
-                    subject.decrement()
-                }
+                subject.decrement()
             }
         }
-        it("collecting actionFlow produces no items") {
+        it("collecting actionFlow gets nothing") {
             runBlockingTest {
                 val job = launch {
                     subject.actionFlow.collect { executedActions += it }
@@ -54,14 +53,13 @@ object LiveActionsManagerTest : Spek({
                     subject.increment()
                 }
             }
-            it("cancel succeeds") {
+            it("can cancel again") {
                 subject.cancel(cancellationException)
             }
             it("collecting actionFlow throws exception") {
                 expectThrows<CancellationException> {
                     subject.actionFlow.collect {}
-                }
-                // FIXME is cancellationException or caused by cancellationException
+                }.and { isSameInstanceAs(cancellationException) }
             }
         }
 
@@ -70,7 +68,7 @@ object LiveActionsManagerTest : Spek({
                 subject.increment()
             }
 
-            it("collecting actionFlow executes action") {
+            it("collecting actionFlow gets action") {
                 runBlockingTest {
                     val job = launch {
                         subject.actionFlow.collect { executedActions += it }
@@ -80,7 +78,7 @@ object LiveActionsManagerTest : Spek({
                 expectThat(executedActions).containsExactly(nullAction)
             }
 
-            it("collecting actionFlow while decrementing back to 0 and incrementing again executes action twice") {
+            it("decrementing back to 0 and incrementing again while collecting actionFlow gets action twice") {
                 runBlockingTest {
                     val job = launch {
                         subject.actionFlow.collect { executedActions += it }
@@ -109,7 +107,7 @@ object LiveActionsManagerTest : Spek({
                     subject.decrement()
                 }
 
-                it("collecting actionFlow does nothing") {
+                it("collecting actionFlow gets nothing") {
                     runBlockingTest {
                         val job = launch {
                             subject.actionFlow.collect { executedActions += it }
@@ -127,7 +125,7 @@ object LiveActionsManagerTest : Spek({
                 subject.increment()
             }
 
-            it("collecting actionFlow executes action") {
+            it("collecting actionFlow gets action") {
                 runBlockingTest {
                     val job = launch {
                         subject.actionFlow.collect { executedActions += it }
@@ -142,7 +140,7 @@ object LiveActionsManagerTest : Spek({
                     subject.decrement()
                 }
 
-                it("collecting actionFlow executes action") {
+                it("collecting actionFlow gets action") {
                     runBlockingTest {
                         val job = launch {
                             subject.actionFlow.collect { executedActions += it }
@@ -154,14 +152,14 @@ object LiveActionsManagerTest : Spek({
             }
         }
     }
-    describe("A manager with two delayed actions that was incremented once") {
+    describe("A LiveActionsManager with two delayed actions that was incremented once") {
         val counter by memoized { AtomicInteger(0) }
         val delayAction1 = action<String> {
-            delay(10)
+            delay(1)
             counter.incrementAndGet()
         }
         val delayAction2 = action<String> {
-            delay(10)
+            delay(1)
             counter.incrementAndGet()
             counter.incrementAndGet()
         }
@@ -175,10 +173,10 @@ object LiveActionsManagerTest : Spek({
                     subject.actionFlow.collect { it.execute(stateAccess) }
                 }
                 expectThat(counter.get()).isEqualTo(0)
-                advanceTimeBy(10)
+                advanceTimeBy(1)
                 expectThat(counter.get()).isEqualTo(1)
                 subject.decrement()
-                advanceTimeBy(10)
+                advanceTimeBy(1)
                 expectThat(counter.get()).isEqualTo(1)
                 job.cancel("Cancelled to end collecting")
             }
@@ -191,9 +189,9 @@ object LiveActionsManagerTest : Spek({
                     subject.actionFlow.collect { it.execute(stateAccess) }
                 }
                 expectThat(counter.get()).isEqualTo(0)
-                advanceTimeBy(10)
+                advanceTimeBy(1)
                 expectThat(counter.get()).isEqualTo(1)
-                advanceTimeBy(10)
+                advanceTimeBy(1)
                 expectThat(counter.get()).isEqualTo(3)
                 job.cancel("Cancelled to end collecting")
             }

@@ -79,7 +79,7 @@ object StoreImplTest : Spek({
             }
 
             describe("that was stopped") {
-                val cancellationException by memoized { CancellationException("Job cancelled at beginning of test") }
+                val cancellationException = CancellationException("Job cancelled at beginning of test")
                 beforeEachTest { job.cancel(cancellationException) }
 
                 it("stopping again succeeds") {
