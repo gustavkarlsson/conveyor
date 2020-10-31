@@ -15,6 +15,8 @@ object StateManagerTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
 
+    // TODO oversee tests
+
     describe("A minimal manager") {
         val subject by memoized { StateManager(initialState) }
 
