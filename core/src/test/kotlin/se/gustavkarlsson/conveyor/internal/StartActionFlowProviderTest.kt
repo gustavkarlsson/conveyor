@@ -18,7 +18,7 @@ object StartActionFlowProviderTest : Spek({
     describe("A provider with a single null action") {
         val subject by memoized { StartActionFlowProvider(listOf(nullAction)) }
 
-        it("collecting actionFlow executes action") {
+        it("collecting actionFlow gets action") {
             runBlockingTest {
                 subject.actionFlow.toCollection(collectedActions)
             }
