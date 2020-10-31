@@ -17,7 +17,7 @@ import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.isSameInstanceAs
+import strikt.assertions.message
 import java.util.concurrent.atomic.AtomicInteger
 
 object LiveActionsManagerTest : Spek({
@@ -59,7 +59,7 @@ object LiveActionsManagerTest : Spek({
             it("collecting actionFlow throws exception") {
                 expectThrows<CancellationException> {
                     subject.actionFlow.collect {}
-                }.and { isSameInstanceAs(cancellationException) }
+                }.and { message.isEqualTo(cancellationException.message) }
             }
         }
 
