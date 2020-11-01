@@ -10,13 +10,12 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
-import java.util.concurrent.atomic.AtomicInteger
 
 @ExperimentalCoroutinesApi
 internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
 ) : LiveActionsCounter, ActionProcessor<State>, Cancellable {
-    private val liveCount = AtomicInteger(0)
+    private val liveCount = AtomicInt(0)
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
     private val toggleFlow = toggleChannel.consumeAsFlow()
         .distinctUntilChanged()
