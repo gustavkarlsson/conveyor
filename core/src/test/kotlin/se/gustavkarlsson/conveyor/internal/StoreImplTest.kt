@@ -11,30 +11,36 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.test.DelayingTrackingActionProcessor
 import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
+import se.gustavkarlsson.conveyor.test.TrackingCancellable
+import se.gustavkarlsson.conveyor.test.hasBeenCancelledWith
+import se.gustavkarlsson.conveyor.test.hasCompletedCount
+import se.gustavkarlsson.conveyor.test.hasIssued
+import se.gustavkarlsson.conveyor.test.hasNeverBeenCancelled
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
-    val initialState = "initial"
-    val action = action<String> {}
+    val initialState = 0
+    val action = action<Int> {}
     val stateAccess by memoized { SimpleStateAccess(initialState) }
-    val actionIssuer by memoized { TrackingActionIssuer<String>() }
+    val actionIssuer by memoized { TrackingActionIssuer<Int>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
+    val processor by memoized { DelayingTrackingActionProcessor<Int>() }
+    val cancellable by memoized { TrackingCancellable() }
 
-    // TODO Add more tests with processors and cancellables
     describe("A minimal store") {
         val subject by memoized {
             StoreImpl(
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
                 liveActionsCounter = liveActionsCounter,
-                actionProcessors = emptyList(),
-                cancellables = emptyList(),
+                actionProcessors = listOf(processor, processor),
+                cancellables = listOf(cancellable),
             )
         }
 
@@ -42,7 +48,7 @@ object StoreImplTest : Spek({
             val result = subject.currentState
             expectThat(result).isEqualTo(initialState)
         }
-        it("state returns state") {
+        it("state returns current state") {
             val result = runBlockingTest {
                 subject.state.first()
             }
@@ -73,7 +79,15 @@ object StoreImplTest : Spek({
                 runBlockingTest {
                     subject.issue(action)
                 }
-                expectThat(actionIssuer.issuedActions).containsExactly(action)
+                expectThat(actionIssuer).hasIssued(action)
+            }
+            it("processors run in parallel") {
+                expectThat(processor).hasCompletedCount(0)
+                startScope.advanceTimeBy(1)
+                expectThat(processor).hasCompletedCount(2)
+            }
+            it("nothing has been cancelled") {
+                expectThat(cancellable).hasNeverBeenCancelled()
             }
 
             describe("that was stopped") {
@@ -94,6 +108,9 @@ object StoreImplTest : Spek({
                     expectThrows<StoreStoppedException> {
                         subject.issue(action)
                     }.get { cancellationReason }.isEqualTo(cancellationException)
+                }
+                it("cancellable has been cancelled by exception") {
+                    expectThat(cancellable).hasBeenCancelledWith(cancellationException)
                 }
             }
         }
