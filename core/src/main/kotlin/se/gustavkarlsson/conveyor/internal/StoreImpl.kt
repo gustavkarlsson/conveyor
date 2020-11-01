@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -35,14 +36,12 @@ internal class StoreImpl<State>(
         return job
     }
 
+    // TODO Make sure the nested launches make sense
     private fun CoroutineScope.startProcessing(): Job = launch {
         for (processor in actionProcessors) {
-            launch {
-                processor.process { action ->
-                    launch { action.execute(stateAccess) }
-                }
-            }
+            launch { processor.process(stateAccess) }
         }
+        awaitCancellation() // TODO Consider whether this can be done with joining jobs
     }
 
     private fun stop(throwable: Throwable?) {

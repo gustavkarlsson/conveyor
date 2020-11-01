@@ -6,8 +6,10 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.StateAccess
 import java.util.concurrent.atomic.AtomicInteger
 
 @ExperimentalCoroutinesApi
@@ -16,6 +18,8 @@ internal class LiveActionsManager<State>(
 ) : LiveActionsCounter, ActionProcessor<State>, Cancellable {
     private val liveCount = AtomicInteger(0)
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
+    private val toggleFlow = toggleChannel.consumeAsFlow()
+        .distinctUntilChanged()
 
     override fun increment() {
         if (liveCount.incrementAndGet() == 1) {
@@ -33,21 +37,17 @@ internal class LiveActionsManager<State>(
 
     private var actions: Iterable<Action<State>>? = actions.toList()
 
-    private val flow = toggleChannel.consumeAsFlow()
-        .distinctUntilChanged()
-        .mapLatest { toggle ->
-            when (toggle) {
-                Toggle.Enable -> requireNotNull(this.actions)
-                Toggle.Disable -> emptyList()
+    override suspend fun process(stateAccess: StateAccess<State>) {
+        toggleFlow.collectLatest { toggle ->
+            if (toggle == Toggle.Enable) {
+                supervisorScope { // TODO is this extra scope needed?
+                    requireNotNull(actions).map { action ->
+                        launch { action.execute(stateAccess) }
+                    }
+                }
             }
         }
-
-    override suspend fun process(onAction: suspend (Action<State>) -> Unit) =
-        flow.collectLatest { actions ->
-            for (action in actions) {
-                onAction(action)
-            }
-        }
+    }
 
     override fun cancel(cause: Throwable?) {
         toggleChannel.cancel(cause as? CancellationException)

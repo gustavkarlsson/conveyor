@@ -1,7 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
-import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.StateAccess
 
 internal interface ActionProcessor<State> {
-    suspend fun process(onAction: suspend (Action<State>) -> Unit)
+    suspend fun process(stateAccess: StateAccess<State>)
 }

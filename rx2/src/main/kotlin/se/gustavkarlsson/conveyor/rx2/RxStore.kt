@@ -7,6 +7,6 @@ import se.gustavkarlsson.conveyor.Action
 public interface RxStore<State : Any> {
     public val state: Flowable<State>
     public val currentState: State
-    public fun open(): Disposable
+    public fun start(): Disposable
     public fun issue(action: Action<State>)
 }

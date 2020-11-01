@@ -1,60 +1,61 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.test.runBlockingTest
+import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.test.IncrementStateAction
+import se.gustavkarlsson.conveyor.test.SimpleStateAccess
+import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
+import strikt.assertions.isEqualTo
 
 object ManualActionsManagerTest : Spek({
-    val scope by memoized(
-        factory = { TestCoroutineScope(Job()) },
-        destructor = {
-            it.cancel("Test ended")
-            it.cleanupTestCoroutines()
-        }
-    )
-    val action = Action<String> {}
-    describe("A ManualActionsManager") {
-        val subject by memoized { ManualActionsManager<String>() }
+    val scope by memoizedTestCoroutineScope()
+    val stateAccess by memoized { SimpleStateAccess(0) }
+    val incrementStateAction = IncrementStateAction()
 
-        it("suspends on process") {
+    describe("A ManualActionsManager") {
+        val subject by memoized { ManualActionsManager<Int>() }
+
+        it("suspends while processing") {
             expectSuspends {
-                subject.process {}
+                subject.process(stateAccess)
             }
         }
 
         describe("that is processing") {
-            val executedActions by memoized {
-                mutableListOf<Action<String>>()
-            }
             lateinit var processingJob: Job
             beforeEachTest {
                 processingJob = scope.launch {
-                    subject.process { executedActions += it }
+                    subject.process(stateAccess)
                 }
             }
             afterEachTest {
                 processingJob.cancel("Test ended")
             }
 
-            it("issued action executes") {
-                subject.issue(action)
-                expectThat(executedActions).containsExactly(action)
+            it("executes issued actions in parallel") {
+                val delayAction = action<Int> { access ->
+                    delay(1)
+                    access.update { it + 1 }
+                }
+                subject.issue(delayAction)
+                subject.issue(delayAction)
+                scope.advanceTimeBy(1)
+                expectThat(stateAccess.get()).isEqualTo(2)
             }
             it("throws if processing again") {
                 expectThrows<IllegalStateException> {
-                    runBlockingTest {
-                        subject.process {}
-                    }
+                    subject.process(stateAccess)
                 }
-            }
-            it("actions are run in parallel") {
-
             }
         }
 
@@ -64,13 +65,13 @@ object ManualActionsManagerTest : Spek({
             }
 
             it("throws exception when action is issued") {
-                expectThrows<IllegalStateException> {
-                    subject.issue(action)
+                expectThrows<CancellationException> {
+                    subject.issue(incrementStateAction)
                 }
             }
-            it("does not suspend on process") {
-                runBlockingTest {
-                    subject.process {}
+            it("throws exception when processing") {
+                expectThrows<CancellationException> {
+                    subject.process(stateAccess)
                 }
             }
             it("can be cancelled again") {
@@ -81,11 +82,9 @@ object ManualActionsManagerTest : Spek({
 })
 
 private fun expectSuspends(block: suspend () -> Unit) {
-    runBlockingTest {
-        expectThrows<TimeoutCancellationException> {
-            withTimeout(100) {
-                block()
-            }
+    expectThrows<TimeoutCancellationException> {
+        withTimeout(100) {
+            block()
         }
     }
 }

@@ -3,15 +3,14 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
+import se.gustavkarlsson.conveyor.StoreStoppedException
+import se.gustavkarlsson.conveyor.action
 import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.test.runBlockingTest
@@ -22,15 +21,10 @@ import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
     val initialState = "initial"
-    val action = Action<String> {}
+    val action = action<String> {}
     val stateAccess by memoized { SimpleStateAccess(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<String>() }
     val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
-    val foreverProcessor = object : ActionProcessor<String> {
-        override suspend fun process(onAction: suspend (Action<String>) -> Unit) {
-            delay(Long.MAX_VALUE)
-        }
-    }
 
     // TODO Add more tests with processors and cancellables
     describe("A minimal store") {
@@ -39,7 +33,7 @@ object StoreImplTest : Spek({
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
                 liveActionsCounter = liveActionsCounter,
-                actionProcessors = listOf(foreverProcessor),
+                actionProcessors = emptyList(),
                 cancellables = emptyList(),
             )
         }
@@ -60,22 +54,22 @@ object StoreImplTest : Spek({
             }
         }
 
-        describe("that was opened") {
-            val openScope by memoized { TestCoroutineScope() }
+        describe("that was started") {
+            val startScope by memoized { TestCoroutineScope() }
             lateinit var job: Job
             beforeEachTest {
-                job = subject.start(openScope)
+                job = subject.start(startScope)
             }
             afterEachTest {
                 job.cancel("Test ended")
             }
 
-            it("opening again throws exception") {
+            it("starting again throws exception") {
                 expectThrows<StoreAlreadyStartedException> {
-                    subject.start(openScope)
+                    subject.start(startScope)
                 }
             }
-            it("issueAction issues action") {
+            it("issue issues action") {
                 runBlockingTest {
                     subject.issue(action)
                 }
@@ -83,13 +77,13 @@ object StoreImplTest : Spek({
             }
 
             describe("that was stopped") {
-                val cancellationException by memoized { CancellationException("Job cancelled at beginning of test") }
+                val cancellationException = CancellationException("Job cancelled at beginning of test")
                 beforeEachTest { job.cancel(cancellationException) }
 
                 it("stopping again succeeds") {
                     job.cancel("Stopped again")
                 }
-                it("open again throws with cancellationException as reason") {
+                it("start again throws with cancellationException as reason") {
                     expectThrows<StoreStoppedException> {
                         runBlockingTest {
                             subject.start(this)

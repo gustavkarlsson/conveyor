@@ -6,40 +6,36 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.test.NullAction
+import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.test.IncrementStateAction
 import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import java.util.concurrent.atomic.AtomicInteger
+import strikt.assertions.message
 
 object LiveActionsManagerTest : Spek({
-    val cancellationException by memoized { CancellationException("Manually cancelled") }
-    val executedActions by memoized { mutableListOf<Action<String>>() }
-    val nullAction = NullAction<String>()
+    val cancellationException = CancellationException("Manually cancelled")
+    val stateAccess by memoized { SimpleStateAccess(0) }
+    val incrementStateAction = IncrementStateAction()
 
-    describe("A manager with a single null action") {
-        val subject by memoized { LiveActionsManager(listOf(nullAction)) }
+    describe("A LiveActionsManager with a single null action") {
+        val subject by memoized { LiveActionsManager(listOf(incrementStateAction)) }
 
-        it("decreased throws exception") {
+        it("decrease throws exception") {
             expectThrows<IllegalStateException> {
-                runBlockingTest {
-                    subject.decrement()
-                }
+                subject.decrement()
             }
         }
-        it("processing does nothing") {
+        it("processing doesn't execute any actions") {
             runBlockingTest {
                 val job = launch {
-                    subject.process { executedActions += it }
+                    subject.process(stateAccess)
                 }
                 job.cancel("Cancelled to end processing")
             }
-            expectThat(executedActions).isEmpty()
+            expectThat(stateAccess.get()).isEqualTo(0)
         }
 
         describe("that was cancelled") {
@@ -52,14 +48,13 @@ object LiveActionsManagerTest : Spek({
                     subject.increment()
                 }
             }
-            it("cancel succeeds") {
+            it("can cancel again") {
                 subject.cancel(cancellationException)
             }
-            it("process throws exception") {
+            it("processing throws exception") {
                 expectThrows<CancellationException> {
-                    subject.process {}
-                }
-                // FIXME is cancellationException or caused by cancellationException
+                    subject.process(stateAccess)
+                }.message.isEqualTo(cancellationException.message)
             }
         }
 
@@ -71,23 +66,23 @@ object LiveActionsManagerTest : Spek({
             it("processing executes action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.process { executedActions += it }
+                        subject.process(stateAccess)
                     }
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(executedActions).containsExactly(nullAction)
+                expectThat(stateAccess.get()).isEqualTo(1)
             }
 
-            it("processing while decrementing back to 0 and incrementing again executes action twice") {
+            it("decrementing and incrementing again while processing executes action twice") {
                 runBlockingTest {
                     val job = launch {
-                        subject.process { executedActions += it }
+                        subject.process(stateAccess)
                     }
                     subject.decrement()
                     subject.increment()
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(executedActions).containsExactly(nullAction, nullAction)
+                expectThat(stateAccess.get()).isEqualTo(2)
             }
 
             describe("that was cancelled") {
@@ -107,14 +102,14 @@ object LiveActionsManagerTest : Spek({
                     subject.decrement()
                 }
 
-                it("processing does nothing") {
+                it("processing doesn't execute any actions") {
                     runBlockingTest {
                         val job = launch {
-                            subject.process { executedActions += it }
+                            subject.process(stateAccess)
                         }
                         job.cancel("Cancelled to end processing")
                     }
-                    expectThat(executedActions).isEmpty()
+                    expectThat(stateAccess.get()).isEqualTo(0)
                 }
             }
         }
@@ -128,11 +123,11 @@ object LiveActionsManagerTest : Spek({
             it("processing executes action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.process { executedActions += it }
+                        subject.process(stateAccess)
                     }
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(executedActions).containsExactly(nullAction)
+                expectThat(stateAccess.get()).isEqualTo(1)
             }
 
             describe("and then decremented once") {
@@ -143,36 +138,50 @@ object LiveActionsManagerTest : Spek({
                 it("processing executes action") {
                     runBlockingTest {
                         val job = launch {
-                            subject.process { executedActions += it }
+                            subject.process(stateAccess)
                         }
                         job.cancel("Cancelled to end processing")
                     }
-                    expectThat(executedActions).containsExactly(nullAction)
+                    expectThat(stateAccess.get()).isEqualTo(1)
                 }
             }
         }
     }
-    describe("A manager with two delayed actions that was incremented once") {
-        val counter by memoized { AtomicInteger(0) }
-        val delayAction10 = Action<String> {
-            delay(10)
-            counter.incrementAndGet()
+    describe("A LiveActionsManager with a delayed action that was incremented once") {
+        val delayAction = action<Int> { access ->
+            delay(1)
+            access.update { it + 1 }
         }
-        val subject by memoized { LiveActionsManager(listOf(delayAction10, delayAction10)) }
+        val subject by memoized { LiveActionsManager(listOf(delayAction)) }
         beforeEachTest { subject.increment() }
 
         it("stops executing after decrementing") {
-            val stateAccess = SimpleStateAccess("")
             runBlockingTest {
                 val job = launch {
-                    subject.process { it.execute(stateAccess) }
+                    subject.process(stateAccess)
                 }
-                expectThat(counter.get()).isEqualTo(0)
-                advanceTimeBy(10)
-                expectThat(counter.get()).isEqualTo(1)
                 subject.decrement()
-                advanceTimeBy(10)
-                expectThat(counter.get()).isEqualTo(1)
+                advanceTimeBy(1)
+                expectThat(stateAccess.get()).isEqualTo(0)
+                job.cancel("Cancelled to end processing")
+            }
+        }
+    }
+    describe("A LiveActionsManager with two delayed actions that was incremented once") {
+        val delayAction = action<Int> { access ->
+            delay(1)
+            access.update { it + 1 }
+        }
+        val subject by memoized { LiveActionsManager(listOf(delayAction, delayAction)) }
+        beforeEachTest { subject.increment() }
+
+        it("executes actions in parallel") {
+            runBlockingTest {
+                val job = launch {
+                    subject.process(stateAccess)
+                }
+                advanceTimeBy(1)
+                expectThat(stateAccess.get()).isEqualTo(2)
                 job.cancel("Cancelled to end processing")
             }
         }

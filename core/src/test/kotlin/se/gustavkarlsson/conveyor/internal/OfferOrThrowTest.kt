@@ -4,6 +4,8 @@ import kotlinx.coroutines.channels.Channel
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import strikt.api.expectThrows
+import strikt.assertions.isEqualTo
+import strikt.assertions.message
 
 object OfferOrThrowTest : Spek({
     describe("A channel with capacity 1") {
@@ -17,7 +19,7 @@ object OfferOrThrowTest : Spek({
             channel.offerOrThrow("shouldAccept")
             expectThrows<IllegalStateException> {
                 channel.offerOrThrow("shouldThrow")
-            }
+            }.message.isEqualTo(OFFER_OR_THROW_ERROR_MESSAGE)
         }
     }
 })
