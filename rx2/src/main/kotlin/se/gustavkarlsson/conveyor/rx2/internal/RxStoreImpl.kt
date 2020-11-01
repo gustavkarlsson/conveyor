@@ -12,7 +12,7 @@ import kotlin.coroutines.CoroutineContext
 
 internal class RxStoreImpl<State : Any>(
     private val store: Store<State>,
-    context: CoroutineContext?,
+    context: CoroutineContext?, // TODO figure out if this is necessary.
 ) : RxStore<State> {
     @ExperimentalCoroutinesApi
     override val state: Flowable<State> =
@@ -25,7 +25,7 @@ internal class RxStoreImpl<State : Any>(
     override val currentState: State get() = store.currentState
 
     override fun start(): Disposable {
-        val job = store.start(GlobalScope)
+        val job = store.start(GlobalScope) // TODO figure out if there is ever a need for another scope
         return JobDisposable(job)
     }
 
