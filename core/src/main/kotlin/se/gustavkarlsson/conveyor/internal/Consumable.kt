@@ -1,16 +1,12 @@
 package se.gustavkarlsson.conveyor.internal
 
-// TODO Add tests
-internal class Consumable<T>(value: T) {
-    private var consumed = false
+internal class Consumable<T: Any>(value: T) {
     private var innerValue: T? = value
 
     @Synchronized
     fun consume(): T {
-        check(!consumed) { "value has already been consumed" }
-        val value = innerValue
+        val value = checkNotNull(innerValue) { "value has already been consumed" }
         innerValue = null
-        consumed = true
-        return value!!
+        return value
     }
 }
