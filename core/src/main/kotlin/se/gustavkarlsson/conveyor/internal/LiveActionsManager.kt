@@ -3,11 +3,11 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import java.util.concurrent.atomic.AtomicInteger
@@ -40,8 +40,9 @@ internal class LiveActionsManager<State>(
     override suspend fun process(stateAccess: StateAccess<State>) {
         toggleFlow.collectLatest { toggle ->
             if (toggle == Toggle.Enable) {
-                supervisorScope { // TODO is this extra scope needed?
-                    requireNotNull(actions).map { action ->
+                val actions = requireNotNull(actions)
+                coroutineScope {
+                    for (action in actions) {
                         launch { action.execute(stateAccess) }
                     }
                 }

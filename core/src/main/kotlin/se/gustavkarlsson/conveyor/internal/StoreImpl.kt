@@ -36,7 +36,6 @@ internal class StoreImpl<State>(
         return job
     }
 
-    // TODO Make sure the nested launches make sense
     private fun CoroutineScope.startProcessing(): Job = launch {
         for (processor in actionProcessors) {
             launch { processor.process(stateAccess) }
