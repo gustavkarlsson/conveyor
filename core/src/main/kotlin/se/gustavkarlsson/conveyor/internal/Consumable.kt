@@ -1,6 +1,6 @@
 package se.gustavkarlsson.conveyor.internal
 
-internal class Consumable<T: Any>(value: T) {
+internal class Consumable<T : Any>(value: T) {
     private var innerValue: T? = value
 
     @Synchronized
