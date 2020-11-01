@@ -10,9 +10,11 @@ import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.rx2.RxStore
 import kotlin.coroutines.CoroutineContext
 
+// TODO figure out if the context is necessary.
+//  Maybe it should be provided ever time we get the state?
 internal class RxStoreImpl<State : Any>(
     private val store: Store<State>,
-    context: CoroutineContext?, // TODO figure out if this is necessary.
+    context: CoroutineContext?,
 ) : RxStore<State> {
     @ExperimentalCoroutinesApi
     override val state: Flowable<State> =
@@ -25,7 +27,7 @@ internal class RxStoreImpl<State : Any>(
     override val currentState: State get() = store.currentState
 
     override fun start(): Disposable {
-        val job = store.start(GlobalScope) // TODO figure out if there is ever a need for another scope
+        val job = store.start(GlobalScope)
         return JobDisposable(job)
     }
 
