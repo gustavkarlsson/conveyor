@@ -41,7 +41,7 @@ internal class StoreImpl<State>(
         for (processor in actionProcessors) {
             launch { processor.process(stateAccess) }
         }
-        awaitCancellation() // TODO Consider whether this can be done with joining jobs
+        awaitCancellation()
     }
 
     private fun stop(throwable: Throwable?) {
