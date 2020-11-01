@@ -1,8 +1,10 @@
 package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.runBlockingTest
@@ -14,8 +16,7 @@ import strikt.assertions.isEqualTo
 object StateManagerTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
-
-    // TODO oversee tests
+    val state2 = "state2"
 
     describe("A minimal manager") {
         val subject by memoized { StateManager(initialState) }
@@ -23,7 +24,7 @@ object StateManagerTest : Spek({
         it("get returns initial") {
             expectThat(subject.get()).isEqualTo(initialState)
         }
-        it("state emits initial") {
+        it("flow emits initial") {
             val result = runBlockingTest {
                 val deferred = async {
                     subject.flow.toList()
@@ -33,13 +34,45 @@ object StateManagerTest : Spek({
             }
             expectThat(result).containsExactly(initialState)
         }
-        it("get returns state1 after updating it to state1") {
+        it("get returns state1 after setting it to state1") {
             runBlockingTest {
-                subject.update { state1 }
+                subject.set(state1)
             }
             expectThat(subject.get()).isEqualTo(state1)
         }
-        it("state emits initial and state1 when updating it to state1 after collecting") {
+        it("get returns new state after updating it") {
+            runBlockingTest {
+                subject.update { it + state1 }
+            }
+            expectThat(subject.get()).isEqualTo(initialState + state1)
+        }
+        it("update and set runs sequentially") {
+            runBlockingTest {
+                launch {
+                    subject.update {
+                        delay(1)
+                        state1
+                    }
+                }
+                subject.set(state2)
+                advanceTimeBy(1)
+            }
+            expectThat(subject.get()).isEqualTo(state2)
+        }
+        it("delayed update takes a while") {
+            runBlockingTest {
+                launch {
+                    subject.update {
+                        delay(1)
+                        state1
+                    }
+                }
+                expectThat(subject.get()).isEqualTo(initialState)
+                advanceTimeBy(1)
+                expectThat(subject.get()).isEqualTo(state1)
+            }
+        }
+        it("flow emits initial and state1 when updating it to state1 when collecting") {
             val result = runBlockingTest {
                 val deferred = async {
                     subject.flow.toList()
@@ -50,7 +83,7 @@ object StateManagerTest : Spek({
             }
             expectThat(result).containsExactly(initialState, state1)
         }
-        it("state emits initial and ends when cancelling") {
+        it("flow emits initial and ends after cancelling") {
             val result = runBlockingTest {
                 val deferred = async {
                     subject.flow.single()
@@ -66,18 +99,40 @@ object StateManagerTest : Spek({
                 subject.cancel()
             }
 
-            it("get returns currentState") {
+            it("get returns current state") {
                 val result = subject.get()
                 expectThat(result).isEqualTo(initialState)
             }
-            it("setting currentState throws") {
+            it("flow emits current state and then completes") {
+                val result = runBlockingTest {
+                    subject.flow.single()
+                }
+                expectThat(result).isEqualTo(initialState)
+            }
+            it("set throws") {
                 expectThrows<IllegalStateException> {
                     runBlockingTest {
                         subject.update { "shouldThrow" }
                     }
                 }
             }
-            it("getting currentState after trying to set currentState returns initial state") {
+            it("update throws") {
+                expectThrows<IllegalStateException> {
+                    runBlockingTest {
+                        subject.update { "shouldThrow" }
+                    }
+                }
+            }
+            it("get after trying to set state returns old state") {
+                try {
+                    runBlockingTest {
+                        subject.set("shouldThrow")
+                    }
+                } catch (ignore: Throwable) {
+                }
+                expectThat(subject.get()).isEqualTo(initialState)
+            }
+            it("get after trying to update state returns old state") {
                 try {
                     runBlockingTest {
                         subject.update { "shouldThrow" }
@@ -86,7 +141,7 @@ object StateManagerTest : Spek({
                 }
                 expectThat(subject.get()).isEqualTo(initialState)
             }
-            it("state emits initial and then ends") {
+            it("flow emits current state and then ends") {
                 val result = runBlockingTest {
                     subject.flow.single()
                 }
