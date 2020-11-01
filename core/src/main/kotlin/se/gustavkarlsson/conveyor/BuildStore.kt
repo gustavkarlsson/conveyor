@@ -2,13 +2,9 @@ package se.gustavkarlsson.conveyor
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.onEach
 import se.gustavkarlsson.conveyor.internal.LiveActionsManager
 import se.gustavkarlsson.conveyor.internal.ManualActionsManager
-import se.gustavkarlsson.conveyor.internal.StartActionFlowProvider
+import se.gustavkarlsson.conveyor.internal.StartActionProcessor
 import se.gustavkarlsson.conveyor.internal.StateManager
 import se.gustavkarlsson.conveyor.internal.StoreImpl
 
@@ -20,28 +16,22 @@ public fun <State> buildStore(
     liveActions: Iterable<Action<State>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val actionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
-
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
     val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
-    val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
     val stateManager = StateManager(overriddenInitialState)
-    val startActionFlowProvider = StartActionFlowProvider(overriddenStartActions)
+    val startActionProcessor = StartActionProcessor(overriddenStartActions)
     val manualActionsManager = ManualActionsManager<State>()
     val liveActionsManager = LiveActionsManager(overriddenLiveActions)
-    val actionFlow = listOf(manualActionsManager, startActionFlowProvider, liveActionsManager)
-        .map { it.actionFlow }
-        .merge()
-        .compose(overriddenActionTransformers)
+    val actionProcessors = listOf(manualActionsManager, startActionProcessor, liveActionsManager)
     val cancellables = listOf(liveActionsManager, manualActionsManager, stateManager)
 
     return StoreImpl(
         stateAccess = stateManager,
         actionIssuer = manualActionsManager,
         liveActionsCounter = liveActionsManager,
-        actionFlow = actionFlow,
+        actionProcessors = actionProcessors,
         cancellables = cancellables,
     )
 }
@@ -52,8 +42,3 @@ private fun <State, T> T.override(
 ): T = plugins.fold(this) { acc: T, plugin: Plugin<State> ->
     plugin.operation(acc)
 }
-
-private fun <T> Flow<T>.compose(transformers: Iterable<Transformer<T>>): Flow<T> =
-    transformers.fold(this) { flow, transformer ->
-        transformer.transform(flow)
-    }

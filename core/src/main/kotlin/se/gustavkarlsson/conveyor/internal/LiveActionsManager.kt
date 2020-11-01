@@ -2,23 +2,24 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.StateAccess
 import java.util.concurrent.atomic.AtomicInteger
 
 @ExperimentalCoroutinesApi
 internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
-) : LiveActionsCounter, ActionFlowProvider<State>, Cancellable {
+) : LiveActionsCounter, ActionProcessor<State>, Cancellable {
     private val liveCount = AtomicInteger(0)
     private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
+    private val toggleFlow = toggleChannel.consumeAsFlow()
+        .distinctUntilChanged()
 
     override fun increment() {
         if (liveCount.incrementAndGet() == 1) {
@@ -36,15 +37,17 @@ internal class LiveActionsManager<State>(
 
     private var actions: Iterable<Action<State>>? = actions.toList()
 
-    @FlowPreview
-    override val actionFlow: Flow<Action<State>> = toggleChannel.consumeAsFlow()
-        .distinctUntilChanged()
-        .flatMapLatest { toggle ->
-            when (toggle) {
-                Toggle.Enable -> requireNotNull(this.actions).asFlow()
-                Toggle.Disable -> emptyFlow()
+    override suspend fun process(stateAccess: StateAccess<State>) {
+        toggleFlow.collectLatest { toggle ->
+            if (toggle == Toggle.Enable) {
+                supervisorScope { // TODO is this extra scope needed?
+                    requireNotNull(actions).map { action ->
+                        launch { action.execute(stateAccess) }
+                    }
+                }
             }
         }
+    }
 
     override fun cancel(cause: Throwable?) {
         toggleChannel.cancel(cause as? CancellationException)

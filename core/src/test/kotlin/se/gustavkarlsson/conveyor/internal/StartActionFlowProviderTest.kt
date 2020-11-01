@@ -1,36 +1,51 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.test.NullAction
+import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.test.IncrementStateAction
+import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
+import strikt.assertions.isEqualTo
 
 object StartActionFlowProviderTest : Spek({
-    val collectedActions by memoized { mutableListOf<Action<String>>() }
-    val nullAction = NullAction<String>()
+    val stateAccess by memoized { SimpleStateAccess(0) }
+    val incrementStateAction = IncrementStateAction()
 
-    describe("A provider with a single null action") {
-        val subject by memoized { StartActionFlowProvider(listOf(nullAction)) }
+    describe("A provider with one action") {
+        val subject by memoized { StartActionProcessor(listOf(incrementStateAction)) }
 
-        it("collecting actionFlow gets action") {
+        it("processing executes action") {
             runBlockingTest {
-                subject.actionFlow.toCollection(collectedActions)
+                subject.process(stateAccess)
             }
-            expectThat(collectedActions).containsExactly(nullAction)
+            expectThat(stateAccess.get()).isEqualTo(1)
         }
-
-        it("collecting actionFlow twice throws exception") {
+        it("processing twice throws exception") {
             expectThrows<IllegalStateException> {
                 runBlockingTest {
-                    subject.actionFlow.collect()
-                    subject.actionFlow.collect()
+                    subject.process(stateAccess)
+                    subject.process(stateAccess)
                 }
+            }
+        }
+    }
+    describe("A provider with a two delayed actions") {
+        val delayAction = action<Int> { access ->
+            delay(1)
+            access.update { it + 1 }
+        }
+        val subject by memoized { StartActionProcessor(listOf(delayAction, delayAction)) }
+
+        it("processing executes actions in parallel") {
+            runBlockingTest {
+                launch { subject.process(stateAccess) }
+                advanceTimeBy(1)
+                expectThat(stateAccess.get()).isEqualTo(2)
             }
         }
     }

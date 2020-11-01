@@ -3,45 +3,39 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.NullAction
+import se.gustavkarlsson.conveyor.test.IncrementStateAction
 import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
-import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
 import strikt.assertions.message
-import java.util.concurrent.atomic.AtomicInteger
 
 object LiveActionsManagerTest : Spek({
     val cancellationException = CancellationException("Manually cancelled")
-    val collectedActions by memoized { mutableListOf<Action<String>>() }
-    val nullAction = NullAction<String>()
+    val stateAccess by memoized { SimpleStateAccess(0) }
+    val incrementStateAction = IncrementStateAction()
 
     describe("A LiveActionsManager with a single null action") {
-        val subject by memoized { LiveActionsManager(listOf(nullAction)) }
+        val subject by memoized { LiveActionsManager(listOf(incrementStateAction)) }
 
         it("decrease throws exception") {
             expectThrows<IllegalStateException> {
                 subject.decrement()
             }
         }
-        it("collecting actionFlow gets nothing") {
+        it("processing doesn't execute any actions") {
             runBlockingTest {
                 val job = launch {
-                    subject.actionFlow.toCollection(collectedActions)
+                    subject.process(stateAccess)
                 }
-                job.cancel("Cancelled to end collecting")
+                job.cancel("Cancelled to end processing")
             }
-            expectThat(collectedActions).isEmpty()
+            expectThat(stateAccess.get()).isEqualTo(0)
         }
 
         describe("that was cancelled") {
@@ -57,9 +51,9 @@ object LiveActionsManagerTest : Spek({
             it("can cancel again") {
                 subject.cancel(cancellationException)
             }
-            it("collecting actionFlow throws exception") {
+            it("processing throws exception") {
                 expectThrows<CancellationException> {
-                    subject.actionFlow.collect()
+                    subject.process(stateAccess)
                 }.message.isEqualTo(cancellationException.message)
             }
         }
@@ -69,26 +63,26 @@ object LiveActionsManagerTest : Spek({
                 subject.increment()
             }
 
-            it("collecting actionFlow gets action") {
+            it("processing executes action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.actionFlow.toCollection(collectedActions)
+                        subject.process(stateAccess)
                     }
-                    job.cancel("Cancelled to end collecting")
+                    job.cancel("Cancelled to end processing")
                 }
-                expectThat(collectedActions).containsExactly(nullAction)
+                expectThat(stateAccess.get()).isEqualTo(1)
             }
 
-            it("decrementing back to 0 and incrementing again while collecting actionFlow gets action twice") {
+            it("decrementing and incrementing again while processing executes action twice") {
                 runBlockingTest {
                     val job = launch {
-                        subject.actionFlow.toCollection(collectedActions)
+                        subject.process(stateAccess)
                     }
                     subject.decrement()
                     subject.increment()
-                    job.cancel("Cancelled to end collecting")
+                    job.cancel("Cancelled to end processing")
                 }
-                expectThat(collectedActions).containsExactly(nullAction, nullAction)
+                expectThat(stateAccess.get()).isEqualTo(2)
             }
 
             describe("that was cancelled") {
@@ -108,14 +102,14 @@ object LiveActionsManagerTest : Spek({
                     subject.decrement()
                 }
 
-                it("collecting actionFlow gets nothing") {
+                it("processing doesn't execute any actions") {
                     runBlockingTest {
                         val job = launch {
-                            subject.actionFlow.toCollection(collectedActions)
+                            subject.process(stateAccess)
                         }
-                        job.cancel("Cancelled to end collecting")
+                        job.cancel("Cancelled to end processing")
                     }
-                    expectThat(collectedActions).isEmpty()
+                    expectThat(stateAccess.get()).isEqualTo(0)
                 }
             }
         }
@@ -126,14 +120,14 @@ object LiveActionsManagerTest : Spek({
                 subject.increment()
             }
 
-            it("collecting actionFlow gets action") {
+            it("processing executes action") {
                 runBlockingTest {
                     val job = launch {
-                        subject.actionFlow.toCollection(collectedActions)
+                        subject.process(stateAccess)
                     }
-                    job.cancel("Cancelled to end collecting")
+                    job.cancel("Cancelled to end processing")
                 }
-                expectThat(collectedActions).containsExactly(nullAction)
+                expectThat(stateAccess.get()).isEqualTo(1)
             }
 
             describe("and then decremented once") {
@@ -141,60 +135,54 @@ object LiveActionsManagerTest : Spek({
                     subject.decrement()
                 }
 
-                it("collecting actionFlow gets action") {
+                it("processing executes action") {
                     runBlockingTest {
                         val job = launch {
-                            subject.actionFlow.toCollection(collectedActions)
+                            subject.process(stateAccess)
                         }
-                        job.cancel("Cancelled to end collecting")
+                        job.cancel("Cancelled to end processing")
                     }
-                    expectThat(collectedActions).containsExactly(nullAction)
+                    expectThat(stateAccess.get()).isEqualTo(1)
                 }
             }
         }
     }
-    describe("A LiveActionsManager with two delayed actions that was incremented once") {
-        val counter by memoized { AtomicInteger(0) }
-        val delayAction1 = action<String> {
+    describe("A LiveActionsManager with a delayed action that was incremented once") {
+        val delayAction = action<Int> { access ->
             delay(1)
-            counter.incrementAndGet()
+            access.update { it + 1 }
         }
-        val delayAction2 = action<String> {
-            delay(1)
-            counter.incrementAndGet()
-            counter.incrementAndGet()
-        }
-        val subject by memoized { LiveActionsManager(listOf(delayAction1, delayAction2)) }
+        val subject by memoized { LiveActionsManager(listOf(delayAction)) }
         beforeEachTest { subject.increment() }
 
         it("stops executing after decrementing") {
-            val stateAccess = SimpleStateAccess("")
             runBlockingTest {
                 val job = launch {
-                    subject.actionFlow.collect { it.execute(stateAccess) }
+                    subject.process(stateAccess)
                 }
-                expectThat(counter.get()).isEqualTo(0)
-                advanceTimeBy(1)
-                expectThat(counter.get()).isEqualTo(1)
                 subject.decrement()
                 advanceTimeBy(1)
-                expectThat(counter.get()).isEqualTo(1)
-                job.cancel("Cancelled to end collecting")
+                expectThat(stateAccess.get()).isEqualTo(0)
+                job.cancel("Cancelled to end processing")
             }
         }
+    }
+    describe("A LiveActionsManager with two delayed actions that was incremented once") {
+        val delayAction = action<Int> { access ->
+            delay(1)
+            access.update { it + 1 }
+        }
+        val subject by memoized { LiveActionsManager(listOf(delayAction, delayAction)) }
+        beforeEachTest { subject.increment() }
 
-        it("executes actions sequentially") {
-            val stateAccess = SimpleStateAccess("")
+        it("executes actions in parallel") {
             runBlockingTest {
                 val job = launch {
-                    subject.actionFlow.collect { it.execute(stateAccess) }
+                    subject.process(stateAccess)
                 }
-                expectThat(counter.get()).isEqualTo(0)
                 advanceTimeBy(1)
-                expectThat(counter.get()).isEqualTo(1)
-                advanceTimeBy(1)
-                expectThat(counter.get()).isEqualTo(3)
-                job.cancel("Cancelled to end collecting")
+                expectThat(stateAccess.get()).isEqualTo(2)
+                job.cancel("Cancelled to end processing")
             }
         }
     }

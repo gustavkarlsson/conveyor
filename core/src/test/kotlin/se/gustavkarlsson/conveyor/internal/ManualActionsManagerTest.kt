@@ -4,53 +4,57 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.test.NullAction
+import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.test.IncrementStateAction
+import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
+import strikt.assertions.isEqualTo
 
 object ManualActionsManagerTest : Spek({
     val scope by memoizedTestCoroutineScope()
-    val action = NullAction<String>()
+    val stateAccess by memoized { SimpleStateAccess(0) }
+    val incrementStateAction = IncrementStateAction()
 
     describe("A ManualActionsManager") {
-        val subject by memoized { ManualActionsManager<String>() }
+        val subject by memoized { ManualActionsManager<Int>() }
 
-        it("suspends on collecting actionFlow") {
+        it("suspends while processing") {
             expectSuspends {
-                subject.actionFlow.collect()
+                subject.process(stateAccess)
             }
         }
 
-        describe("that is collecting actionFlow") {
-            val collectedActions by memoized {
-                mutableListOf<Action<String>>()
-            }
-            lateinit var collectingJob: Job
+        describe("that is processing") {
+            lateinit var processingJob: Job
             beforeEachTest {
-                collectingJob = scope.launch {
-                    subject.actionFlow.toCollection(collectedActions)
+                processingJob = scope.launch {
+                    subject.process(stateAccess)
                 }
             }
             afterEachTest {
-                collectingJob.cancel("Test ended")
+                processingJob.cancel("Test ended")
             }
 
-            it("issued action collected") {
-                subject.issue(action)
-                expectThat(collectedActions).containsExactly(action)
+            it("executes issued actions in parallel") {
+                val delayAction = action<Int> { access ->
+                    delay(1)
+                    access.update { it + 1 }
+                }
+                subject.issue(delayAction)
+                subject.issue(delayAction)
+                scope.advanceTimeBy(1)
+                expectThat(stateAccess.get()).isEqualTo(2)
             }
-            it("throws if collecting actionFlow again") {
+            it("throws if processing again") {
                 expectThrows<IllegalStateException> {
-                    subject.actionFlow.collect()
+                    subject.process(stateAccess)
                 }
             }
         }
@@ -62,12 +66,12 @@ object ManualActionsManagerTest : Spek({
 
             it("throws exception when action is issued") {
                 expectThrows<CancellationException> {
-                    subject.issue(action)
+                    subject.issue(incrementStateAction)
                 }
             }
-            it("throws exception when collecting actionFlow") {
+            it("throws exception when processing") {
                 expectThrows<CancellationException> {
-                    subject.actionFlow.collect()
+                    subject.process(stateAccess)
                 }
             }
             it("can be cancelled again") {

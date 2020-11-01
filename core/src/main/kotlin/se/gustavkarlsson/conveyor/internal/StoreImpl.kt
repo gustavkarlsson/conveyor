@@ -4,8 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
@@ -19,7 +18,7 @@ internal class StoreImpl<State>(
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
     liveActionsCounter: LiveActionsCounter,
-    private val actionFlow: Flow<Action<State>>,
+    private val actionProcessors: Iterable<ActionProcessor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
     override val state = stateAccess.flow
@@ -37,10 +36,12 @@ internal class StoreImpl<State>(
         return job
     }
 
+    // TODO Make sure the nested launches make sense
     private fun CoroutineScope.startProcessing(): Job = launch {
-        actionFlow.collect { action ->
-            launch { action.execute(stateAccess) }
+        for (processor in actionProcessors) {
+            launch { processor.process(stateAccess) }
         }
+        awaitCancellation() // TODO Consider whether this can be done with joining jobs
     }
 
     private fun stop(throwable: Throwable?) {

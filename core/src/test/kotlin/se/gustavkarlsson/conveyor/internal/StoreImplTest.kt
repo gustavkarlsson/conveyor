@@ -3,9 +3,7 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -35,7 +33,7 @@ object StoreImplTest : Spek({
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
                 liveActionsCounter = liveActionsCounter,
-                actionFlow = flow { delay(Long.MAX_VALUE) }, // FIXME empty?
+                actionProcessors = emptyList(),
                 cancellables = emptyList(),
             )
         }
@@ -71,7 +69,7 @@ object StoreImplTest : Spek({
                     subject.start(startScope)
                 }
             }
-            it("issueAction issues action") {
+            it("issue issues action") {
                 runBlockingTest {
                     subject.issue(action)
                 }
