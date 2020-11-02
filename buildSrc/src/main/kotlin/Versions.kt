@@ -17,5 +17,4 @@ object Versions {
     val junit5 = "5.6.2"
     val spek = "2.0.12"
     val strikt = "0.27.0"
-    val mockk = "1.10.0"
 }

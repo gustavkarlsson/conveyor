@@ -37,17 +37,17 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:${Versions.kotlinxCoroutines}")
 
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
-
+    // Junit
     testImplementation("org.junit.jupiter:junit-jupiter-api:${Versions.junit5}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${Versions.junit5}")
 
+    //Spek
     testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spek}")
     testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spek}")
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
 
     testImplementation("io.strikt:strikt-core:${Versions.strikt}")
-    testImplementation("io.mockk:mockk:${Versions.mockk}")
+
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
 }
 
