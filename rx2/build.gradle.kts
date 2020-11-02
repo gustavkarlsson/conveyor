@@ -46,6 +46,7 @@ dependencies {
     testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spek}")
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
 
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
     testImplementation("io.strikt:strikt-core:${Versions.strikt}")
 
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
