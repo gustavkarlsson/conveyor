@@ -9,16 +9,14 @@ public abstract class CompletableAction<State> : Action<State> {
     final override suspend fun execute(stateAccess: StateAccess<State>): Unit = createCompletable(stateAccess).await()
 
     protected abstract fun createCompletable(stateAccess: StateAccess<State>): Completable
-
-    public companion object {
-        public operator fun <State> invoke(
-            createCompletable: (stateAccess: StateAccess<State>) -> Completable
-        ): CompletableAction<State> = ConstructorCompletableAction(createCompletable)
-    }
 }
 
+public fun <State> completableAction(
+    createCompletable: (stateAccess: StateAccess<State>) -> Completable,
+): CompletableAction<State> = ConstructorCompletableAction(createCompletable)
+
 private class ConstructorCompletableAction<State>(
-    private val makeCompletable: (StateAccess<State>) -> Completable
+    private val makeCompletable: (StateAccess<State>) -> Completable,
 ) : CompletableAction<State>() {
     override fun createCompletable(stateAccess: StateAccess<State>): Completable = makeCompletable(stateAccess)
 }
