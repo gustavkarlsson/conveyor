@@ -1,23 +1,25 @@
 package se.gustavkarlsson.conveyor.rx2
 
 import io.reactivex.Completable
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.rx2.test.SimpleStateAccess
 import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 object CompletableActionTest : Spek({
     val stateToSet = "state"
     val stateAccess by memoized { SimpleStateAccess("initial") }
-    describe("") {
+
+    describe("A CompletableAction") {
         val subject by memoized { TrackingCompletableAction(stateToSet) }
 
-        it("a") {
-            runBlockingTest {
+        it("executing works") {
+            runBlocking {
                 subject.execute(stateAccess)
             }
-            expectThat(stateAccess)
+            expectThat(stateAccess.get()).isEqualTo(stateToSet)
         }
     }
 })

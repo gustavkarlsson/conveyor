@@ -1,6 +1,6 @@
 package se.gustavkarlsson.conveyor.rx2.internal
 
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.rx2.test.SimpleStateAccess
@@ -33,7 +33,7 @@ object RxStateAccessImplTest : Spek({
         }
         it("flowable gets flow") {
             val testSubscriber = subject.flowable.test()
-            runBlockingTest { stateAccess.set(2) }
+            runBlocking { stateAccess.set(2) }
             testSubscriber.assertValues(1, 2)
         }
     }
