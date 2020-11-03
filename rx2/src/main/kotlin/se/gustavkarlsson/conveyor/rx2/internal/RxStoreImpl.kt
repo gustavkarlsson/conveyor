@@ -8,21 +8,12 @@ import kotlinx.coroutines.rx2.asFlowable
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.rx2.RxStore
-import kotlin.coroutines.CoroutineContext
 
-// TODO figure out if the context is necessary.
-//  Maybe it should be provided ever time we get the state?
+@ExperimentalCoroutinesApi
 internal class RxStoreImpl<State : Any>(
     private val store: Store<State>,
-    context: CoroutineContext?,
 ) : RxStore<State> {
-    @ExperimentalCoroutinesApi
-    override val state: Flowable<State> =
-        if (context == null) {
-            store.state.asFlowable()
-        } else {
-            store.state.asFlowable(context)
-        }
+    override val state: Flowable<State> = store.state.asFlowable()
 
     override val currentState: State get() = store.currentState
 
