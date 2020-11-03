@@ -12,8 +12,23 @@ object CompletableActionTest : Spek({
     val stateToSet = "state"
     val stateAccess by memoized { SimpleStateAccess("initial") }
 
-    describe("A CompletableAction") {
+    describe("An extended CompletableAction") {
         val subject by memoized { TrackingCompletableAction(stateToSet) }
+
+        it("executing works") {
+            runBlocking {
+                subject.execute(stateAccess)
+            }
+            expectThat(stateAccess.get()).isEqualTo(stateToSet)
+        }
+    }
+
+    describe("A lambda created CompletableAction") {
+        val subject by memoized {
+            completableAction<String> { stateAccess ->
+                stateAccess.set(stateToSet)
+            }
+        }
 
         it("executing works") {
             runBlocking {
