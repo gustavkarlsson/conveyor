@@ -12,10 +12,10 @@ import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.action
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import strikt.assertions.withFirst
 
 object RxStoreImplTest : Spek({
     val state = "state"
@@ -23,7 +23,7 @@ object RxStoreImplTest : Spek({
     val action = action<String> {}
 
     describe("An RxStoreImpl") {
-        val subject by memoized { RxStoreImpl(innerStore, null) }
+        val subject by memoized { RxStoreImpl(innerStore) }
 
         it("currentState gets state") {
             val currentState = subject.currentState
@@ -43,10 +43,7 @@ object RxStoreImplTest : Spek({
             expectThat(innerStore.startedJobs)
                 .describedAs("started jobs")
                 .hasSize(1)
-                .withFirst {
-                    get { isCancelled }
-                        .isTrue()
-                }
+                .first().get { isCancelled }.isTrue()
         }
     }
 })
