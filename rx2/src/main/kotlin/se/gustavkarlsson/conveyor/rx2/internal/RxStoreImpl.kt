@@ -8,10 +8,7 @@ import kotlinx.coroutines.rx2.asFlowable
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.rx2.RxStore
-import kotlin.coroutines.CoroutineContext
 
-// TODO figure out if the context is necessary when creating flowable.
-//  Maybe it should be provided ever time we get the state?
 @ExperimentalCoroutinesApi
 internal class RxStoreImpl<State : Any>(
     private val store: Store<State>,

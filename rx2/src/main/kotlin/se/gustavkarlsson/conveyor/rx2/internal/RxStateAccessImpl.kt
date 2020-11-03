@@ -10,8 +10,6 @@ import kotlinx.coroutines.rx2.rxSingle
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.rx2.RxStateAccess
 
-// TODO figure out if the context is necessary when creating flowable.
-//  Maybe it should be provided ever time we get the state?
 @ExperimentalCoroutinesApi
 internal class RxStateAccessImpl<State : Any>(
     private val stateAccess: StateAccess<State>,
