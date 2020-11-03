@@ -14,16 +14,11 @@ public fun <State> buildStore(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
     liveActions: Iterable<Action<State>> = emptyList(),
-    plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
-    val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
-    val overriddenLiveActions = liveActions.override(plugins) { overrideLiveActions(it) }
-
-    val stateManager = StateManager(overriddenInitialState)
-    val startActionProcessor = StartActionProcessor(overriddenStartActions)
+    val stateManager = StateManager(initialState)
+    val startActionProcessor = StartActionProcessor(startActions)
     val manualActionsManager = ManualActionsManager<State>()
-    val liveActionsManager = LiveActionsManager(overriddenLiveActions)
+    val liveActionsManager = LiveActionsManager(liveActions)
     val actionProcessors = listOf(manualActionsManager, startActionProcessor, liveActionsManager)
     val cancellables = listOf(liveActionsManager, manualActionsManager, stateManager)
 
@@ -34,11 +29,4 @@ public fun <State> buildStore(
         actionProcessors = actionProcessors,
         cancellables = cancellables,
     )
-}
-
-private fun <State, T> T.override(
-    plugins: Iterable<Plugin<State>>,
-    operation: Plugin<State>.(T) -> T,
-): T = plugins.fold(this) { acc: T, plugin: Plugin<State> ->
-    plugin.operation(acc)
 }
