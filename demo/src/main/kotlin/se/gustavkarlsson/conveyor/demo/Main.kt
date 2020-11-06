@@ -4,6 +4,7 @@ package se.gustavkarlsson.conveyor.demo
 
 import androidx.compose.desktop.Window
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,9 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
-
 fun main() {
-    runUi(createViewModel())
+    val sampleState = ViewState(
+        items = listOf(
+            Item("Milk", 2),
+            Item("Beer", 6),
+        ),
+    )
+    runUi(ViewModel(sampleState))
 }
 
 private fun runUi(viewModel: ViewModel) = Window(
@@ -85,13 +91,19 @@ private fun ItemsRow(state: State<ViewState>, viewModel: ViewModel) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(text = item.name)
-            Button(onClick = { viewModel.onDecrementButtonClicked(item.name) }) {
-                Text("-")
-            }
+            Text(
+                modifier = Modifier
+                    .clickable { viewModel.onDecrementButtonClicked(item.name) }
+                    .padding(8.dp),
+                text = "-",
+            )
             Text(text = item.count.toString())
-            Button(onClick = { viewModel.onIncrementButtonClicked(item.name) }) {
-                Text("+")
-            }
+            Text(
+                modifier = Modifier
+                    .clickable { viewModel.onIncrementButtonClicked(item.name) }
+                    .padding(8.dp),
+                text = "+",
+            )
         }
     }
 }
