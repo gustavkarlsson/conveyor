@@ -61,12 +61,16 @@ private fun AddItemRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         TextField(
+            modifier = Modifier.weight(1.0f),
             value = state.value.inputText,
             onValueChange = viewModel::onInputTextChanged,
             placeholder = { Text("Item") },
             maxLines = 1,
         )
-        Button(onClick = viewModel::onInputTextSubmitted, enabled = state.value.addButtonEnabled) {
+        Button(
+            onClick = viewModel::onInputTextSubmitted,
+            enabled = state.value.addButtonEnabled,
+        ) {
             Text("Add")
         }
     }
