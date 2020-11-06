@@ -74,12 +74,12 @@ private fun AddItemRow(
 
 @Composable
 private fun ItemsRow(state: State<ViewState>, viewModel: ViewModel) {
-    val alternateRowColor = MaterialTheme.colors.surface
+    val alternateRowColor = MaterialTheme.colors.onSurface.copy(alpha = 0.05f)
     LazyColumnForIndexed(
         modifier = Modifier.fillMaxSize(),
         items = state.value.items,
     ) { index, item ->
-        val modifier = Modifier.fillMaxWidth()
+        val rowModifier = Modifier.fillMaxWidth()
             .let { modifier ->
                 if (index % 2 == 1) {
                     modifier.background(alternateRowColor)
@@ -87,23 +87,26 @@ private fun ItemsRow(state: State<ViewState>, viewModel: ViewModel) {
             }
             .padding(8.dp)
         Row(
-            modifier = modifier,
+            modifier = rowModifier,
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = item.name)
-            Text(
-                modifier = Modifier
-                    .clickable { viewModel.onDecrementButtonClicked(item.name) }
-                    .padding(8.dp),
-                text = "-",
-            )
-            Text(text = item.count.toString())
-            Text(
-                modifier = Modifier
-                    .clickable { viewModel.onIncrementButtonClicked(item.name) }
-                    .padding(8.dp),
-                text = "+",
-            )
+            Text(modifier = Modifier.padding(end = 8.dp), text = item.name)
+            Row(verticalAlignment = Alignment.CenterVertically,) {
+                Text(
+                    modifier = Modifier
+                        .clickable { viewModel.onDecrementButtonClicked(item.name) }
+                        .padding(8.dp),
+                    text = "-",
+                )
+                Text(text = item.count.toString())
+                Text(
+                    modifier = Modifier
+                        .clickable { viewModel.onIncrementButtonClicked(item.name) }
+                        .padding(8.dp),
+                    text = "+",
+                )
+            }
         }
     }
 }
