@@ -45,7 +45,7 @@ private fun runUi(viewModel: ViewModel) = Window(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             AddItemRow(state, viewModel)
-            ItemsRow(state, viewModel)
+            ItemsList(state, viewModel)
         }
     }
 }
@@ -73,40 +73,59 @@ private fun AddItemRow(
 }
 
 @Composable
-private fun ItemsRow(state: State<ViewState>, viewModel: ViewModel) {
-    val alternateRowColor = MaterialTheme.colors.onSurface.copy(alpha = 0.05f)
+private fun ItemsList(state: State<ViewState>, viewModel: ViewModel) {
     LazyColumnForIndexed(
         modifier = Modifier.fillMaxSize(),
         items = state.value.items,
     ) { index, item ->
-        val rowModifier = Modifier.fillMaxWidth()
-            .let { modifier ->
-                if (index % 2 == 1) {
-                    modifier.background(alternateRowColor)
-                } else modifier
-            }
-            .padding(8.dp)
-        Row(
-            modifier = rowModifier,
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(modifier = Modifier.padding(end = 8.dp), text = item.name)
-            Row(verticalAlignment = Alignment.CenterVertically,) {
-                Text(
-                    modifier = Modifier
-                        .clickable { viewModel.onDecrementButtonClicked(item.name) }
-                        .padding(8.dp),
-                    text = "-",
-                )
-                Text(text = item.count.toString())
-                Text(
-                    modifier = Modifier
-                        .clickable { viewModel.onIncrementButtonClicked(item.name) }
-                        .padding(8.dp),
-                    text = "+",
-                )
-            }
+        ItemRow(item, index, viewModel)
+    }
+}
+
+@Composable
+private fun ItemRow(
+    item: Item,
+    index: Int,
+    viewModel: ViewModel,
+) {
+    val alternateRowColor = MaterialTheme.colors.onSurface.copy(alpha = 0.05f)
+    val rowModifier = Modifier.fillMaxWidth()
+        .let { modifier ->
+            if (index % 2 == 1) {
+                modifier.background(alternateRowColor)
+            } else modifier
         }
+        .padding(8.dp)
+    Row(
+        modifier = rowModifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(modifier = Modifier.padding(end = 8.dp), text = item.name)
+        CountSection(viewModel, item)
+    }
+}
+
+@Composable
+private fun CountSection(
+    viewModel: ViewModel,
+    item: Item,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            modifier = Modifier
+                .padding(4.dp)
+                .clickable { viewModel.onDecrementButtonClicked(item.name) }
+                .padding(4.dp),
+            text = "-",
+        )
+        Text(text = item.count.toString())
+        Text(
+            modifier = Modifier
+                .padding(4.dp)
+                .clickable { viewModel.onIncrementButtonClicked(item.name) }
+                .padding(4.dp),
+            text = "+",
+        )
     }
 }
