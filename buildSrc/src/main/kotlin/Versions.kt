@@ -9,6 +9,7 @@ object Versions {
     val detekt = "1.12.0"
     val dokka = "1.4.0"
     val jacoco = "0.8.5"
+    val compose = "0.1.0-m1-build62"
 
     // Dependencies
     val kotlinxCoroutines = "1.4.0"

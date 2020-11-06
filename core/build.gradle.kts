@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version Versions.kotlin
+    kotlin("jvm")
     `maven-publish`
     id("org.jetbrains.dokka") version Versions.dokka
     id("io.gitlab.arturbosch.detekt") version Versions.detekt
