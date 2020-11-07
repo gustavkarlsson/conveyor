@@ -4,6 +4,8 @@ package se.gustavkarlsson.conveyor.demo
 
 import androidx.compose.desktop.Window
 import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,14 +22,20 @@ private fun runUi(viewModel: ViewModel) = Window(
 ) {
     val state = viewModel.state.collectAsState(viewModel.state.value)
     MaterialTheme {
-        val currentState = state.value
-        if (currentState is ViewState.Login) {
-            val loginState = remember(currentState) { mutableStateOf(currentState) }
-            LoginScreen(loginState, viewModel)
+        state.ifType<ViewState.Login> {
+            LoginScreen(it, viewModel)
         }
-        if (currentState is ViewState.LoggedIn) {
-            val loggedInState = remember(currentState) { mutableStateOf(currentState) }
-            LoggedInScreen(loggedInState, viewModel)
+        state.ifType<ViewState.LoggedIn> {
+            LoggedInScreen(it, viewModel)
         }
+    }
+}
+
+@Composable
+private inline fun <reified T : ViewState> State<ViewState>.ifType(crossinline block: (State<T>) -> Unit) {
+    val value = value
+    if (value is T) {
+        val loginState = remember(value) { mutableStateOf(value) }
+        block(loginState)
     }
 }
