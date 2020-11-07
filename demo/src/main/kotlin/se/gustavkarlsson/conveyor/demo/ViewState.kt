@@ -1,11 +1,24 @@
 package se.gustavkarlsson.conveyor.demo
 
+private val EMAIL_REGEX = Regex(".+@.+")
+
+private const val PASSWORD_MIN_LENGTH = 6
+
 data class ViewState(
-    val inputText: String = "",
-    val items: List<Item> = emptyList(),
+    val emailText: String = "",
+    val passwordText: String = "",
+    val loginState: LoginState = LoginState.Initial,
 ) {
-    val addButtonEnabled: Boolean
-        get() = inputText.isNotBlank()
+    val loginIndicatorProgress: Float?
+        get() = (loginState as? LoginState.LoggingIn)?.progress
+    val isLoginButtonEnabled: Boolean
+        get() = loginState == LoginState.Initial &&
+            emailText.matches(EMAIL_REGEX) &&
+            passwordText.length > PASSWORD_MIN_LENGTH
 }
 
-data class Item(val name: String, val count: Int = 1)
+sealed class LoginState {
+    object Initial : LoginState()
+    data class LoggingIn(val progress: Float) : LoginState()
+    object LoggedIn : LoginState()
+}

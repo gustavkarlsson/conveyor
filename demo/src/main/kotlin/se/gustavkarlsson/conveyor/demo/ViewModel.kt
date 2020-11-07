@@ -2,55 +2,51 @@
 
 package se.gustavkarlsson.conveyor.demo
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class ViewModel(initialState: ViewState) {
     private val mutableState = MutableStateFlow(initialState)
     val state: StateFlow<ViewState> = mutableState
 
-    fun onInputTextChanged(text: String) = updateState {
-        copy(inputText = text)
+    fun onEmailTextChanged(text: String) = updateState {
+        if (loginState == LoginState.Initial) {
+            copy(emailText = text.trim().toLowerCase())
+        } else this
     }
 
-    fun onInputTextSubmitted() = updateState {
-        var found = false
-        val newItems = items
-            .updateCountOf(inputText) {
-                found = true
-                it + 1
+    fun onPasswordTextChanged(text: String) = updateState {
+        if (loginState == LoginState.Initial) {
+            copy(passwordText = text)
+        } else this
+    }
+
+    fun onLoginButtonClicked() {
+        var progress = 0F
+        GlobalScope.launch {
+            while (progress < 1F) {
+                delay(Random.nextLong(500))
+                progress += Random.nextFloat() / 10
+                updateState {
+                    copy(loginState = LoginState.LoggingIn(progress))
+                }
             }
-            .takeIf { found }
-            ?: listOf(Item(inputText)) + items
-        copy(inputText = "", items = newItems)
+            updateState {
+                copy(loginState = LoginState.LoggedIn)
+            }
+        }
     }
 
-    fun onDecrementButtonClicked(name: String) = updateState {
-        val newItems = items
-            .updateCountOf(name) { it - 1 }
-            .filter { it.count > 0 }
-        copy(items = newItems)
-    }
-
-    fun onIncrementButtonClicked(name: String) = updateState {
-        val newItems = items
-            .updateCountOf(name) { it + 1 }
-        copy(items = newItems)
+    fun onLogoutButtonClicked() = updateState {
+        ViewState()
     }
 
     @Synchronized
     private fun updateState(block: ViewState.() -> ViewState) {
         mutableState.value = mutableState.value.block()
     }
-
-    private inline fun List<Item>.updateCountOf(
-        name: String,
-        operation: (Int) -> Int,
-    ): List<Item> = map {
-        if (it.name.normalize() == name.normalize()) {
-            it.copy(count = operation(it.count))
-        } else it
-    }
-
-    private fun String.normalize(): String = trim().toLowerCase()
 }

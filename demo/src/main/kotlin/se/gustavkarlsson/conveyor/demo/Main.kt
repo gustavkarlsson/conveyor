@@ -3,35 +3,29 @@
 package se.gustavkarlsson.conveyor.demo
 
 import androidx.compose.desktop.Window
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumnForIndexed
 import androidx.compose.material.Button
+import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.ProgressIndicatorConstants
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
 fun main() {
-    val sampleState = ViewState(
-        items = listOf(
-            Item("Milk", 2),
-            Item("Beer", 6),
-        ),
-    )
-    runUi(ViewModel(sampleState))
+    val initialState = ViewState()
+    runUi(ViewModel(initialState))
 }
 
 private fun runUi(viewModel: ViewModel) = Window(
@@ -40,96 +34,127 @@ private fun runUi(viewModel: ViewModel) = Window(
 ) {
     val state = viewModel.state.collectAsState(viewModel.state.value)
     MaterialTheme {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            AddItemRow(state, viewModel)
-            ItemsList(state, viewModel)
+        if (state.value.loginState != LoginState.LoggedIn) {
+            LoginScreen(state, viewModel)
+        } else {
+            LoggedInScreen(state, viewModel)
         }
     }
 }
 
 @Composable
-private fun AddItemRow(
-    state: State<ViewState>,
-    viewModel: ViewModel,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        TextField(
-            modifier = Modifier.weight(1.0f),
-            value = state.value.inputText,
-            onValueChange = viewModel::onInputTextChanged,
-            placeholder = { Text("Item") },
-            maxLines = 1,
-        )
-        Button(
-            onClick = viewModel::onInputTextSubmitted,
-            enabled = state.value.addButtonEnabled,
-        ) {
-            Text("Add")
-        }
-    }
-}
-
-@Composable
-private fun ItemsList(state: State<ViewState>, viewModel: ViewModel) {
-    LazyColumnForIndexed(
+private fun LoginScreen(state: State<ViewState>, viewModel: ViewModel) {
+    Column(
         modifier = Modifier.fillMaxSize(),
-        items = state.value.items,
-    ) { index, item ->
-        ItemRow(item, index, viewModel)
-    }
-}
-
-@Composable
-private fun ItemRow(
-    item: Item,
-    index: Int,
-    viewModel: ViewModel,
-) {
-    val alternateRowColor = MaterialTheme.colors.onSurface.copy(alpha = 0.05f)
-    val rowModifier = Modifier.fillMaxWidth()
-        .let { modifier ->
-            if (index % 2 == 1) {
-                modifier.background(alternateRowColor)
-            } else modifier
-        }
-        .padding(8.dp)
-    Row(
-        modifier = rowModifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
-        Text(modifier = Modifier.padding(end = 8.dp), text = item.name)
-        CountSection(viewModel, item)
+        LoginTitle()
+        EmailTextField(state, viewModel)
+        PasswordTextField(state, viewModel)
+        LoginIndicator(state)
+        LoginButton(state, viewModel)
     }
 }
 
 @Composable
-private fun CountSection(
-    viewModel: ViewModel,
-    item: Item,
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            modifier = Modifier
-                .padding(4.dp)
-                .clickable { viewModel.onDecrementButtonClicked(item.name) }
-                .padding(4.dp),
-            text = "-",
-        )
-        Text(text = item.count.toString())
-        Text(
-            modifier = Modifier
-                .padding(4.dp)
-                .clickable { viewModel.onIncrementButtonClicked(item.name) }
-                .padding(4.dp),
-            text = "+",
-        )
+fun LoginTitle() {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = "MySoft",
+        style = MaterialTheme.typography.h3.copy(color = MaterialTheme.colors.primary),
+    )
+}
+
+@Composable
+fun EmailTextField(state: State<ViewState>, viewModel: ViewModel) {
+    OutlinedTextField(
+        modifier = Modifier.padding(8.dp),
+        value = state.value.emailText,
+        onValueChange = viewModel::onEmailTextChanged,
+        label = { Text("Email") },
+        maxLines = 1,
+        placeholder = { Text("someone@somewhere.com") },
+    )
+}
+
+@Composable
+fun PasswordTextField(state: State<ViewState>, viewModel: ViewModel) {
+    OutlinedTextField(
+        modifier = Modifier.padding(8.dp),
+        value = state.value.passwordText,
+        onValueChange = viewModel::onPasswordTextChanged,
+        label = { Text("Password") },
+        maxLines = 1,
+        visualTransformation = PasswordVisualTransformation(),
+    )
+}
+
+@Composable
+fun LoginIndicator(state: State<ViewState>) {
+    val color = MaterialTheme.colors.secondary
+    val backgroundColor = if (state.value.loginState is LoginState.LoggingIn) {
+        color.copy(alpha = ProgressIndicatorConstants.DefaultIndicatorBackgroundOpacity)
+    } else {
+        Color.Transparent
+    }
+    LinearProgressIndicator(
+        modifier = Modifier.padding(4.dp),
+        color = color,
+        backgroundColor = backgroundColor,
+        progress = state.value.loginIndicatorProgress ?: 0F
+    )
+}
+
+@Composable
+fun LoginButton(state: State<ViewState>, viewModel: ViewModel) {
+    Button(
+        modifier = Modifier.padding(8.dp),
+        enabled = state.value.isLoginButtonEnabled,
+        onClick = viewModel::onLoginButtonClicked,
+    ) {
+        Text("LOGIN")
+    }
+}
+
+
+@Composable
+fun LoggedInScreen(state: State<ViewState>, viewModel: ViewModel) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        LoggedInTitle()
+        LoggedInEmailText(state)
+        LogoutButton(viewModel)
+    }
+}
+
+@Composable
+fun LoggedInTitle() {
+    Text(
+        modifier = Modifier.padding(8.dp),
+        text = "Welcome",
+        style = MaterialTheme.typography.h4.copy(color = MaterialTheme.colors.secondary),
+    )
+}
+
+@Composable
+fun LoggedInEmailText(state: State<ViewState>) {
+    Text(
+        modifier = Modifier.padding(8.dp),
+        text = state.value.emailText,
+        style = MaterialTheme.typography.h5,
+    )
+}
+
+@Composable
+fun LogoutButton(viewModel: ViewModel) {
+    Button(
+        modifier = Modifier.padding(8.dp),
+        onClick = viewModel::onLogoutButtonClicked,
+    ) {
+        Text("LOGOUT")
     }
 }
