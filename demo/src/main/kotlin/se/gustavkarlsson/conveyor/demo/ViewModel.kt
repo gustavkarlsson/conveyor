@@ -14,12 +14,14 @@ class ViewModel(initialState: ViewState) {
     val state: StateFlow<ViewState> = mutableState
 
     fun onEmailTextChanged(text: String) = updateState {
+        require(this is ViewState.Login)
         if (loginState == LoginState.Initial) {
             copy(emailText = text.trim().toLowerCase())
         } else this
     }
 
     fun onPasswordTextChanged(text: String) = updateState {
+        require(this is ViewState.Login)
         if (loginState == LoginState.Initial) {
             copy(passwordText = text)
         } else this
@@ -29,20 +31,25 @@ class ViewModel(initialState: ViewState) {
         var progress = 0F
         GlobalScope.launch {
             while (progress < 1F) {
+                if (mutableState.value !is ViewState.Login) return@launch
                 delay(Random.nextLong(100))
                 progress += Random.nextFloat() / 10
                 updateState {
-                    copy(loginState = LoginState.LoggingIn(progress))
+                    if (this is ViewState.Login) {
+                        copy(loginState = LoginState.LoggingIn(progress))
+                    } else this
                 }
             }
             updateState {
-                copy(loginState = LoginState.LoggedIn)
+                if (this is ViewState.Login) {
+                    ViewState.LoggedIn(emailText = emailText)
+                } else this
             }
         }
     }
 
     fun onLogoutButtonClicked() = updateState {
-        ViewState()
+        ViewState.Login()
     }
 
     @Synchronized
