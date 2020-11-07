@@ -20,10 +20,10 @@ interface LoggedInEvents {
     fun onLogoutButtonClicked()
 }
 
-class ViewModel(initialState: ViewState) : LoginEvents, LoggedInEvents {
+class ViewModel(initialState: State) : LoginEvents, LoggedInEvents {
     private val store = buildStore(initialState).apply { start(GlobalScope) }
-    val state: Flow<ViewState> = store.state
-    val currentState: ViewState get() = store.currentState
+    val state: Flow<State> = store.state
+    val currentState: State get() = store.currentState
 
     override fun onEmailTextChanged(text: String) = store.issue(EmailChangeAction(text))
 
@@ -32,48 +32,48 @@ class ViewModel(initialState: ViewState) : LoginEvents, LoggedInEvents {
     override fun onLoginButtonClicked() = store.issue(LoginAction())
 
     override fun onLogoutButtonClicked() = store.issue { stateAccess ->
-        stateAccess.set(ViewState.Login())
+        stateAccess.set(State.Login())
     }
 }
 
-private class EmailChangeAction(private val text: String) : Action<ViewState> {
-    override suspend fun execute(stateAccess: StateAccess<ViewState>) {
+private class EmailChangeAction(private val text: String) : Action<State> {
+    override suspend fun execute(stateAccess: StateAccess<State>) {
         stateAccess.update { state ->
-            require(state is ViewState.Login)
-            if (state.loginState == LoginState.Initial) {
+            require(state is State.Login)
+            if (state.loginStage == LoginStage.Initial) {
                 state.copy(emailText = text.trim().toLowerCase())
             } else state
         }
     }
 }
 
-private class PasswordChangeAction(private val text: String) : Action<ViewState> {
-    override suspend fun execute(stateAccess: StateAccess<ViewState>) {
+private class PasswordChangeAction(private val text: String) : Action<State> {
+    override suspend fun execute(stateAccess: StateAccess<State>) {
         stateAccess.update { state ->
-            require(state is ViewState.Login)
-            if (state.loginState == LoginState.Initial) {
+            require(state is State.Login)
+            if (state.loginStage == LoginStage.Initial) {
                 state.copy(passwordText = text)
             } else state
         }
     }
 }
 
-private class LoginAction : Action<ViewState> {
-    override suspend fun execute(stateAccess: StateAccess<ViewState>) {
+private class LoginAction : Action<State> {
+    override suspend fun execute(stateAccess: StateAccess<State>) {
         var progress = 0F
         while (progress < 1F) {
-            if (stateAccess.get() !is ViewState.Login) return
+            if (stateAccess.get() !is State.Login) return
             delay(Random.nextLong(100))
             progress += Random.nextFloat() / 10
             stateAccess.update { state ->
-                if (state is ViewState.Login) {
-                    state.copy(loginState = LoginState.LoggingIn(progress))
+                if (state is State.Login) {
+                    state.copy(loginStage = LoginStage.LoggingIn(progress))
                 } else state
             }
         }
         stateAccess.update { state ->
-            if (state is ViewState.Login) {
-                ViewState.LoggedIn(emailText = state.emailText)
+            if (state is State.Login) {
+                State.LoggedIn(emailText = state.emailText)
             } else state
         }
     }

@@ -8,7 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.unit.IntSize
 
 fun main() {
-    val initialState = ViewState.Login()
+    val initialState = State.Login()
     runUi(ViewModel(initialState))
 }
 
@@ -19,8 +19,8 @@ private fun runUi(viewModel: ViewModel) = Window(
     val state = viewModel.state.collectAsState(viewModel.currentState)
     MaterialTheme {
         when (val currentState = state.value) {
-            is ViewState.Login -> LoginScreen(currentState, viewModel)
-            is ViewState.LoggedIn -> LoggedInScreen(currentState, viewModel)
+            is State.Login -> LoginScreen(currentState, viewModel)
+            is State.LoggedIn -> LoggedInScreen(currentState, viewModel)
         }
     }
 }

@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoggedInScreen(state: ViewState.LoggedIn, events: LoggedInEvents) {
+fun LoggedInScreen(state: State.LoggedIn, events: LoggedInEvents) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
