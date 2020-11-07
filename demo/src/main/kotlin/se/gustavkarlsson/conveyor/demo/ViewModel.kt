@@ -29,7 +29,7 @@ class ViewModel(initialState: ViewState) {
         var progress = 0F
         GlobalScope.launch {
             while (progress < 1F) {
-                delay(Random.nextLong(500))
+                delay(Random.nextLong(100))
                 progress += Random.nextFloat() / 10
                 updateState {
                     copy(loginState = LoginState.LoggingIn(progress))

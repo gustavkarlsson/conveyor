@@ -2,6 +2,7 @@
 
 package se.gustavkarlsson.conveyor.demo
 
+import androidx.compose.animation.animate
 import androidx.compose.desktop.Window
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -98,11 +99,16 @@ fun LoginIndicator(state: State<ViewState>) {
     } else {
         Color.Transparent
     }
+    val animatedProgress = animate(
+        target = state.value.loginIndicatorProgress ?: 0f,
+        animSpec = ProgressIndicatorConstants.DefaultProgressAnimationSpec
+    )
+    ProgressIndicatorConstants.DefaultProgressAnimationSpec
     LinearProgressIndicator(
         modifier = Modifier.padding(4.dp),
         color = color,
         backgroundColor = backgroundColor,
-        progress = state.value.loginIndicatorProgress ?: 0F
+        progress = animatedProgress,
     )
 }
 
