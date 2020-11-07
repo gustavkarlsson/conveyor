@@ -5,6 +5,7 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.rx2.asFlowable
+import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.rxCompletable
 import kotlinx.coroutines.rx2.rxSingle
 import se.gustavkarlsson.conveyor.StateAccess
@@ -20,6 +21,10 @@ internal class RxStateAccessImpl<State : Any>(
 
     override fun set(state: State): Completable = rxCompletable { stateAccess.set(state) }
 
-    override fun update(block: suspend (currentState: State) -> State): Single<State> =
-        rxSingle { stateAccess.update(block) }
+    override fun update(block: Single<State>.() -> Single<State>): Single<State> =
+        rxSingle {
+            stateAccess.update {
+                Single.just(this).block().await()
+            }
+        }
 }

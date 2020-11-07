@@ -23,11 +23,11 @@ object RxStateAccessImplTest : Spek({
             expectThat(result).isEqualTo(2)
         }
         it("update returns new state") {
-            val updateResult = subject.update { it + 1 }.blockingGet()
+            val updateResult = subject.update { map { it + 1 } }.blockingGet()
             expectThat(updateResult).isEqualTo(2)
         }
         it("update sets state") {
-            subject.update { it + 1 }.blockingGet()
+            subject.update { map { it + 1 } }.blockingGet()
             val result = subject.get()
             expectThat(result).isEqualTo(2)
         }

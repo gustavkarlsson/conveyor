@@ -150,7 +150,7 @@ object LiveActionsManagerTest : Spek({
     describe("A LiveActionsManager with a delayed action that was incremented once") {
         val delayAction = action<Int> { access ->
             delay(1)
-            access.update { it + 1 }
+            access.update { this + 1 }
         }
         val subject by memoized { LiveActionsManager(listOf(delayAction)) }
         beforeEachTest { subject.increment() }
@@ -170,7 +170,7 @@ object LiveActionsManagerTest : Spek({
     describe("A LiveActionsManager with two delayed actions that was incremented once") {
         val delayAction = action<Int> { access ->
             delay(1)
-            access.update { it + 1 }
+            access.update { this + 1 }
         }
         val subject by memoized { LiveActionsManager(listOf(delayAction, delayAction)) }
         beforeEachTest { subject.increment() }
