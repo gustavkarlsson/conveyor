@@ -17,7 +17,7 @@ sealed class ViewState {
         val isLoginButtonEnabled: Boolean
             get() = loginState == LoginState.Initial &&
                 emailText.matches(EMAIL_REGEX) &&
-                passwordText.length > PASSWORD_MIN_LENGTH
+                passwordText.length >= PASSWORD_MIN_LENGTH
     }
 
     data class LoggedIn(

@@ -4,56 +4,67 @@ package se.gustavkarlsson.conveyor.demo
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.buildStore
 import kotlin.random.Random
 
 class ViewModel(initialState: ViewState) {
-    private val mutableState = MutableStateFlow(initialState)
-    val state: StateFlow<ViewState> = mutableState
+    private val store = buildStore(initialState).apply { start(GlobalScope) }
+    val state: Flow<ViewState> = store.state
+    val currentState: ViewState get() = store.currentState
 
-    fun onEmailTextChanged(text: String) = updateState {
-        require(this is ViewState.Login)
-        if (loginState == LoginState.Initial) {
-            copy(emailText = text.trim().toLowerCase())
-        } else this
+    fun onEmailTextChanged(text: String) = store.issue(EmailChangeAction(text))
+
+    fun onPasswordTextChanged(text: String) = store.issue(PasswordChangeAction(text))
+
+    fun onLoginButtonClicked() = store.issue(LoginAction())
+
+    fun onLogoutButtonClicked() = store.issue { stateAccess ->
+        stateAccess.set(ViewState.Login())
     }
+}
 
-    fun onPasswordTextChanged(text: String) = updateState {
-        require(this is ViewState.Login)
-        if (loginState == LoginState.Initial) {
-            copy(passwordText = text)
-        } else this
-    }
-
-    fun onLoginButtonClicked() {
-        var progress = 0F
-        GlobalScope.launch {
-            while (progress < 1F) {
-                if (mutableState.value !is ViewState.Login) return@launch
-                delay(Random.nextLong(100))
-                progress += Random.nextFloat() / 10
-                updateState {
-                    if (this is ViewState.Login) {
-                        copy(loginState = LoginState.LoggingIn(progress))
-                    } else this
-                }
-            }
-            updateState {
-                if (this is ViewState.Login) {
-                    ViewState.LoggedIn(emailText = emailText)
-                } else this
-            }
+private class EmailChangeAction(private val text: String) : Action<ViewState> {
+    override suspend fun execute(stateAccess: StateAccess<ViewState>) {
+        stateAccess.update { state ->
+            require(state is ViewState.Login)
+            if (state.loginState == LoginState.Initial) {
+                state.copy(emailText = text.trim().toLowerCase())
+            } else state
         }
     }
+}
 
-    fun onLogoutButtonClicked() = updateState {
-        ViewState.Login()
+private class PasswordChangeAction(private val text: String) : Action<ViewState> {
+    override suspend fun execute(stateAccess: StateAccess<ViewState>) {
+        stateAccess.update { state ->
+            require(state is ViewState.Login)
+            if (state.loginState == LoginState.Initial) {
+                state.copy(passwordText = text)
+            } else state
+        }
     }
+}
 
-    @Synchronized
-    private fun updateState(block: ViewState.() -> ViewState) {
-        mutableState.value = mutableState.value.block()
+private class LoginAction : Action<ViewState> {
+    override suspend fun execute(stateAccess: StateAccess<ViewState>) {
+        var progress = 0F
+        while (progress < 1F) {
+            if (stateAccess.get() !is ViewState.Login) return
+            delay(Random.nextLong(100))
+            progress += Random.nextFloat() / 10
+            stateAccess.update { state ->
+                if (state is ViewState.Login) {
+                    state.copy(loginState = LoginState.LoggingIn(progress))
+                } else state
+            }
+        }
+        stateAccess.update { state ->
+            if (state is ViewState.Login) {
+                ViewState.LoggedIn(emailText = state.emailText)
+            } else state
+        }
     }
 }
