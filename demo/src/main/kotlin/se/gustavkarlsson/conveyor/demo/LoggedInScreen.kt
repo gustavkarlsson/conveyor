@@ -10,21 +10,20 @@ import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoggedInScreen(state: State<ViewState.LoggedIn>, viewModel: ViewModel) {
+fun LoggedInScreen(state: ViewState.LoggedIn, viewModel: ViewModel) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         LoggedInTitle()
-        LoggedInEmailText(state)
-        LogoutButton(viewModel)
+        LoggedInEmailText(state.emailText)
+        LogoutButton(viewModel::onLogoutButtonClicked)
     }
 }
 
@@ -38,19 +37,19 @@ private fun LoggedInTitle() {
 }
 
 @Composable
-private fun LoggedInEmailText(state: State<ViewState.LoggedIn>) {
+private fun LoggedInEmailText(text: String) {
     Text(
         modifier = Modifier.padding(8.dp),
-        text = state.value.emailText,
+        text = text,
         style = MaterialTheme.typography.h5,
     )
 }
 
 @Composable
-private fun LogoutButton(viewModel: ViewModel) {
+private fun LogoutButton(onClick: () -> Unit) {
     Button(
         modifier = Modifier.padding(8.dp),
-        onClick = viewModel::onLogoutButtonClicked,
+        onClick = onClick,
     ) {
         Text("LOGOUT")
     }
