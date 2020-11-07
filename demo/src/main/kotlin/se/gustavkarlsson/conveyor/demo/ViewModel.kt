@@ -40,7 +40,7 @@ private class EmailChangeAction(private val text: String) : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
         stateAccess.update { state ->
             require(state is State.Login)
-            if (state.loginStage == LoginStage.Initial) {
+            if (!state.isLoggingIn) {
                 state.copy(emailText = text.trim().toLowerCase())
             } else state
         }
@@ -51,7 +51,7 @@ private class PasswordChangeAction(private val text: String) : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
         stateAccess.update { state ->
             require(state is State.Login)
-            if (state.loginStage == LoginStage.Initial) {
+            if (!state.isLoggingIn) {
                 state.copy(passwordText = text)
             } else state
         }
@@ -67,7 +67,7 @@ private class LoginAction : Action<State> {
             progress += Random.nextFloat() / 10
             stateAccess.update { state ->
                 if (state is State.Login) {
-                    state.copy(loginStage = LoginStage.LoggingIn(progress))
+                    state.copy(loginProgress = progress)
                 } else state
             }
         }

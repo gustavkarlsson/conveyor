@@ -41,7 +41,7 @@ private fun LoggedInEmailText(text: String) {
     Text(
         modifier = Modifier.padding(8.dp),
         text = text,
-        style = MaterialTheme.typography.h5,
+        style = MaterialTheme.typography.h6,
     )
 }
 

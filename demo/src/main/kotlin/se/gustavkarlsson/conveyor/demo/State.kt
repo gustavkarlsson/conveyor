@@ -8,14 +8,13 @@ sealed class State {
     data class Login(
         val emailText: String = "",
         val passwordText: String = "",
-        val loginStage: LoginStage = LoginStage.Initial,
+        val loginProgress: Float? = null,
     ) : State() {
-        val isLoginIndicatorVisible: Boolean
-            get() = loginStage is LoginStage.LoggingIn
-        val loginIndicatorProgress: Float
-            get() = (loginStage as? LoginStage.LoggingIn)?.progress ?: 0F
+        val isLoggingIn: Boolean get() = loginProgress != null
+        val isLoginIndicatorVisible: Boolean get() = isLoggingIn
+        val loginIndicatorProgress: Float get() = loginProgress ?: 0F
         val isLoginButtonEnabled: Boolean
-            get() = loginStage == LoginStage.Initial &&
+            get() = !isLoggingIn &&
                 emailText.matches(EMAIL_REGEX) &&
                 passwordText.length >= PASSWORD_MIN_LENGTH
     }
