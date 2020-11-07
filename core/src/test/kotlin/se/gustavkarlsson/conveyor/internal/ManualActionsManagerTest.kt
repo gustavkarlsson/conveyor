@@ -50,7 +50,7 @@ object ManualActionsManagerTest : Spek({
                 subject.issue(delayAction)
                 subject.issue(delayAction)
                 scope.advanceTimeBy(1)
-                expectThat(stateAccess.get()).isEqualTo(2)
+                expectThat(stateAccess.state.value).isEqualTo(2)
             }
             it("throws if processing again") {
                 expectThrows<IllegalStateException> {

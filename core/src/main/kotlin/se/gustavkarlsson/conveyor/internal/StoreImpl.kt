@@ -21,11 +21,11 @@ internal class StoreImpl<State>(
     private val actionProcessors: Iterable<ActionProcessor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateAccess.flow
+    override val state = stateAccess.state
         .onStart { liveActionsCounter.increment() }
         .onCompletion { liveActionsCounter.decrement() }
 
-    override val currentState get() = stateAccess.get()
+    override val currentState get() = stateAccess.state.value
 
     private val stage = Stage()
 

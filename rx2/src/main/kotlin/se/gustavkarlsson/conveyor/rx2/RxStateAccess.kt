@@ -5,7 +5,7 @@ import io.reactivex.Flowable
 import io.reactivex.Single
 
 public interface RxStateAccess<State : Any> {
-    public val flowable: Flowable<State>
+    public val state: Flowable<State>
     public fun get(): State
     public fun set(state: State): Completable
     public fun update(block: Single<State>.() -> Single<State>): Single<State>

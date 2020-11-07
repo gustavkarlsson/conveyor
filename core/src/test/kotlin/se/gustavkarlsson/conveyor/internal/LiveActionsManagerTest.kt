@@ -35,7 +35,7 @@ object LiveActionsManagerTest : Spek({
                 }
                 job.cancel("Cancelled to end processing")
             }
-            expectThat(stateAccess.get()).isEqualTo(0)
+            expectThat(stateAccess.state.value).isEqualTo(0)
         }
 
         describe("that was cancelled") {
@@ -70,7 +70,7 @@ object LiveActionsManagerTest : Spek({
                     }
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(stateAccess.get()).isEqualTo(1)
+                expectThat(stateAccess.state.value).isEqualTo(1)
             }
 
             it("decrementing and incrementing again while processing executes action twice") {
@@ -82,7 +82,7 @@ object LiveActionsManagerTest : Spek({
                     subject.increment()
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(stateAccess.get()).isEqualTo(2)
+                expectThat(stateAccess.state.value).isEqualTo(2)
             }
 
             describe("that was cancelled") {
@@ -109,7 +109,7 @@ object LiveActionsManagerTest : Spek({
                         }
                         job.cancel("Cancelled to end processing")
                     }
-                    expectThat(stateAccess.get()).isEqualTo(0)
+                    expectThat(stateAccess.state.value).isEqualTo(0)
                 }
             }
         }
@@ -127,7 +127,7 @@ object LiveActionsManagerTest : Spek({
                     }
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(stateAccess.get()).isEqualTo(1)
+                expectThat(stateAccess.state.value).isEqualTo(1)
             }
 
             describe("and then decremented once") {
@@ -142,7 +142,7 @@ object LiveActionsManagerTest : Spek({
                         }
                         job.cancel("Cancelled to end processing")
                     }
-                    expectThat(stateAccess.get()).isEqualTo(1)
+                    expectThat(stateAccess.state.value).isEqualTo(1)
                 }
             }
         }
@@ -162,7 +162,7 @@ object LiveActionsManagerTest : Spek({
                 }
                 subject.decrement()
                 advanceTimeBy(1)
-                expectThat(stateAccess.get()).isEqualTo(0)
+                expectThat(stateAccess.state.value).isEqualTo(0)
                 job.cancel("Cancelled to end processing")
             }
         }
@@ -181,7 +181,7 @@ object LiveActionsManagerTest : Spek({
                     subject.process(stateAccess)
                 }
                 advanceTimeBy(1)
-                expectThat(stateAccess.get()).isEqualTo(2)
+                expectThat(stateAccess.state.value).isEqualTo(2)
                 job.cancel("Cancelled to end processing")
             }
         }

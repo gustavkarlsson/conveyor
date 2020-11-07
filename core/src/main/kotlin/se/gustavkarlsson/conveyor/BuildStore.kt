@@ -20,7 +20,7 @@ public fun <State> buildStore(
     val manualActionsManager = ManualActionsManager<State>()
     val liveActionsManager = LiveActionsManager(liveActions)
     val actionProcessors = listOf(manualActionsManager, startActionProcessor, liveActionsManager)
-    val cancellables = listOf(liveActionsManager, manualActionsManager, stateManager)
+    val cancellables = listOf(liveActionsManager, manualActionsManager)
 
     return StoreImpl(
         stateAccess = stateManager,
