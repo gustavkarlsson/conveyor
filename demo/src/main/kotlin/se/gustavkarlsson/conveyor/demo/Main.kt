@@ -103,7 +103,6 @@ fun LoginIndicator(state: State<ViewState>) {
         target = state.value.loginIndicatorProgress ?: 0f,
         animSpec = ProgressIndicatorConstants.DefaultProgressAnimationSpec
     )
-    ProgressIndicatorConstants.DefaultProgressAnimationSpec
     LinearProgressIndicator(
         modifier = Modifier.padding(4.dp),
         color = color,
