@@ -45,7 +45,7 @@ object ManualActionsManagerTest : Spek({
             it("executes issued actions in parallel") {
                 val delayAction = action<Int> { access ->
                     delay(1)
-                    access.update { it + 1 }
+                    access.update { this + 1 }
                 }
                 subject.issue(delayAction)
                 subject.issue(delayAction)

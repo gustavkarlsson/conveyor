@@ -37,7 +37,7 @@ object StartActionFlowProviderTest : Spek({
     describe("A provider with a two delayed actions") {
         val delayAction = action<Int> { access ->
             delay(1)
-            access.update { it + 1 }
+            access.update { this + 1 }
         }
         val subject by memoized { StartActionProcessor(listOf(delayAction, delayAction)) }
 
