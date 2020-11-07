@@ -21,17 +21,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoginScreen(state: ViewState.Login, viewModel: ViewModel) {
+fun LoginScreen(state: ViewState.Login, events: LoginEvents) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
         LoginTitle()
-        EmailTextField(state.emailText, viewModel::onEmailTextChanged)
-        PasswordTextField(state.passwordText, viewModel::onPasswordTextChanged)
+        EmailTextField(state.emailText, events::onEmailTextChanged)
+        PasswordTextField(state.passwordText, events::onPasswordTextChanged)
         LoginIndicator(state.isLoginIndicatorVisible, state.loginIndicatorProgress)
-        LoginButton(state.isLoginButtonEnabled, viewModel::onLoginButtonClicked)
+        LoginButton(state.isLoginButtonEnabled, events::onLoginButtonClicked)
     }
 }
 

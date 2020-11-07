@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LoggedInScreen(state: ViewState.LoggedIn, viewModel: ViewModel) {
+fun LoggedInScreen(state: ViewState.LoggedIn, events: LoggedInEvents) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -23,7 +23,7 @@ fun LoggedInScreen(state: ViewState.LoggedIn, viewModel: ViewModel) {
     ) {
         LoggedInTitle()
         LoggedInEmailText(state.emailText)
-        LogoutButton(viewModel::onLogoutButtonClicked)
+        LogoutButton(events::onLogoutButtonClicked)
     }
 }
 

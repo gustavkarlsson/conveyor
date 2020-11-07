@@ -10,18 +10,28 @@ import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.buildStore
 import kotlin.random.Random
 
-class ViewModel(initialState: ViewState) {
+interface LoginEvents {
+    fun onEmailTextChanged(text: String)
+    fun onPasswordTextChanged(text: String)
+    fun onLoginButtonClicked()
+}
+
+interface LoggedInEvents {
+    fun onLogoutButtonClicked()
+}
+
+class ViewModel(initialState: ViewState) : LoginEvents, LoggedInEvents {
     private val store = buildStore(initialState).apply { start(GlobalScope) }
     val state: Flow<ViewState> = store.state
     val currentState: ViewState get() = store.currentState
 
-    fun onEmailTextChanged(text: String) = store.issue(EmailChangeAction(text))
+    override fun onEmailTextChanged(text: String) = store.issue(EmailChangeAction(text))
 
-    fun onPasswordTextChanged(text: String) = store.issue(PasswordChangeAction(text))
+    override fun onPasswordTextChanged(text: String) = store.issue(PasswordChangeAction(text))
 
-    fun onLoginButtonClicked() = store.issue(LoginAction())
+    override fun onLoginButtonClicked() = store.issue(LoginAction())
 
-    fun onLogoutButtonClicked() = store.issue { stateAccess ->
+    override fun onLogoutButtonClicked() = store.issue { stateAccess ->
         stateAccess.set(ViewState.Login())
     }
 }
