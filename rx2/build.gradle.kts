@@ -34,7 +34,7 @@ repositories {
 dependencies {
     api(project(":core"))
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
+    api("io.reactivex.rxjava2:rxjava:${Versions.kotlinxCoroutines}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-rx2:${Versions.kotlinxCoroutines}")
 
     // Junit
