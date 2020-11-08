@@ -8,7 +8,8 @@ public interface Store<State> {
     public val state: StateFlow<State>
     public fun start(scope: CoroutineScope): Job
     public fun issue(action: Action<State>)
-    public fun issue(block: suspend (stateAccess: StateAccess<State>) -> Unit) {
-        issue(action(block))
-    }
 }
+
+public fun <State> Store<State>.issue(
+    block: suspend (stateAccess: StateAccess<State>) -> Unit,
+): Unit = issue(action(block))
