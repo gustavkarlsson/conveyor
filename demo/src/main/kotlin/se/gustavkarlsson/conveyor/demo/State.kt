@@ -23,8 +23,3 @@ sealed class State {
         val emailText: String,
     ) : State()
 }
-
-sealed class LoginStage {
-    object Initial : LoginStage()
-    data class LoggingIn(val progress: Float) : LoginStage()
-}
