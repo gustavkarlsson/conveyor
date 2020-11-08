@@ -9,9 +9,56 @@ A pragmatic and predictable state container utilizing kotlin coroutines.
 
 Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
-## Usage
+## Example
+```kotlin
+public fun main() {
+    // Create a store with an initial state
+    val store = buildStore(initialState = 0)
 
-Start with `buildStore(initialState)` and explore from there :wink:
+    // Start processing actions.
+    val job = store.start(GlobalScope)
+
+    // Subscribe to state updates and print them
+    GlobalScope.launch {
+        store.state.collect { println("State: $it") }
+    }
+
+    // Issue a simple action that sets the state
+    store.issue { stateAccess ->
+        stateAccess.set(1)
+    }
+
+    // Issue a more complex action that increments the state 
+    store.issue(IncrementAction(count = 3, increment = 2))
+
+    // Run for a while
+    runBlocking { delay(10000) }
+
+    // Stop processing actions
+    job.cancel()
+}
+
+private class IncrementAction(
+    private val count: Int,
+    private val increment: Int,
+) : Action<Int> {
+    override suspend fun execute(stateAccess: StateAccess<Int>) {
+        repeat(count) {
+            delay(1000)
+            stateAccess.update { this + increment }
+        }
+    }
+}
+
+/*
+Output:
+State: 0
+State: 1
+State: 3
+State: 5
+State: 7
+*/
+```
 
 ## Downloading
 
