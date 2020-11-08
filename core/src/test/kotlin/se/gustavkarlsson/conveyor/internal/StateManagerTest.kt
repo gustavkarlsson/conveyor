@@ -2,6 +2,8 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
@@ -80,6 +82,32 @@ object StateManagerTest : Spek({
                 deferred.await()
             }
             expectThat(result).containsExactly(initialState, state1)
+        }
+        it("subscriptionCount is initially 0") {
+            val result = runBlockingTest {
+                subject.subscriptionCount.first()
+            }
+            expectThat(result).isEqualTo(0)
+        }
+        it("subscriptionCount is 1 with 1 collectors") {
+            val result = runBlockingTest {
+                val job = launch { subject.state.collect() }
+                val subscriptions = subject.subscriptionCount.first()
+                job.cancel()
+                subscriptions
+            }
+            expectThat(result).isEqualTo(1)
+        }
+        it("subscriptionCount is 2 with 2 collectors") {
+            val result = runBlockingTest {
+                val job1 = launch { subject.state.collect() }
+                val job2 = launch { subject.state.collect() }
+                val subscriptions = subject.subscriptionCount.first()
+                job1.cancel()
+                job2.cancel()
+                subscriptions
+            }
+            expectThat(result).isEqualTo(2)
         }
     }
 })
