@@ -3,12 +3,12 @@
 package se.gustavkarlsson.conveyor.demo
 
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.buildStore
-import kotlin.random.Random
+import se.gustavkarlsson.conveyor.issue
 
 interface LoginEvents {
     fun onEmailTextChanged(text: String)
@@ -17,36 +17,42 @@ interface LoginEvents {
 }
 
 interface LoggedInEvents {
+    fun onOperationButtonClicked()
     fun onLogoutButtonClicked()
 }
 
-class ViewModel(initialState: State) : LoginEvents, LoggedInEvents {
+class ViewModel(api: Api, initialState: State) : LoginEvents, LoggedInEvents {
     private val store = buildStore(initialState).apply { start(GlobalScope) }
     val state: StateFlow<State> = store.state
+    private val loginAction = LoginAction(api)
+    private val operationAction = OperationAction(api)
 
-    override fun onEmailTextChanged(text: String) = store.issue(EmailChangeAction(text))
+    override fun onEmailTextChanged(text: String) = store.issue(ChangeEmailAction(text))
 
-    override fun onPasswordTextChanged(text: String) = store.issue(PasswordChangeAction(text))
+    override fun onPasswordTextChanged(text: String) = store.issue(ChangePasswordAction(text))
 
-    override fun onLoginButtonClicked() = store.issue(LoginAction())
+    override fun onLoginButtonClicked() = store.issue(loginAction)
+
+    override fun onOperationButtonClicked() = store.issue(operationAction)
 
     override fun onLogoutButtonClicked() = store.issue { stateAccess ->
         stateAccess.set(State.Login())
     }
 }
 
-private class EmailChangeAction(private val text: String) : Action<State> {
+private class ChangeEmailAction(private val text: String) : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
         stateAccess.update {
             require(this is State.Login)
             if (!isLoggingIn) {
-                copy(emailText = text.trim().toLowerCase())
+                val sanitizedText = text.trim().toLowerCase()
+                copy(emailText = sanitizedText)
             } else this
         }
     }
 }
 
-private class PasswordChangeAction(private val text: String) : Action<State> {
+private class ChangePasswordAction(private val text: String) : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
         stateAccess.update {
             require(this is State.Login)
@@ -57,22 +63,37 @@ private class PasswordChangeAction(private val text: String) : Action<State> {
     }
 }
 
-private class LoginAction : Action<State> {
+private class LoginAction(private val api: Api) : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
-        var progress = 0F
-        while (progress < 1F) {
-            if (stateAccess.state.value !is State.Login) return
-            delay(Random.nextLong(100))
-            progress += Random.nextFloat() / 10
+        val state = stateAccess.update {
+            if (this is State.Login) {
+                copy(isLoggingIn = true)
+            } else this
+        }
+        if (state !is State.Login) return
+        val userName = api.login(state.emailText, state.passwordText)
+        stateAccess.update {
+            when {
+                this !is State.Login -> this
+                userName == null -> copy(isLoggingIn = false)
+                else -> State.LoggedIn(name = userName)
+            }
+        }
+    }
+}
+
+private class OperationAction(private val api: Api) : Action<State> {
+    override suspend fun execute(stateAccess: StateAccess<State>) {
+        api.operation().collect { progress ->
             stateAccess.update {
-                if (this is State.Login) {
-                    copy(loginProgress = progress)
+                if (this is State.LoggedIn) {
+                    copy(operationProgress = progress)
                 } else this
             }
         }
         stateAccess.update {
-            if (this is State.Login) {
-                State.LoggedIn(emailText = emailText)
+            if (this is State.LoggedIn) {
+                copy(operationProgress = null)
             } else this
         }
     }

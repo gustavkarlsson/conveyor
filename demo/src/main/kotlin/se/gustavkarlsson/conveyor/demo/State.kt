@@ -8,11 +8,9 @@ sealed class State {
     data class Login(
         val emailText: String = "",
         val passwordText: String = "",
-        val loginProgress: Float? = null,
+        val isLoggingIn: Boolean = false,
     ) : State() {
-        val isLoggingIn: Boolean get() = loginProgress != null
         val isLoginIndicatorVisible: Boolean get() = isLoggingIn
-        val loginIndicatorProgress: Float get() = loginProgress ?: 0F
         val isLoginButtonEnabled: Boolean
             get() = !isLoggingIn &&
                 emailText.matches(EMAIL_REGEX) &&
@@ -20,6 +18,13 @@ sealed class State {
     }
 
     data class LoggedIn(
-        val emailText: String,
-    ) : State()
+        val name: String,
+        val operationProgress: Float? = null,
+    ) : State() {
+        private val isOperating: Boolean get() = operationProgress != null
+        val isLogoutButtonEnabled: Boolean get() = !isOperating
+        val isOperationButtonEnabled: Boolean get() = !isOperating
+        val isOperationIndicatorVisible: Boolean get() = isOperating
+        val operationIndicatorProgress: Float get() = operationProgress ?: 0F
+    }
 }

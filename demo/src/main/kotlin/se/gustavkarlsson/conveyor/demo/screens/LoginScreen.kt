@@ -1,8 +1,7 @@
 @file:Suppress("FunctionName")
 
-package se.gustavkarlsson.conveyor.demo
+package se.gustavkarlsson.conveyor.demo.screens
 
-import androidx.compose.animation.animate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +10,6 @@ import androidx.compose.material.Button
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.ProgressIndicatorConstants
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawOpacity
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import se.gustavkarlsson.conveyor.demo.LoginEvents
+import se.gustavkarlsson.conveyor.demo.State
 
 @Composable
 fun LoginScreen(state: State.Login, events: LoginEvents) {
@@ -30,7 +30,7 @@ fun LoginScreen(state: State.Login, events: LoginEvents) {
         LoginTitle()
         EmailTextField(state.emailText, events::onEmailTextChanged)
         PasswordTextField(state.passwordText, events::onPasswordTextChanged)
-        LoginIndicator(state.isLoginIndicatorVisible, state.loginIndicatorProgress)
+        LoginIndicator(state.isLoginIndicatorVisible)
         LoginButton(state.isLoginButtonEnabled, events::onLoginButtonClicked)
     }
 }
@@ -69,16 +69,11 @@ private fun PasswordTextField(text: String, onChange: (String) -> Unit) {
 }
 
 @Composable
-private fun LoginIndicator(isVisible: Boolean, progress: Float) {
+private fun LoginIndicator(isVisible: Boolean) {
     val opacity = if (isVisible) 1F else 0F
-    val animatedProgress = animate(
-        target = progress,
-        animSpec = ProgressIndicatorConstants.DefaultProgressAnimationSpec
-    )
     LinearProgressIndicator(
         modifier = Modifier.padding(4.dp).drawOpacity(opacity),
         color = MaterialTheme.colors.secondary,
-        progress = animatedProgress,
     )
 }
 
