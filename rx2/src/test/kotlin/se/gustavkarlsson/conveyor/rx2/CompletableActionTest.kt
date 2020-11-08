@@ -19,7 +19,7 @@ object CompletableActionTest : Spek({
             runBlocking {
                 subject.execute(stateAccess)
             }
-            expectThat(stateAccess.get()).isEqualTo(stateToSet)
+            expectThat(stateAccess.state.value).isEqualTo(stateToSet)
         }
     }
 
@@ -34,7 +34,7 @@ object CompletableActionTest : Spek({
             runBlocking {
                 subject.execute(stateAccess)
             }
-            expectThat(stateAccess.get()).isEqualTo(stateToSet)
+            expectThat(stateAccess.state.value).isEqualTo(stateToSet)
         }
     }
 })

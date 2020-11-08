@@ -15,7 +15,7 @@ internal class RxStoreImpl<State : Any>(
 ) : RxStore<State> {
     override val state: Flowable<State> = store.state.asFlowable()
 
-    override val currentState: State get() = store.currentState
+    override val currentState: State get() = store.state.value
 
     override fun start(): Disposable {
         val job = store.start(GlobalScope)

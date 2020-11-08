@@ -1,26 +1,24 @@
 package se.gustavkarlsson.conveyor.test
 
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.StateAccess
 
-class SimpleStateAccess<T>(initialState: T) : StateAccess<T> {
+class SimpleStateAccess<State>(initialState: State) : StateAccess<State> {
 
-    private val stateFlow = MutableStateFlow(initialState)
+    private val mutableFlow = MutableStateFlow(initialState)
 
-    override val flow: Flow<T> = stateFlow
+    override val state: StateFlow<State> = mutableFlow
 
-    var currentState by stateFlow::value
+    var currentState by mutableFlow::value
 
-    override suspend fun update(block: suspend (T) -> T): T {
-        val newState = block(currentState)
+    override suspend fun update(block: suspend State.() -> State): State {
+        val newState = currentState.block()
         currentState = newState
         return newState
     }
 
-    override fun get(): T = currentState
-
-    override suspend fun set(state: T) {
+    override suspend fun set(state: State) {
         currentState = state
     }
 }

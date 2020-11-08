@@ -2,37 +2,39 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 
+@FlowPreview
 @ExperimentalCoroutinesApi
 internal class LiveActionsManager<State>(
     actions: Iterable<Action<State>>,
-) : LiveActionsCounter, ActionProcessor<State>, Cancellable {
-    private val liveCount = AtomicInt(0)
-    private val toggleChannel = Channel<Toggle>(Channel.CONFLATED)
-    private val toggleFlow = toggleChannel.consumeAsFlow()
-        .distinctUntilChanged()
+    subscriptionCount: Flow<Int>,
+) : ActionProcessor<State>, Cancellable {
+    private val cancellationChannel = Channel<Unit>(Channel.CONFLATED)
+        .apply { offerOrThrow(Unit) }
 
-    override fun increment() {
-        if (liveCount.incrementAndGet() == 1) {
-            toggleChannel.offerOrThrow(Toggle.Enable)
+    private val toggleFlow = cancellationChannel.consumeAsFlow()
+        .flatMapConcat {
+            subscriptionCount.distinctUntilChanged()
         }
-    }
-
-    override fun decrement() {
-        val newCount = liveCount.decrementAndGet()
-        check(newCount >= 0)
-        if (newCount == 0) {
-            toggleChannel.offerOrThrow(Toggle.Disable)
+        .map { count ->
+            when {
+                count < 0 -> error("count may not be negative")
+                count == 0 -> Toggle.Disable
+                else -> Toggle.Enable
+            }
         }
-    }
 
     private var actions: Iterable<Action<State>>? = actions.toList()
 
@@ -50,7 +52,7 @@ internal class LiveActionsManager<State>(
     }
 
     override fun cancel(cause: Throwable?) {
-        toggleChannel.cancel(cause as? CancellationException)
+        cancellationChannel.cancel(cause as? CancellationException)
         actions = null
     }
 

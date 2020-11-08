@@ -5,8 +5,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
@@ -17,15 +15,10 @@ import se.gustavkarlsson.conveyor.Store
 internal class StoreImpl<State>(
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
-    liveActionsCounter: LiveActionsCounter,
     private val actionProcessors: Iterable<ActionProcessor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateAccess.flow
-        .onStart { liveActionsCounter.increment() }
-        .onCompletion { liveActionsCounter.decrement() }
-
-    override val currentState get() = stateAccess.get()
+    override val state = stateAccess.state
 
     private val stage = Stage()
 
