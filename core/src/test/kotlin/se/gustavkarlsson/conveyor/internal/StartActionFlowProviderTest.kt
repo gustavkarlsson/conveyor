@@ -17,13 +17,13 @@ object StartActionFlowProviderTest : Spek({
     val incrementStateAction = IncrementStateAction()
 
     describe("A provider with one action") {
-        val subject by memoized { StartActionProcessor(listOf(incrementStateAction)) }
+        val subject by memoized { StartActionsProcessor(listOf(incrementStateAction)) }
 
         it("processing executes action") {
             runBlockingTest {
                 subject.process(stateAccess)
             }
-            expectThat(stateAccess.get()).isEqualTo(1)
+            expectThat(stateAccess.state.value).isEqualTo(1)
         }
         it("processing twice throws exception") {
             expectThrows<IllegalStateException> {
@@ -39,13 +39,13 @@ object StartActionFlowProviderTest : Spek({
             delay(1)
             access.update { this + 1 }
         }
-        val subject by memoized { StartActionProcessor(listOf(delayAction, delayAction)) }
+        val subject by memoized { StartActionsProcessor(listOf(delayAction, delayAction)) }
 
         it("processing executes actions in parallel") {
             runBlockingTest {
                 launch { subject.process(stateAccess) }
                 advanceTimeBy(1)
-                expectThat(stateAccess.get()).isEqualTo(2)
+                expectThat(stateAccess.state.value).isEqualTo(2)
             }
         }
     }

@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 
-internal class StartActionProcessor<State>(
+internal class StartActionsProcessor<State>(
     actions: Iterable<Action<State>>,
 ) : ActionProcessor<State> {
     private val actions = Consumable(actions.toList())

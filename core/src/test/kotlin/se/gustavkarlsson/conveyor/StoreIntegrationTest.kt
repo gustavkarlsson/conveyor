@@ -1,11 +1,9 @@
 package se.gustavkarlsson.conveyor
 
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.toList
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.SetStateAction
@@ -14,7 +12,6 @@ import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
@@ -50,8 +47,8 @@ object StoreIntegrationTest : Spek({
             }
             expectThat(result).isEqualTo(initialState)
         }
-        it("currentState returns initial") {
-            val result = subject.currentState
+        it("state.value returns initial") {
+            val result = subject.state.value
             expectThat(result).isEqualTo(initialState)
         }
         it("throws when issuing action") {
@@ -84,18 +81,11 @@ object StoreIntegrationTest : Spek({
                 }
                 expectThat(result).isEqualTo(initialState)
             }
-            it("existing state subscription ends when job is cancelled") {
-                val result = runBlockingTest {
-                    val deferred = async { subject.state.toList() }
-                    job.cancel("Purposefully cancelled")
-                    deferred.await()
-                }
-                expectThat(result).containsExactly(initialState)
-            }
 
             describe("and had its job explicitly cancelled") {
                 beforeEachTest {
                     job.cancel("Purposefully cancelled before test")
+                    scope.advanceUntilIdle() // TODO figure one why this is necessary
                 }
 
                 it("throws exception when started") {
@@ -108,15 +98,15 @@ object StoreIntegrationTest : Spek({
                         subject.issue(action {})
                     }
                 }
-                it("currentState returns initial") {
-                    val result = subject.currentState
+                it("state.value returns initial") {
+                    val result = subject.state.value
                     expectThat(result).isEqualTo(initialState)
                 }
-                it("state emits initial and then stops") {
+                it("state emits initial") {
                     val result = runBlockingTest {
-                        subject.state.toList()
+                        subject.state.first()
                     }
-                    expectThat(result).containsExactly(initialState)
+                    expectThat(result).isEqualTo(initialState)
                 }
             }
         }
@@ -127,11 +117,11 @@ object StoreIntegrationTest : Spek({
         }
 
         it("the state does not change before starting") {
-            expectThat(store.currentState).isEqualTo(initialState)
+            expectThat(store.state.value).isEqualTo(initialState)
         }
         it("the state changes when starting") {
             store.start(scope)
-            expectThat(store.currentState).isEqualTo(state1)
+            expectThat(store.state.value).isEqualTo(state1)
         }
     }
     describe("A store with one simple live action") {
@@ -140,17 +130,19 @@ object StoreIntegrationTest : Spek({
         }
 
         it("the state does not change before starting") {
-            expectThat(store.currentState).isEqualTo(initialState)
+            expectThat(store.state.value).isEqualTo(initialState)
         }
         it("the state does not change when starting") {
             store.start(scope)
-            expectThat(store.currentState).isEqualTo(initialState)
+            expectThat(store.state.value).isEqualTo(initialState)
         }
         it("the state changes after started and first collector runs") {
             store.start(scope)
-            runBlockingTest {
-                store.state.first { it == state1 }
+            scope.advanceUntilIdle() // TODO Figure out why this is necessary
+            val result = runBlockingTest {
+                store.state.first()
             }
+            expectThat(result).isEqualTo(state1)
         }
     }
     describe("A started store with one delayed start action") {
@@ -162,16 +154,16 @@ object StoreIntegrationTest : Spek({
         }
 
         it("the state does not change immediately") {
-            expectThat(store.currentState).isEqualTo(initialState)
+            expectThat(store.state.value).isEqualTo(initialState)
         }
         it("the state changes after the delay has passed") {
             scope.advanceTimeBy(delay10)
-            expectThat(store.currentState).isEqualTo(state1)
+            expectThat(store.state.value).isEqualTo(state1)
         }
         it("the state does not change if its scope was cancelled before the delay has passed") {
             scope.cancel("Purposefully cancelled")
             scope.advanceTimeBy(delay10)
-            expectThat(store.currentState).isEqualTo(initialState)
+            expectThat(store.state.value).isEqualTo(initialState)
         }
     }
     describe("A started store with two delayed start actions") {
@@ -184,30 +176,26 @@ object StoreIntegrationTest : Spek({
 
         it("the state changes after the first delay has passed") {
             scope.advanceTimeBy(delay10)
-            expectThat(store.currentState).isEqualTo(state1)
+            expectThat(store.state.value).isEqualTo(state1)
         }
         it("the state changes after the second delay has passed") {
             scope.advanceTimeBy(delay20)
-            expectThat(store.currentState).isEqualTo(state2)
+            expectThat(store.state.value).isEqualTo(state2)
         }
         it("an action changes state immediately") {
-            runBlockingTest {
-                store.issue(fixedStateAction1)
-            }
-            expectThat(store.currentState).isEqualTo(state1)
+            store.issue(fixedStateAction1)
+            expectThat(store.state.value).isEqualTo(state1)
             expect {
                 that(scope.currentTime).isEqualTo(0)
-                that(store.currentState).isEqualTo(state1)
+                that(store.state.value).isEqualTo(state1)
             }
         }
         it("an action with a delayed action does not delay start actions") {
-            runBlockingTest {
-                store.issue(delayAction5)
-            }
+            store.issue(delayAction5)
             scope.advanceTimeBy(delay10)
             expect {
                 that(scope.currentTime).isEqualTo(delay10)
-                that(store.currentState).isEqualTo(state1)
+                that(store.state.value).isEqualTo(state1)
             }
         }
     }

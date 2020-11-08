@@ -3,7 +3,8 @@ package se.gustavkarlsson.conveyor.rx2.internal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -49,9 +50,7 @@ object RxStoreImplTest : Spek({
 })
 
 private class FakeStore<State>(initialState: State) : Store<State> {
-    override val state = flowOf(initialState)
-
-    override val currentState = initialState
+    override val state: StateFlow<State> = MutableStateFlow(initialState)
 
     private val _startedJobs = mutableListOf<Job>()
     val startedJobs: List<Job> = _startedJobs
