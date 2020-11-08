@@ -10,6 +10,9 @@ public interface Store<State> {
     public fun issue(action: Action<State>)
 }
 
+public fun <State> CoroutineScope.start(store: Store<State>): Job =
+    store.start(this)
+
 public fun <State> Store<State>.issue(
     block: suspend (stateAccess: StateAccess<State>) -> Unit,
 ): Unit = issue(action(block))
