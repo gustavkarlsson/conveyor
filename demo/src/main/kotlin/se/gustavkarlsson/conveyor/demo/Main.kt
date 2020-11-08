@@ -15,7 +15,7 @@ fun main() {
 }
 
 private fun runUi(viewModel: ViewModel) = Window(
-    title = "Conveyor Login Demo",
+    title = "Conveyor Demo",
     size = IntSize(400, 400),
 ) {
     val state = viewModel.state.collectAsState()

@@ -15,6 +15,7 @@ object Api {
             .replace(DELIMITERS, " ")
             .capitalizeWords()
     }
+
     fun operation(): Flow<Float> = flow {
         var progress = 0F
         while (progress < 1F) {
