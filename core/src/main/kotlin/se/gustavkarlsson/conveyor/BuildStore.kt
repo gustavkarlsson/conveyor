@@ -4,7 +4,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import se.gustavkarlsson.conveyor.internal.LiveActionsManager
 import se.gustavkarlsson.conveyor.internal.ManualActionsManager
-import se.gustavkarlsson.conveyor.internal.StartActionProcessor
+import se.gustavkarlsson.conveyor.internal.StartActionsProcessor
 import se.gustavkarlsson.conveyor.internal.StateManager
 import se.gustavkarlsson.conveyor.internal.StoreImpl
 
@@ -16,16 +16,15 @@ public fun <State> buildStore(
     liveActions: Iterable<Action<State>> = emptyList(),
 ): Store<State> {
     val stateManager = StateManager(initialState)
-    val startActionProcessor = StartActionProcessor(startActions)
+    val startActionsProcessor = StartActionsProcessor(startActions)
     val manualActionsManager = ManualActionsManager<State>()
-    val liveActionsManager = LiveActionsManager(liveActions)
-    val actionProcessors = listOf(manualActionsManager, startActionProcessor, liveActionsManager)
-    val cancellables = listOf(liveActionsManager, manualActionsManager, stateManager)
+    val liveActionsManager = LiveActionsManager(liveActions, stateManager.subscriptionCount)
+    val actionProcessors = listOf(manualActionsManager, startActionsProcessor, liveActionsManager)
+    val cancellables = listOf(liveActionsManager, manualActionsManager)
 
     return StoreImpl(
         stateAccess = stateManager,
         actionIssuer = manualActionsManager,
-        liveActionsCounter = liveActionsManager,
         actionProcessors = actionProcessors,
         cancellables = cancellables,
     )

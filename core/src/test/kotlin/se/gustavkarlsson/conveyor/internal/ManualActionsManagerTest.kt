@@ -45,12 +45,12 @@ object ManualActionsManagerTest : Spek({
             it("executes issued actions in parallel") {
                 val delayAction = action<Int> { access ->
                     delay(1)
-                    access.update { it + 1 }
+                    access.update { this + 1 }
                 }
                 subject.issue(delayAction)
                 subject.issue(delayAction)
                 scope.advanceTimeBy(1)
-                expectThat(stateAccess.get()).isEqualTo(2)
+                expectThat(stateAccess.state.value).isEqualTo(2)
             }
             it("throws if processing again") {
                 expectThrows<IllegalStateException> {

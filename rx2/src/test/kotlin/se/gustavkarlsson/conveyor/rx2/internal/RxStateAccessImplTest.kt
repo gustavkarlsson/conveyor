@@ -19,20 +19,20 @@ object RxStateAccessImplTest : Spek({
         }
         it("set sets state") {
             subject.set(2).blockingAwait()
-            val result = stateAccess.get()
+            val result = stateAccess.state.value
             expectThat(result).isEqualTo(2)
         }
         it("update returns new state") {
-            val updateResult = subject.update { it + 1 }.blockingGet()
+            val updateResult = subject.update { map { it + 1 } }.blockingGet()
             expectThat(updateResult).isEqualTo(2)
         }
         it("update sets state") {
-            subject.update { it + 1 }.blockingGet()
+            subject.update { map { it + 1 } }.blockingGet()
             val result = subject.get()
             expectThat(result).isEqualTo(2)
         }
         it("flowable gets flow") {
-            val testSubscriber = subject.flowable.test()
+            val testSubscriber = subject.state.test()
             runBlocking { stateAccess.set(2) }
             testSubscriber.assertValues(1, 2)
         }
