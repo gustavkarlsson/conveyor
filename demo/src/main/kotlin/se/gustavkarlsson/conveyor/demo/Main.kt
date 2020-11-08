@@ -16,7 +16,7 @@ private fun runUi(viewModel: ViewModel) = Window(
     title = "Compose for Desktop",
     size = IntSize(400, 400),
 ) {
-    val state = viewModel.state.collectAsState(viewModel.currentState)
+    val state = viewModel.state.collectAsState()
     MaterialTheme {
         when (val currentState = state.value) {
             is State.Login -> LoginScreen(currentState, viewModel)

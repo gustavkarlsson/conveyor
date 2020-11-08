@@ -4,7 +4,7 @@ package se.gustavkarlsson.conveyor.demo
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.buildStore
@@ -22,8 +22,7 @@ interface LoggedInEvents {
 
 class ViewModel(initialState: State) : LoginEvents, LoggedInEvents {
     private val store = buildStore(initialState).apply { start(GlobalScope) }
-    val state: Flow<State> = store.state
-    val currentState: State get() = store.currentState
+    val state: StateFlow<State> = store.state
 
     override fun onEmailTextChanged(text: String) = store.issue(EmailChangeAction(text))
 
@@ -38,22 +37,22 @@ class ViewModel(initialState: State) : LoginEvents, LoggedInEvents {
 
 private class EmailChangeAction(private val text: String) : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
-        stateAccess.update { state ->
-            require(state is State.Login)
-            if (!state.isLoggingIn) {
-                state.copy(emailText = text.trim().toLowerCase())
-            } else state
+        stateAccess.update {
+            require(this is State.Login)
+            if (!isLoggingIn) {
+                copy(emailText = text.trim().toLowerCase())
+            } else this
         }
     }
 }
 
 private class PasswordChangeAction(private val text: String) : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
-        stateAccess.update { state ->
-            require(state is State.Login)
-            if (!state.isLoggingIn) {
-                state.copy(passwordText = text)
-            } else state
+        stateAccess.update {
+            require(this is State.Login)
+            if (!isLoggingIn) {
+                copy(passwordText = text)
+            } else this
         }
     }
 }
@@ -62,19 +61,19 @@ private class LoginAction : Action<State> {
     override suspend fun execute(stateAccess: StateAccess<State>) {
         var progress = 0F
         while (progress < 1F) {
-            if (stateAccess.get() !is State.Login) return
+            if (stateAccess.state.value !is State.Login) return
             delay(Random.nextLong(100))
             progress += Random.nextFloat() / 10
-            stateAccess.update { state ->
-                if (state is State.Login) {
-                    state.copy(loginProgress = progress)
-                } else state
+            stateAccess.update {
+                if (this is State.Login) {
+                    copy(loginProgress = progress)
+                } else this
             }
         }
-        stateAccess.update { state ->
-            if (state is State.Login) {
-                State.LoggedIn(emailText = state.emailText)
-            } else state
+        stateAccess.update {
+            if (this is State.Login) {
+                State.LoggedIn(emailText = emailText)
+            } else this
         }
     }
 }
