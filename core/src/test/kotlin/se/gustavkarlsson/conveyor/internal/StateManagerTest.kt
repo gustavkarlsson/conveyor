@@ -40,7 +40,7 @@ object StateManagerTest : Spek({
         }
         it("state.value returns new state after updating it") {
             runBlockingTest {
-                subject.update { it + state1 }
+                subject.update { this + state1 }
             }
             expectThat(subject.state.value).isEqualTo(initialState + state1)
         }

@@ -2,6 +2,7 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -15,6 +16,8 @@ internal class StateManager<State>(initialState: State) : StateAccess<State> {
 
     override val state: StateFlow<State> = mutableFlow
 
+    val subscriptionCount: Flow<Int> = mutableFlow.subscriptionCount
+
     private val writeMutex = Mutex()
 
     override suspend fun set(state: State) {
@@ -23,9 +26,9 @@ internal class StateManager<State>(initialState: State) : StateAccess<State> {
         }
     }
 
-    override suspend fun update(block: suspend (State) -> State): State =
+    override suspend fun update(block: suspend State.() -> State): State =
         writeMutex.withLock {
-            val state = block(state.value)
+            val state = state.value.block()
             mutableFlow.value = state
             state
         }

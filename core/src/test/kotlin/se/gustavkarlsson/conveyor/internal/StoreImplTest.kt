@@ -29,7 +29,6 @@ object StoreImplTest : Spek({
     val action = action<Int> {}
     val stateAccess by memoized { SimpleStateAccess(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<Int>() }
-    val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
     val processor by memoized { DelayingTrackingActionProcessor<Int>() }
     val cancellable by memoized { TrackingCancellable() }
 
@@ -38,14 +37,13 @@ object StoreImplTest : Spek({
             StoreImpl(
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
-                liveActionsCounter = liveActionsCounter,
                 actionProcessors = listOf(processor, processor),
                 cancellables = listOf(cancellable),
             )
         }
 
-        it("currentState returns current state") {
-            val result = subject.currentState
+        it("state.value returns current state") {
+            val result = subject.state.value
             expectThat(result).isEqualTo(initialState)
         }
         it("state returns current state") {
@@ -76,9 +74,7 @@ object StoreImplTest : Spek({
                 }
             }
             it("issue issues action") {
-                runBlockingTest {
-                    subject.issue(action)
-                }
+                subject.issue(action)
                 expectThat(actionIssuer).hasIssued(action)
             }
             it("processors run in parallel") {
@@ -116,13 +112,3 @@ object StoreImplTest : Spek({
         }
     }
 })
-
-private class TrackingLiveActionsCounter(var count: Int = 0) : LiveActionsCounter {
-    override fun increment() {
-        count++
-    }
-
-    override fun decrement() {
-        count--
-    }
-}
