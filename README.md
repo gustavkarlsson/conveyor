@@ -11,15 +11,14 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
 ## Example
 ```kotlin
-public fun main() {
-    // Create a store with an initial state
-    val store = buildStore(initialState = 0)
-
+// Create a store with an initial state
+val store = buildStore(initialState = 0)
+with(GlobalScope) {
     // Start processing actions.
-    val job = store.start(GlobalScope)
+    val job = start(store)
 
     // Subscribe to state updates and print them
-    GlobalScope.launch {
+    launch {
         store.state.collect { println("State: $it") }
     }
 
@@ -28,7 +27,7 @@ public fun main() {
         stateAccess.set(1)
     }
 
-    // Issue a more complex action that increments the state 
+    // Issue a more complex action that increments the state
     store.issue(IncrementAction(count = 3, increment = 2))
 
     // Run for a while
@@ -36,18 +35,6 @@ public fun main() {
 
     // Stop processing actions
     job.cancel()
-}
-
-private class IncrementAction(
-    private val count: Int,
-    private val increment: Int,
-) : Action<Int> {
-    override suspend fun execute(stateAccess: StateAccess<Int>) {
-        repeat(count) {
-            delay(1000)
-            stateAccess.update { this + increment }
-        }
-    }
 }
 
 /*
