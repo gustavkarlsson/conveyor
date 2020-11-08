@@ -21,10 +21,10 @@ internal class RxStateAccessImpl<State : Any>(
 
     override fun set(state: State): Completable = rxCompletable { stateAccess.set(state) }
 
-    override fun update(block: Single<State>.() -> Single<State>): Single<State> =
+    override fun update(block: State.() -> Single<State>): Single<State> =
         rxSingle {
             stateAccess.update {
-                Single.just(this).block().await()
+                block().await()
             }
         }
 }

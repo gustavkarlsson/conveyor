@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.rx2.internal
 
+import io.reactivex.Single
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -23,11 +24,11 @@ object RxStateAccessImplTest : Spek({
             expectThat(result).isEqualTo(2)
         }
         it("update returns new state") {
-            val updateResult = subject.update { map { it + 1 } }.blockingGet()
+            val updateResult = subject.update { Single.just(this + 1) }.blockingGet()
             expectThat(updateResult).isEqualTo(2)
         }
         it("update sets state") {
-            subject.update { map { it + 1 } }.blockingGet()
+            subject.update { Single.just(this + 1) }.blockingGet()
             val result = subject.get()
             expectThat(result).isEqualTo(2)
         }

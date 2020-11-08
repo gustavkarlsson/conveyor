@@ -8,5 +8,5 @@ public interface RxStateAccess<State : Any> {
     public val state: Flowable<State>
     public fun get(): State
     public fun set(state: State): Completable
-    public fun update(block: Single<State>.() -> Single<State>): Single<State>
+    public fun update(block: State.() -> Single<State>): Single<State>
 }
