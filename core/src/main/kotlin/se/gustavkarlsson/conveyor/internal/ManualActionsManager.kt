@@ -11,7 +11,7 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 @ExperimentalCoroutinesApi
-internal class ManualActionsManager<State> : ActionIssuer<State>, ActionProcessor<State>, Cancellable {
+internal class ManualActionsManager<State> : ActionManager<State> {
     private val actionChannel = Channel<Action<State>>(Channel.UNLIMITED)
     private val actionFlow = actionChannel.consumeAsFlow()
 

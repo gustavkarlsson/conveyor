@@ -11,12 +11,9 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.DelayingTrackingActionProcessor
 import se.gustavkarlsson.conveyor.test.SimpleStateAccess
-import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.test.TrackingCancellable
+import se.gustavkarlsson.conveyor.test.TrackingActionManager
 import se.gustavkarlsson.conveyor.test.hasBeenCancelledWith
-import se.gustavkarlsson.conveyor.test.hasCompletedCount
 import se.gustavkarlsson.conveyor.test.hasIssued
 import se.gustavkarlsson.conveyor.test.hasNeverBeenCancelled
 import se.gustavkarlsson.conveyor.test.runBlockingTest
@@ -28,17 +25,13 @@ object StoreImplTest : Spek({
     val initialState = 0
     val action = action<Int> {}
     val stateAccess by memoized { SimpleStateAccess(initialState) }
-    val actionIssuer by memoized { TrackingActionIssuer<Int>() }
-    val processor by memoized { DelayingTrackingActionProcessor<Int>() }
-    val cancellable by memoized { TrackingCancellable() }
+    val actionIssuer by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
         val subject by memoized {
             StoreImpl(
                 stateAccess = stateAccess,
-                actionIssuer = actionIssuer,
-                actionProcessor = processor,
-                cancellable = cancellable,
+                actionManager = actionIssuer,
             )
         }
 
@@ -78,7 +71,7 @@ object StoreImplTest : Spek({
                 expectThat(actionIssuer).hasIssued(action)
             }
             it("nothing has been cancelled") {
-                expectThat(cancellable).hasNeverBeenCancelled()
+                expectThat(actionIssuer).hasNeverBeenCancelled()
             }
 
             describe("that was stopped") {
@@ -100,8 +93,8 @@ object StoreImplTest : Spek({
                         subject.issue(action)
                     }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
-                it("cancellable has been cancelled by exception") {
-                    expectThat(cancellable).hasBeenCancelledWith(cancellationException)
+                it("actionIssuer has been cancelled by exception") {
+                    expectThat(actionIssuer).hasBeenCancelledWith(cancellationException)
                 }
             }
         }

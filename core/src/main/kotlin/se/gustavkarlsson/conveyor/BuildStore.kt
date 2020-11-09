@@ -14,8 +14,6 @@ public fun <State> buildStore(initialState: State): Store<State> {
 
     return StoreImpl(
         stateAccess = stateManager,
-        actionIssuer = manualActionsManager,
-        actionProcessor = manualActionsManager,
-        cancellable = manualActionsManager,
+        actionManager = manualActionsManager,
     )
 }

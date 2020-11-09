@@ -14,9 +14,7 @@ import se.gustavkarlsson.conveyor.Store
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     private val stateAccess: UpdatableStateFlow<State>,
-    private val actionIssuer: ActionIssuer<State>,
-    private val actionProcessor: ActionProcessor<State>,
-    private val cancellable: Cancellable,
+    private val actionManager: ActionManager<State>,
 ) : Store<State> {
     override val state = stateAccess
 
@@ -30,17 +28,17 @@ internal class StoreImpl<State>(
     }
 
     private fun CoroutineScope.startProcessing(): Job = launch {
-        launch { actionProcessor.process(stateAccess) }
+        launch { actionManager.process(stateAccess) }
         awaitCancellation()
     }
 
     private fun stop(throwable: Throwable?) {
         stage.stop(throwable)
-        cancellable.cancel(throwable)
+        actionManager.cancel(throwable)
     }
 
     override fun issue(action: Action<State>) {
         stage.requireStarted()
-        actionIssuer.issue(action)
+        actionManager.issue(action)
     }
 }
