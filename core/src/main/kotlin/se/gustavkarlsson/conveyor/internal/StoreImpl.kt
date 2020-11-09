@@ -1,18 +1,14 @@
 package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
 import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-@FlowPreview
-@ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
     private val stateAccess: UpdatableStateFlow<State>,
     private val actionManager: ActionManager<State>,
