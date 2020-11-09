@@ -1,7 +1,8 @@
 package se.gustavkarlsson.conveyor.test
 
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.internal.ActionManager
 import strikt.api.Assertion
@@ -23,7 +24,7 @@ class TrackingActionManager<State> : ActionManager<State> {
         _cancellations += cause
     }
 
-    override val actions: Flow<Action<State>> = emptyFlow()
+    override val actions: Flow<Action<State>> = flow { awaitCancellation() }
 }
 
 fun <State> Assertion.Builder<TrackingActionManager<State>>.hasIssued(

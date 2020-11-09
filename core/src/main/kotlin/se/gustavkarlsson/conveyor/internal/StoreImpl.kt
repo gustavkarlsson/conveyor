@@ -2,7 +2,6 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
@@ -28,7 +27,6 @@ internal class StoreImpl<State>(
         actionManager.actions.collect { action ->
             launch { action.execute(updatableState) }
         }
-        awaitCancellation() // TODO figure out if this is necessary
     }
 
     private fun stop(throwable: Throwable?) {
