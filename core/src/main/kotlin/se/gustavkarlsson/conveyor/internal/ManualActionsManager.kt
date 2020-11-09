@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 @ExperimentalCoroutinesApi
 internal class ManualActionsManager<State> : ActionIssuer<State>, ActionProcessor<State>, Cancellable {
@@ -17,7 +17,7 @@ internal class ManualActionsManager<State> : ActionIssuer<State>, ActionProcesso
 
     override fun issue(action: Action<State>) = actionChannel.offerOrThrow(action)
 
-    override suspend fun process(stateAccess: StateAccess<State>) {
+    override suspend fun process(stateAccess: UpdatableStateFlow<State>) {
         coroutineScope {
             actionFlow.collect { action ->
                 launch { action.execute(stateAccess) }

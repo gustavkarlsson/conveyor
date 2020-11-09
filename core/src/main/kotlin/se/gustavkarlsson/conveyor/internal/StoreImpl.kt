@@ -7,13 +7,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 import se.gustavkarlsson.conveyor.Store
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    private val stateAccess: StateAccess<State>,
+    private val stateAccess: UpdatableStateFlow<State>,
     private val actionIssuer: ActionIssuer<State>,
     private val actionProcessor: ActionProcessor<State>,
     private val cancellable: Cancellable,

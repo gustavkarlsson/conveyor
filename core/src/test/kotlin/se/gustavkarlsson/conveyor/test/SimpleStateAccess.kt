@@ -4,10 +4,10 @@ import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 // TODO Duplicate of class in rx2
-class SimpleStateAccess<State>(initialState: State) : StateAccess<State> {
+class SimpleStateAccess<State>(initialState: State) : UpdatableStateFlow<State> {
     private val mutableFlow = MutableStateFlow(initialState)
     override val value: State by mutableFlow::value
     override val replayCache: List<State> by mutableFlow::replayCache

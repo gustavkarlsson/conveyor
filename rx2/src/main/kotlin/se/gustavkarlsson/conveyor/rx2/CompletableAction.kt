@@ -4,12 +4,12 @@ import io.reactivex.Completable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.rx2.await
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 import se.gustavkarlsson.conveyor.rx2.internal.RxStateAccessImpl
 
 @ExperimentalCoroutinesApi
 public abstract class CompletableAction<State : Any> : Action<State> {
-    final override suspend fun execute(stateAccess: StateAccess<State>) {
+    final override suspend fun execute(stateAccess: UpdatableStateFlow<State>) {
         val rxStateAccess = RxStateAccessImpl(stateAccess)
         val completable = createCompletable(rxStateAccess)
         completable.await()

@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 @FlowPreview
 @ExperimentalCoroutinesApi
-internal class StateManager<State>(initialState: State) : StateAccess<State> {
+internal class StateManager<State>(initialState: State) : UpdatableStateFlow<State> {
     private val mutableFlow = MutableStateFlow(initialState)
     override val value by mutableFlow::value
     override val replayCache by mutableFlow::replayCache

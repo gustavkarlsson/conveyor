@@ -6,12 +6,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.rx2.asFlowable
 import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.rxSingle
-import se.gustavkarlsson.conveyor.StateAccess
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 import se.gustavkarlsson.conveyor.rx2.RxStateAccess
 
 @ExperimentalCoroutinesApi
 internal class RxStateAccessImpl<State : Any>(
-    private val stateAccess: StateAccess<State>,
+    private val stateAccess: UpdatableStateFlow<State>,
 ) : RxStateAccess<State> {
     override val state: Flowable<State> = stateAccess.asFlowable()
 
