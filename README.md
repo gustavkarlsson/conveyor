@@ -11,40 +11,56 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
 ## Example
 ```kotlin
-// Create a store with an initial state
-val store = buildStore(initialState = 0)
-with(GlobalScope) {
-    // Start processing actions.
-    val job = start(store)
+fun main() {
+    val store = buildStore(initialState = "initial")
+    with(GlobalScope) {
+        // Start processing actions
+        val job = start(store)
 
-    // Subscribe to state updates and print them
-    launch {
-        store.state.collect { println("State: $it") }
+        // Print state changes
+        launch {
+            store.state.collect {
+                println("State: $it")
+            }
+        }
+
+        // Issue a simple action that sets the state
+        store.issue { state ->
+            state.update { "updating" }
+        }
+
+        // Issue a more complex action that repeatedly updates the state
+        store.issue(RepeatingAppenderAction(append = "."))
+
+        // Run for a while
+        runBlocking { delay(5000) }
+
+        // Stop processing actions
+        job.cancel()
     }
-
-    // Issue a simple action that sets the state
-    store.issue { stateAccess ->
-        stateAccess.set(1)
-    }
-
-    // Issue a more complex action that increments the state
-    store.issue(IncrementAction(count = 3, increment = 2))
-
-    // Run for a while
-    runBlocking { delay(10000) }
-
-    // Stop processing actions
-    job.cancel()
 }
 
-/*
-Output:
-State: 0
-State: 1
-State: 3
-State: 5
-State: 7
-*/
+private class RepeatingAppenderAction(
+    private val append: String,
+) : Action<String> {
+    override suspend fun execute(state: UpdatableStateFlow<String>) {
+        while (true) {
+            delay(1000)
+            state.update { this + append }
+        }
+    }
+}
+```
+
+Outputs:
+
+```
+State: initial
+State: updating
+State: updating.
+State: updating..
+State: updating...
+State: updating....
 ```
 
 ## Downloading

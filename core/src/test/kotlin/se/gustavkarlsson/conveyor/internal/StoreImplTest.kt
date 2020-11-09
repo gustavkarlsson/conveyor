@@ -11,12 +11,8 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.DelayingTrackingActionProcessor
-import se.gustavkarlsson.conveyor.test.SimpleStateAccess
-import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.test.TrackingCancellable
+import se.gustavkarlsson.conveyor.test.TrackingActionManager
 import se.gustavkarlsson.conveyor.test.hasBeenCancelledWith
-import se.gustavkarlsson.conveyor.test.hasCompletedCount
 import se.gustavkarlsson.conveyor.test.hasIssued
 import se.gustavkarlsson.conveyor.test.hasNeverBeenCancelled
 import se.gustavkarlsson.conveyor.test.runBlockingTest
@@ -27,20 +23,11 @@ import strikt.assertions.isEqualTo
 object StoreImplTest : Spek({
     val initialState = 0
     val action = action<Int> {}
-    val stateAccess by memoized { SimpleStateAccess(initialState) }
-    val actionIssuer by memoized { TrackingActionIssuer<Int>() }
-    val processor by memoized { DelayingTrackingActionProcessor<Int>() }
-    val cancellable by memoized { TrackingCancellable() }
+    val state by memoized { UpdatableStateFlowImpl(initialState) }
+    val actionIssuer by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized {
-            StoreImpl(
-                stateAccess = stateAccess,
-                actionIssuer = actionIssuer,
-                actionProcessors = listOf(processor, processor),
-                cancellables = listOf(cancellable),
-            )
-        }
+        val subject by memoized { StoreImpl(state, actionIssuer) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -77,13 +64,8 @@ object StoreImplTest : Spek({
                 subject.issue(action)
                 expectThat(actionIssuer).hasIssued(action)
             }
-            it("processors run in parallel") {
-                expectThat(processor).hasCompletedCount(0)
-                startScope.advanceTimeBy(1)
-                expectThat(processor).hasCompletedCount(2)
-            }
             it("nothing has been cancelled") {
-                expectThat(cancellable).hasNeverBeenCancelled()
+                expectThat(actionIssuer).hasNeverBeenCancelled()
             }
 
             describe("that was stopped") {
@@ -105,8 +87,8 @@ object StoreImplTest : Spek({
                         subject.issue(action)
                     }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
-                it("cancellable has been cancelled by exception") {
-                    expectThat(cancellable).hasBeenCancelledWith(cancellationException)
+                it("actionIssuer has been cancelled by exception") {
+                    expectThat(actionIssuer).hasBeenCancelledWith(cancellationException)
                 }
             }
         }

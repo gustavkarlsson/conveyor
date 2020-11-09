@@ -26,8 +26,8 @@ object RxStoreImplTest : Spek({
     describe("An RxStoreImpl") {
         val subject by memoized { RxStoreImpl(innerStore) }
 
-        it("currentState gets state") {
-            val currentState = subject.currentState
+        it("state.value gets state") {
+            val currentState = subject.state.value
             expectThat(currentState).isEqualTo(state)
         }
         it("state gets state") {
