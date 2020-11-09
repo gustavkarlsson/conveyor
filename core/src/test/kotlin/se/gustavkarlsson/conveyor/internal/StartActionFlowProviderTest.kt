@@ -23,7 +23,7 @@ object StartActionFlowProviderTest : Spek({
             runBlockingTest {
                 subject.process(stateAccess)
             }
-            expectThat(stateAccess.state.value).isEqualTo(1)
+            expectThat(stateAccess.value).isEqualTo(1)
         }
         it("processing twice throws exception") {
             expectThrows<IllegalStateException> {
@@ -45,7 +45,7 @@ object StartActionFlowProviderTest : Spek({
             runBlockingTest {
                 launch { subject.process(stateAccess) }
                 advanceTimeBy(1)
-                expectThat(stateAccess.state.value).isEqualTo(2)
+                expectThat(stateAccess.value).isEqualTo(2)
             }
         }
     }

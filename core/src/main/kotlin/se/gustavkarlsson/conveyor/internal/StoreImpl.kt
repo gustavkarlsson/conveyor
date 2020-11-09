@@ -18,7 +18,7 @@ internal class StoreImpl<State>(
     private val actionProcessors: Iterable<ActionProcessor<State>>,
     private val cancellables: Iterable<Cancellable>,
 ) : Store<State> {
-    override val state = stateAccess.state
+    override val state = stateAccess
 
     private val stage = Stage()
 

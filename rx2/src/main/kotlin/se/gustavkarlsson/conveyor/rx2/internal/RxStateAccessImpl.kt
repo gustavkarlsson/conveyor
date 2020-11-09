@@ -13,9 +13,9 @@ import se.gustavkarlsson.conveyor.rx2.RxStateAccess
 internal class RxStateAccessImpl<State : Any>(
     private val stateAccess: StateAccess<State>,
 ) : RxStateAccess<State> {
-    override val state: Flowable<State> = stateAccess.state.asFlowable()
+    override val state: Flowable<State> = stateAccess.asFlowable()
 
-    override val currentState: State get() = stateAccess.state.value
+    override val currentState: State get() = stateAccess.value
 
     override fun update(block: State.() -> Single<State>): Single<State> =
         rxSingle {

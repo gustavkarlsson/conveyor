@@ -40,7 +40,7 @@ object LiveActionsManagerTest : Spek({
                 }
                 job.cancel("Cancelled to end processing")
             }
-            expectThat(stateAccess.state.value).isEqualTo(0)
+            expectThat(stateAccess.value).isEqualTo(0)
         }
 
         describe("that was cancelled") {
@@ -70,7 +70,7 @@ object LiveActionsManagerTest : Spek({
                     }
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(stateAccess.state.value).isEqualTo(1)
+                expectThat(stateAccess.value).isEqualTo(1)
             }
 
             it("setting to 0 and then 1 again while processing executes action twice") {
@@ -83,7 +83,7 @@ object LiveActionsManagerTest : Spek({
                     subscriptionCount.value = 1
                     job.cancel("Cancelled to end processing")
                 }
-                expectThat(stateAccess.state.value).isEqualTo(2)
+                expectThat(stateAccess.value).isEqualTo(2)
             }
 
             describe("and then set to 0") {
@@ -98,7 +98,7 @@ object LiveActionsManagerTest : Spek({
                         }
                         job.cancel("Cancelled to end processing")
                     }
-                    expectThat(stateAccess.state.value).isEqualTo(0)
+                    expectThat(stateAccess.value).isEqualTo(0)
                 }
             }
         }
@@ -118,7 +118,7 @@ object LiveActionsManagerTest : Spek({
                 }
                 subscriptionCount.value = 0
                 advanceTimeBy(1)
-                expectThat(stateAccess.state.value).isEqualTo(0)
+                expectThat(stateAccess.value).isEqualTo(0)
                 job.cancel("Cancelled to end processing")
             }
         }
@@ -137,7 +137,7 @@ object LiveActionsManagerTest : Spek({
                     subject.process(stateAccess)
                 }
                 advanceTimeBy(1)
-                expectThat(stateAccess.state.value).isEqualTo(2)
+                expectThat(stateAccess.value).isEqualTo(2)
                 job.cancel("Cancelled to end processing")
             }
         }
