@@ -36,7 +36,7 @@ class ViewModel(api: Api, initialState: State) : LoginEvents, LoggedInEvents {
 
     override fun onOperationButtonClicked() = store.issue(operationAction)
 
-    override fun onLogoutButtonClicked() = store.issue { stateAccess ->
-        stateAccess.set(State.Login())
+    override fun onLogoutButtonClicked() = store.issue { state ->
+        state.update { State.Login() }
     }
 }
