@@ -37,8 +37,8 @@ object StoreImplTest : Spek({
             StoreImpl(
                 stateAccess = stateAccess,
                 actionIssuer = actionIssuer,
-                actionProcessors = listOf(processor, processor),
-                cancellables = listOf(cancellable),
+                actionProcessor = processor,
+                cancellable = cancellable,
             )
         }
 
@@ -76,11 +76,6 @@ object StoreImplTest : Spek({
             it("issue issues action") {
                 subject.issue(action)
                 expectThat(actionIssuer).hasIssued(action)
-            }
-            it("processors run in parallel") {
-                expectThat(processor).hasCompletedCount(0)
-                startScope.advanceTimeBy(1)
-                expectThat(processor).hasCompletedCount(2)
             }
             it("nothing has been cancelled") {
                 expectThat(cancellable).hasNeverBeenCancelled()

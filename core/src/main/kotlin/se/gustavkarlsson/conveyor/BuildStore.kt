@@ -11,13 +11,11 @@ import se.gustavkarlsson.conveyor.internal.StoreImpl
 public fun <State> buildStore(initialState: State): Store<State> {
     val stateManager = StateManager(initialState)
     val manualActionsManager = ManualActionsManager<State>()
-    val actionProcessors = listOf(manualActionsManager)
-    val cancellables = listOf(manualActionsManager)
 
     return StoreImpl(
         stateAccess = stateManager,
         actionIssuer = manualActionsManager,
-        actionProcessors = actionProcessors,
-        cancellables = cancellables,
+        actionProcessor = manualActionsManager,
+        cancellable = manualActionsManager,
     )
 }

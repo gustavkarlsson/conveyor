@@ -15,8 +15,8 @@ import se.gustavkarlsson.conveyor.Store
 internal class StoreImpl<State>(
     private val stateAccess: StateAccess<State>,
     private val actionIssuer: ActionIssuer<State>,
-    private val actionProcessors: Iterable<ActionProcessor<State>>,
-    private val cancellables: Iterable<Cancellable>,
+    private val actionProcessor: ActionProcessor<State>,
+    private val cancellable: Cancellable,
 ) : Store<State> {
     override val state = stateAccess
 
@@ -30,17 +30,13 @@ internal class StoreImpl<State>(
     }
 
     private fun CoroutineScope.startProcessing(): Job = launch {
-        for (processor in actionProcessors) {
-            launch { processor.process(stateAccess) }
-        }
+        launch { actionProcessor.process(stateAccess) }
         awaitCancellation()
     }
 
     private fun stop(throwable: Throwable?) {
         stage.stop(throwable)
-        for (cancellable in cancellables) {
-            cancellable.cancel(throwable)
-        }
+        cancellable.cancel(throwable)
     }
 
     override fun issue(action: Action<State>) {
