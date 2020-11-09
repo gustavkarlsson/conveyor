@@ -22,8 +22,8 @@ internal class Stage {
 
     fun requireStarted() =
         when (val current = current) {
-            Stage.NotYetStarted -> throw StoreNotYetStartedException()
             Stage.Started -> Unit
+            Stage.NotYetStarted -> throw StoreNotYetStartedException()
             is Stage.Stopped -> throw StoreStoppedException(current.cancellationReason)
         }
 
