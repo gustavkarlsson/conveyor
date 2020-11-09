@@ -1,20 +1,15 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.AbstractFlow
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-@OptIn(FlowPreview::class)
-internal class UpdatableStateFlowImpl<State>(initialState: State) : AbstractFlow<State>(), UpdatableStateFlow<State> {
-    private val state = MutableStateFlow(initialState)
-    override val value by state::value
-    override val replayCache by state::replayCache
-    override val subscriptionCount by state::subscriptionCount
+internal class UpdatableStateFlowImpl<State> private constructor(
+    private val state: MutableStateFlow<State>,
+) : StateFlow<State> by state, UpdatableStateFlow<State> {
+    constructor(initialValue: State) : this(MutableStateFlow(initialValue))
 
     private val writeMutex = Mutex()
     override suspend fun update(block: suspend State.() -> State): State =
@@ -24,5 +19,5 @@ internal class UpdatableStateFlowImpl<State>(initialState: State) : AbstractFlow
             newState
         }
 
-    override suspend fun collectSafely(collector: FlowCollector<State>) = state.collect(collector::emit)
+    override val subscriptionCount: StateFlow<Int> by state::subscriptionCount
 }
