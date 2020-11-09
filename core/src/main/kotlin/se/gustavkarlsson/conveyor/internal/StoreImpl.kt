@@ -5,6 +5,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
@@ -22,13 +23,15 @@ internal class StoreImpl<State>(
 
     override fun start(scope: CoroutineScope): Job {
         stage.start()
-        val job = scope.startProcessing()
+        val job = scope.processActions()
         job.invokeOnCompletion(::stop)
         return job
     }
 
-    private fun CoroutineScope.startProcessing(): Job = launch {
-        launch { actionManager.process(stateAccess) }
+    private fun CoroutineScope.processActions(): Job = launch {
+        actionManager.actions.collect { action ->
+            launch { action.execute(stateAccess) }
+        }
         awaitCancellation()
     }
 

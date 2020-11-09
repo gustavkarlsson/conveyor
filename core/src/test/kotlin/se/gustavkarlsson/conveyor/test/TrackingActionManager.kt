@@ -1,13 +1,12 @@
 package se.gustavkarlsson.conveyor.test
 
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
 import se.gustavkarlsson.conveyor.internal.ActionManager
 import strikt.api.Assertion
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
-import strikt.assertions.isEqualTo
 
 class TrackingActionManager<State> : ActionManager<State> {
     private val _issuedActions = mutableListOf<Action<State>>()
@@ -24,13 +23,7 @@ class TrackingActionManager<State> : ActionManager<State> {
         _cancellations += cause
     }
 
-    var processes = 0
-        private set
-
-    override suspend fun process(stateAccess: UpdatableStateFlow<State>) {
-        delay(1)
-        processes++
-    }
+    override val actions: Flow<Action<State>> = emptyFlow()
 }
 
 fun <State> Assertion.Builder<TrackingActionManager<State>>.hasIssued(
@@ -51,11 +44,4 @@ fun <State> Assertion.Builder<TrackingActionManager<State>>.hasNeverBeenCancelle
 ): Assertion.Builder<TrackingActionManager<State>> =
     with("cancellations", { cancellations }) {
         isEmpty()
-    }
-
-fun <State> Assertion.Builder<TrackingActionManager<State>>.hasCompletedCount(
-    expected: Int,
-): Assertion.Builder<TrackingActionManager<State>> =
-    with("processes", { processes }) {
-        isEqualTo(expected)
     }

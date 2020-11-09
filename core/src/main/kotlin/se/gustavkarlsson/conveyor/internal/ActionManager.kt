@@ -1,10 +1,10 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.flow.Flow
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 internal interface ActionManager<State> {
+    val actions: Flow<Action<State>>
     fun issue(action: Action<State>)
-    suspend fun process(stateAccess: UpdatableStateFlow<State>)
     fun cancel(cause: Throwable? = null)
 }

@@ -17,6 +17,7 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 
+// TODO Add tests for actions flow
 object ManualActionsManagerTest : Spek({
     val scope by memoizedTestCoroutineScope()
     val stateAccess by memoized { SimpleStateAccess(0) }
@@ -24,40 +25,6 @@ object ManualActionsManagerTest : Spek({
 
     describe("A ManualActionsManager") {
         val subject by memoized { ManualActionsManager<Int>() }
-
-        it("suspends while processing") {
-            expectSuspends {
-                subject.process(stateAccess)
-            }
-        }
-
-        describe("that is processing") {
-            lateinit var processingJob: Job
-            beforeEachTest {
-                processingJob = scope.launch {
-                    subject.process(stateAccess)
-                }
-            }
-            afterEachTest {
-                processingJob.cancel("Test ended")
-            }
-
-            it("executes issued actions in parallel") {
-                val delayAction = action<Int> { access ->
-                    delay(1)
-                    access.update { this + 1 }
-                }
-                subject.issue(delayAction)
-                subject.issue(delayAction)
-                scope.advanceTimeBy(1)
-                expectThat(stateAccess.value).isEqualTo(2)
-            }
-            it("throws if processing again") {
-                expectThrows<IllegalStateException> {
-                    subject.process(stateAccess)
-                }
-            }
-        }
 
         describe("that was cancelled") {
             beforeEachTest {
@@ -67,11 +34,6 @@ object ManualActionsManagerTest : Spek({
             it("throws exception when action is issued") {
                 expectThrows<CancellationException> {
                     subject.issue(incrementStateAction)
-                }
-            }
-            it("throws exception when processing") {
-                expectThrows<CancellationException> {
-                    subject.process(stateAccess)
                 }
             }
             it("can be cancelled again") {
