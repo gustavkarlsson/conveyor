@@ -1,3 +1,8 @@
 package se.gustavkarlsson.conveyor
 
-public interface UpdatableStateFlow<State> : SubscriptionCountingStateFlow<State>, StateUpdater<State>
+import kotlinx.coroutines.flow.StateFlow
+
+public interface UpdatableStateFlow<State> : StateFlow<State> {
+    public suspend fun update(block: suspend State.() -> State): State
+    public val subscriptionCount: StateFlow<Int>
+}
