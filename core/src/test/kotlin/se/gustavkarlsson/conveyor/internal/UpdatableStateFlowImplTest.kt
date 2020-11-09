@@ -13,13 +13,13 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-object StateManagerTest : Spek({
+object UpdatableStateFlowImplTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
 
-    describe("A minimal manager") {
-        val subject by memoized { StateManager(initialState) }
+    describe("An UpdatableStateFlowImpl") {
+        val subject by memoized { UpdatableStateFlowImpl(initialState) }
 
         it("value returns initial") {
             expectThat(subject.value).isEqualTo(initialState)

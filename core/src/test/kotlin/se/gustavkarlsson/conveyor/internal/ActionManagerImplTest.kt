@@ -10,13 +10,13 @@ import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import strikt.api.expectThrows
 
 // TODO Add tests for actions flow
-object ManualActionsManagerTest : Spek({
+object ActionManagerImplTest : Spek({
     val scope by memoizedTestCoroutineScope()
-    val state by memoized { StateManager(0) }
+    val state by memoized { UpdatableStateFlowImpl(0) }
     val incrementStateAction = IncrementStateAction()
 
-    describe("A ManualActionsManager") {
-        val subject by memoized { ManualActionsManager<Int>() }
+    describe("A ActionManagerImpl") {
+        val subject by memoized { ActionManagerImpl<Int>() }
 
         describe("that was cancelled") {
             beforeEachTest {

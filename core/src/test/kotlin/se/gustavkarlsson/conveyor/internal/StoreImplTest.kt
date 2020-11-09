@@ -23,7 +23,7 @@ import strikt.assertions.isEqualTo
 object StoreImplTest : Spek({
     val initialState = 0
     val action = action<Int> {}
-    val state by memoized { StateManager(initialState) }
+    val state by memoized { UpdatableStateFlowImpl(initialState) }
     val actionIssuer by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
