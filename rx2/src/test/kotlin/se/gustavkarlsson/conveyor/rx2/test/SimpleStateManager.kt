@@ -3,7 +3,6 @@ package se.gustavkarlsson.conveyor.rx2.test
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 // TODO Near duplicate of StateManager

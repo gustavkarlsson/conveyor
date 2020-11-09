@@ -68,7 +68,6 @@ object StoreIntegrationTest : Spek({
             describe("and had its job explicitly cancelled") {
                 beforeEachTest {
                     job.cancel("Purposefully cancelled before test")
-                    scope.advanceUntilIdle() // TODO figure one why this is necessary
                 }
 
                 it("throws exception when started") {
