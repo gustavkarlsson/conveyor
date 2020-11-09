@@ -43,7 +43,7 @@ object CompletableActionTest : Spek({
 })
 
 private class TrackingCompletableAction<State : Any>(private val stateToSet: State) : CompletableAction<State>() {
-    override fun createCompletable(state: RxStateAccess<State>): Completable =
+    override fun execute(state: UpdatableStateFlowable<State>): Completable =
         state
             .update { Single.just(stateToSet) }
             .ignoreElement()

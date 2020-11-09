@@ -8,14 +8,14 @@ import se.gustavkarlsson.conveyor.rx2.test.SimpleStateManager
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
-object RxStateAccessImplTest : Spek({
+object UpdatableStateFlowableImplTest : Spek({
     val state by memoized { SimpleStateManager(1) }
 
-    describe("An RxStateAccessImpl") {
-        val subject by memoized { RxStateAccessImpl(state) }
+    describe("An UpdatableStateFlowableImpl") {
+        val subject by memoized { UpdatableStateFlowableImpl(state) }
 
-        it("currentState gets state") {
-            val result = subject.currentState
+        it("value gets state") {
+            val result = subject.value
             expectThat(result).isEqualTo(1)
         }
         it("update returns new state") {
@@ -24,7 +24,7 @@ object RxStateAccessImplTest : Spek({
         }
         it("update sets state") {
             subject.update { Single.just(this + 1) }.blockingGet()
-            val result = subject.currentState
+            val result = subject.value
             expectThat(result).isEqualTo(2)
         }
         it("state gets flow") {
