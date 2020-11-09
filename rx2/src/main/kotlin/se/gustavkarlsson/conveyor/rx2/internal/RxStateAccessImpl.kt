@@ -6,13 +6,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.rx2.asFlowable
 import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.rxSingle
+import org.reactivestreams.Subscriber
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 import se.gustavkarlsson.conveyor.rx2.RxStateAccess
 
 @ExperimentalCoroutinesApi
 internal class RxStateAccessImpl<State : Any>(
     private val updatableState: UpdatableStateFlow<State>,
-) : RxStateAccess<State> {
+) : RxStateAccess<State>() {
     override val state: Flowable<State> = updatableState.asFlowable()
 
     override val currentState: State get() = updatableState.value
@@ -23,4 +24,6 @@ internal class RxStateAccessImpl<State : Any>(
                 block().await()
             }
         }
+
+    override fun subscribeActual(subscriber: Subscriber<in State>) = state.subscribe(subscriber)
 }
