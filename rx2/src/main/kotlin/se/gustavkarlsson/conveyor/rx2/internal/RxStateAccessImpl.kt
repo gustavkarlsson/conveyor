@@ -14,7 +14,7 @@ import se.gustavkarlsson.conveyor.rx2.RxStateAccess
 internal class RxStateAccessImpl<State : Any>(
     private val updatableState: UpdatableStateFlow<State>,
 ) : RxStateAccess<State>() {
-    override val state: Flowable<State> = updatableState.asFlowable()
+    private val flowable: Flowable<State> = updatableState.asFlowable()
 
     override val currentState: State get() = updatableState.value
 
@@ -25,5 +25,5 @@ internal class RxStateAccessImpl<State : Any>(
             }
         }
 
-    override fun subscribeActual(subscriber: Subscriber<in State>) = state.subscribe(subscriber)
+    override fun subscribeActual(subscriber: Subscriber<in State>) = flowable.subscribe(subscriber)
 }

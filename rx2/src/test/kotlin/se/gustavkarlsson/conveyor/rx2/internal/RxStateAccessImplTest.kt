@@ -28,7 +28,7 @@ object RxStateAccessImplTest : Spek({
             expectThat(result).isEqualTo(2)
         }
         it("state gets flow") {
-            val testSubscriber = subject.state.test()
+            val testSubscriber = subject.test()
             runBlocking { state.update { 2 } }
             testSubscriber.assertValues(1, 2)
         }
