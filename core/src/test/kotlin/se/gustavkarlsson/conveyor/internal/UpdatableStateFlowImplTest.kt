@@ -13,40 +13,34 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-object StateManagerTest : Spek({
+object UpdatableStateFlowImplTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
 
-    describe("A minimal manager") {
-        val subject by memoized { StateManager(initialState) }
+    describe("An UpdatableStateFlowImpl") {
+        val subject by memoized { UpdatableStateFlowImpl(initialState) }
 
-        it("state.value returns initial") {
-            expectThat(subject.state.value).isEqualTo(initialState)
+        it("value returns initial") {
+            expectThat(subject.value).isEqualTo(initialState)
         }
         it("flow emits initial") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.state.toList()
+                    subject.toList()
                 }
                 deferred.cancel()
                 deferred.await()
             }
             expectThat(result).containsExactly(initialState)
         }
-        it("state.value returns state1 after setting it to state1") {
-            runBlockingTest {
-                subject.set(state1)
-            }
-            expectThat(subject.state.value).isEqualTo(state1)
-        }
-        it("state.value returns new state after updating it") {
+        it("value returns new state after updating it") {
             runBlockingTest {
                 subject.update { this + state1 }
             }
-            expectThat(subject.state.value).isEqualTo(initialState + state1)
+            expectThat(subject.value).isEqualTo(initialState + state1)
         }
-        it("update and set runs sequentially") {
+        it("update twice runs sequentially") {
             runBlockingTest {
                 launch {
                     subject.update {
@@ -54,10 +48,12 @@ object StateManagerTest : Spek({
                         state1
                     }
                 }
-                subject.set(state2)
+                launch {
+                    subject.update { state2 }
+                }
                 advanceTimeBy(1)
             }
-            expectThat(subject.state.value).isEqualTo(state2)
+            expectThat(subject.value).isEqualTo(state2)
         }
         it("delayed update takes a while") {
             runBlockingTest {
@@ -67,15 +63,15 @@ object StateManagerTest : Spek({
                         state1
                     }
                 }
-                expectThat(subject.state.value).isEqualTo(initialState)
+                expectThat(subject.value).isEqualTo(initialState)
                 advanceTimeBy(1)
-                expectThat(subject.state.value).isEqualTo(state1)
+                expectThat(subject.value).isEqualTo(state1)
             }
         }
         it("flow emits initial and state1 when updating it to state1 when collecting") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.state.toList()
+                    subject.toList()
                 }
                 subject.update { state1 }
                 deferred.cancel()
@@ -91,7 +87,7 @@ object StateManagerTest : Spek({
         }
         it("subscriptionCount is 1 with 1 collectors") {
             val result = runBlockingTest {
-                val job = launch { subject.state.collect() }
+                val job = launch { subject.collect() }
                 val subscriptions = subject.subscriptionCount.first()
                 job.cancel()
                 subscriptions
@@ -100,8 +96,8 @@ object StateManagerTest : Spek({
         }
         it("subscriptionCount is 2 with 2 collectors") {
             val result = runBlockingTest {
-                val job1 = launch { subject.state.collect() }
-                val job2 = launch { subject.state.collect() }
+                val job1 = launch { subject.collect() }
+                val job2 = launch { subject.collect() }
                 val subscriptions = subject.subscriptionCount.first()
                 job1.cancel()
                 job2.cancel()
