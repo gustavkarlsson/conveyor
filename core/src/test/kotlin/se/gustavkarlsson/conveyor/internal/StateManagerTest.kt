@@ -34,19 +34,13 @@ object StateManagerTest : Spek({
             }
             expectThat(result).containsExactly(initialState)
         }
-        it("state.value returns state1 after setting it to state1") {
-            runBlockingTest {
-                subject.set(state1)
-            }
-            expectThat(subject.state.value).isEqualTo(state1)
-        }
         it("state.value returns new state after updating it") {
             runBlockingTest {
                 subject.update { this + state1 }
             }
             expectThat(subject.state.value).isEqualTo(initialState + state1)
         }
-        it("update and set runs sequentially") {
+        it("update twice runs sequentially") {
             runBlockingTest {
                 launch {
                     subject.update {
@@ -54,7 +48,9 @@ object StateManagerTest : Spek({
                         state1
                     }
                 }
-                subject.set(state2)
+                launch {
+                    subject.update { state2 }
+                }
                 advanceTimeBy(1)
             }
             expectThat(subject.state.value).isEqualTo(state2)

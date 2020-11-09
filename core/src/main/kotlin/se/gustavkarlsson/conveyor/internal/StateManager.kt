@@ -20,12 +20,6 @@ internal class StateManager<State>(initialState: State) : StateAccess<State> {
 
     private val writeMutex = Mutex()
 
-    override suspend fun set(state: State) {
-        writeMutex.withLock {
-            mutableFlow.value = state
-        }
-    }
-
     override suspend fun update(block: suspend State.() -> State): State =
         writeMutex.withLock {
             val state = state.value.block()

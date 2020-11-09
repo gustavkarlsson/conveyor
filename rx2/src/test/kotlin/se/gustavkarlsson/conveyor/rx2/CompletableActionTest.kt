@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.rx2
 
 import io.reactivex.Completable
+import io.reactivex.Single
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -26,7 +27,9 @@ object CompletableActionTest : Spek({
     describe("A lambda created CompletableAction") {
         val subject by memoized {
             completableAction<String> { stateAccess ->
-                stateAccess.set(stateToSet)
+                stateAccess
+                    .update { Single.just(stateToSet) }
+                    .ignoreElement()
             }
         }
 
@@ -40,5 +43,8 @@ object CompletableActionTest : Spek({
 })
 
 private class TrackingCompletableAction<State : Any>(private val stateToSet: State) : CompletableAction<State>() {
-    override fun createCompletable(stateAccess: RxStateAccess<State>): Completable = stateAccess.set(stateToSet)
+    override fun createCompletable(stateAccess: RxStateAccess<State>): Completable =
+        stateAccess
+            .update { Single.just(stateToSet) }
+            .ignoreElement()
 }

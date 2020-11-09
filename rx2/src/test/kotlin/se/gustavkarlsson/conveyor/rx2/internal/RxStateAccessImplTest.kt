@@ -14,14 +14,9 @@ object RxStateAccessImplTest : Spek({
     describe("An RxStateAccessImpl") {
         val subject by memoized { RxStateAccessImpl(stateAccess) }
 
-        it("get gets state") {
-            val result = subject.get()
+        it("currentState gets state") {
+            val result = subject.currentState
             expectThat(result).isEqualTo(1)
-        }
-        it("set sets state") {
-            subject.set(2).blockingAwait()
-            val result = stateAccess.state.value
-            expectThat(result).isEqualTo(2)
         }
         it("update returns new state") {
             val updateResult = subject.update { Single.just(this + 1) }.blockingGet()
@@ -29,12 +24,12 @@ object RxStateAccessImplTest : Spek({
         }
         it("update sets state") {
             subject.update { Single.just(this + 1) }.blockingGet()
-            val result = subject.get()
+            val result = subject.currentState
             expectThat(result).isEqualTo(2)
         }
-        it("flowable gets flow") {
+        it("state gets flow") {
             val testSubscriber = subject.state.test()
-            runBlocking { stateAccess.set(2) }
+            runBlocking { stateAccess.update { 2 } }
             testSubscriber.assertValues(1, 2)
         }
     }

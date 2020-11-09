@@ -10,15 +10,9 @@ class SimpleStateAccess<State>(initialState: State) : StateAccess<State> {
 
     override val state: StateFlow<State> = mutableFlow
 
-    var currentState by mutableFlow::value
-
     override suspend fun update(block: suspend State.() -> State): State {
-        val newState = currentState.block()
-        currentState = newState
+        val newState = mutableFlow.value.block()
+        mutableFlow.value = newState
         return newState
-    }
-
-    override suspend fun set(state: State) {
-        currentState = state
     }
 }
