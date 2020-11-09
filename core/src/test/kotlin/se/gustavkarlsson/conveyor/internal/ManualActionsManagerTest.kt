@@ -28,7 +28,7 @@ object ManualActionsManagerTest : Spek({
 
         describe("that was cancelled") {
             beforeEachTest {
-                subject.cancel()
+                subject.cancel(null)
             }
 
             it("throws exception when action is issued") {
@@ -37,7 +37,7 @@ object ManualActionsManagerTest : Spek({
                 }
             }
             it("can be cancelled again") {
-                subject.cancel()
+                subject.cancel(null)
             }
         }
     }
