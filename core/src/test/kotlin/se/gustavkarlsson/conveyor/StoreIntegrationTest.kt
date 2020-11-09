@@ -94,25 +94,4 @@ object StoreIntegrationTest : Spek({
             }
         }
     }
-    describe("A store with one simple live action") {
-        val store by memoized {
-            buildStore(initialState, liveActions = listOf(fixedStateAction1))
-        }
-
-        it("the state does not change before starting") {
-            expectThat(store.state.value).isEqualTo(initialState)
-        }
-        it("the state does not change when starting") {
-            store.start(scope)
-            expectThat(store.state.value).isEqualTo(initialState)
-        }
-        it("the state changes after started and first collector runs") {
-            store.start(scope)
-            scope.advanceUntilIdle() // TODO Figure out why this is necessary
-            val result = runBlockingTest {
-                store.state.first()
-            }
-            expectThat(result).isEqualTo(state1)
-        }
-    }
 })
