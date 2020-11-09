@@ -4,15 +4,15 @@ import io.reactivex.Single
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.rx2.test.SimpleStateAccess
+import se.gustavkarlsson.conveyor.rx2.test.SimpleStateManager
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object RxStateAccessImplTest : Spek({
-    val stateAccess by memoized { SimpleStateAccess(1) }
+    val state by memoized { SimpleStateManager(1) }
 
     describe("An RxStateAccessImpl") {
-        val subject by memoized { RxStateAccessImpl(stateAccess) }
+        val subject by memoized { RxStateAccessImpl(state) }
 
         it("currentState gets state") {
             val result = subject.currentState
@@ -29,7 +29,7 @@ object RxStateAccessImplTest : Spek({
         }
         it("state gets flow") {
             val testSubscriber = subject.state.test()
-            runBlocking { stateAccess.update { 2 } }
+            runBlocking { state.update { 2 } }
             testSubscriber.assertValues(1, 2)
         }
     }

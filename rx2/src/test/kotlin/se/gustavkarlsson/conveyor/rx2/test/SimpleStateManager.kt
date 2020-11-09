@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.test
+package se.gustavkarlsson.conveyor.rx2.test
 
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
@@ -6,12 +6,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-// TODO Duplicate of class in rx2
-class SimpleStateAccess<State>(initialState: State) : UpdatableStateFlow<State> {
+// TODO Near duplicate of StateManager
+class SimpleStateManager<State>(initialState: State) : UpdatableStateFlow<State> {
     private val mutableFlow = MutableStateFlow(initialState)
-    override val value: State by mutableFlow::value
-    override val replayCache: List<State> by mutableFlow::replayCache
-    override val subscriptionCount: StateFlow<Int> by mutableFlow::subscriptionCount
+    override val value by mutableFlow::value
+    override val replayCache by mutableFlow::replayCache
+    override val subscriptionCount by mutableFlow::subscriptionCount
 
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<State>) = mutableFlow.collect(collector)

@@ -9,23 +9,23 @@ import se.gustavkarlsson.conveyor.rx2.internal.RxStateAccessImpl
 
 @ExperimentalCoroutinesApi
 public abstract class CompletableAction<State : Any> : Action<State> {
-    final override suspend fun execute(stateAccess: UpdatableStateFlow<State>) {
-        val rxStateAccess = RxStateAccessImpl(stateAccess)
+    final override suspend fun execute(state: UpdatableStateFlow<State>) {
+        val rxStateAccess = RxStateAccessImpl(state)
         val completable = createCompletable(rxStateAccess)
         completable.await()
     }
 
-    protected abstract fun createCompletable(stateAccess: RxStateAccess<State>): Completable
+    protected abstract fun createCompletable(state: RxStateAccess<State>): Completable
 }
 
 @ExperimentalCoroutinesApi
 public fun <State : Any> completableAction(
-    createCompletable: (stateAccess: RxStateAccess<State>) -> Completable,
+    createCompletable: (state: RxStateAccess<State>) -> Completable,
 ): CompletableAction<State> = ConstructorCompletableAction(createCompletable)
 
 @ExperimentalCoroutinesApi
 private class ConstructorCompletableAction<State : Any>(
     private val makeCompletable: (RxStateAccess<State>) -> Completable,
 ) : CompletableAction<State>() {
-    override fun createCompletable(stateAccess: RxStateAccess<State>): Completable = makeCompletable(stateAccess)
+    override fun createCompletable(state: RxStateAccess<State>): Completable = makeCompletable(state)
 }

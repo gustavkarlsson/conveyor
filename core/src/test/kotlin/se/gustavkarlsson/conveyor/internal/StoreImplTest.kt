@@ -11,7 +11,6 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.SimpleStateAccess
 import se.gustavkarlsson.conveyor.test.TrackingActionManager
 import se.gustavkarlsson.conveyor.test.hasBeenCancelledWith
 import se.gustavkarlsson.conveyor.test.hasIssued
@@ -24,16 +23,11 @@ import strikt.assertions.isEqualTo
 object StoreImplTest : Spek({
     val initialState = 0
     val action = action<Int> {}
-    val stateAccess by memoized { SimpleStateAccess(initialState) }
+    val state by memoized { StateManager(initialState) }
     val actionIssuer by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized {
-            StoreImpl(
-                stateAccess = stateAccess,
-                actionManager = actionIssuer,
-            )
-        }
+        val subject by memoized { StoreImpl(state, actionIssuer) }
 
         it("state.value returns current state") {
             val result = subject.state.value

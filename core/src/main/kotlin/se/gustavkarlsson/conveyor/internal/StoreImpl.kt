@@ -10,10 +10,10 @@ import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 internal class StoreImpl<State>(
-    private val stateAccess: UpdatableStateFlow<State>,
+    private val updatableState: UpdatableStateFlow<State>,
     private val actionManager: ActionManager<State>,
 ) : Store<State> {
-    override val state = stateAccess
+    override val state = updatableState
 
     private val stage = Stage() // TODO Introduce interface?
 
@@ -26,9 +26,9 @@ internal class StoreImpl<State>(
 
     private fun CoroutineScope.processActions(): Job = launch {
         actionManager.actions.collect { action ->
-            launch { action.execute(stateAccess) }
+            launch { action.execute(updatableState) }
         }
-        awaitCancellation()
+        awaitCancellation() // TODO figure out if this is necessary
     }
 
     private fun stop(throwable: Throwable?) {

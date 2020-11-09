@@ -16,14 +16,13 @@ internal class StateManager<State>(initialState: State) : AbstractFlow<State>(),
     override val replayCache by mutableFlow::replayCache
     override val subscriptionCount = mutableFlow.subscriptionCount
 
-    override suspend fun collectSafely(collector: FlowCollector<State>) = mutableFlow.collect(collector::emit)
-
     private val writeMutex = Mutex()
-
     override suspend fun update(block: suspend State.() -> State): State =
         writeMutex.withLock {
             val state = value.block()
             mutableFlow.value = state
             state
         }
+
+    override suspend fun collectSafely(collector: FlowCollector<State>) = mutableFlow.collect(collector::emit)
 }

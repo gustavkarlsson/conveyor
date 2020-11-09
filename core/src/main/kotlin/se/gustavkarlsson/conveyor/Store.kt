@@ -14,5 +14,5 @@ public fun <State> CoroutineScope.start(store: Store<State>): Job =
     store.start(this)
 
 public fun <State> Store<State>.issue(
-    block: suspend (stateAccess: UpdatableStateFlow<State>) -> Unit,
+    block: suspend (state: UpdatableStateFlow<State>) -> Unit,
 ): Unit = issue(action(block))

@@ -15,5 +15,5 @@ public interface RxStore<State : Any> {
 
 @ExperimentalCoroutinesApi
 public fun <State : Any> RxStore<State>.issue(
-    block: (stateAccess: RxStateAccess<State>) -> Completable,
+    block: (state: RxStateAccess<State>) -> Completable,
 ): Unit = issue(completableAction(block))

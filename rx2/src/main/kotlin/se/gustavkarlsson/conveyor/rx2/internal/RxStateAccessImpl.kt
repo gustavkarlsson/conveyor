@@ -11,15 +11,15 @@ import se.gustavkarlsson.conveyor.rx2.RxStateAccess
 
 @ExperimentalCoroutinesApi
 internal class RxStateAccessImpl<State : Any>(
-    private val stateAccess: UpdatableStateFlow<State>,
+    private val updatableState: UpdatableStateFlow<State>,
 ) : RxStateAccess<State> {
-    override val state: Flowable<State> = stateAccess.asFlowable()
+    override val state: Flowable<State> = updatableState.asFlowable()
 
-    override val currentState: State get() = stateAccess.value
+    override val currentState: State get() = updatableState.value
 
     override fun update(block: State.() -> Single<State>): Single<State> =
         rxSingle {
-            stateAccess.update {
+            updatableState.update {
                 block().await()
             }
         }
