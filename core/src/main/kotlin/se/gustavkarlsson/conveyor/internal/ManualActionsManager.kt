@@ -11,7 +11,7 @@ internal class ManualActionsManager<State> : ActionManager<State> {
     private val actionChannel = Channel<Action<State>>(Channel.UNLIMITED)
     override val actions = actionChannel.consumeAsFlow()
 
-    override fun issue(action: Action<State>) = actionChannel.offerOrThrow(action)
+    override fun issue(action: Action<State>) { actionChannel.offer(action) }
 
     override fun cancel(cause: Throwable?) = actionChannel.cancel(cause as? CancellationException)
 }

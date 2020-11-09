@@ -19,7 +19,7 @@ internal class StoreImpl<State>(
 ) : Store<State> {
     override val state = stateAccess
 
-    private val stage = Stage()
+    private val stage = Stage() // TODO Introduce interface?
 
     override fun start(scope: CoroutineScope): Job {
         stage.start()
