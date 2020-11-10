@@ -22,8 +22,17 @@ object UpdatableStateFlowableImplTest : Spek({
             val updateResult = subject.update { Single.just(this + 1) }.blockingGet()
             expectThat(updateResult).isEqualTo(2)
         }
+        it("updateBlocking returns new state") {
+            val updateResult = subject.updateBlocking { this + 1 }
+            expectThat(updateResult).isEqualTo(2)
+        }
         it("update sets state") {
             subject.update { Single.just(this + 1) }.blockingGet()
+            val result = subject.value
+            expectThat(result).isEqualTo(2)
+        }
+        it("updateBlocking sets state") {
+            subject.updateBlocking { this + 1 }
             val result = subject.value
             expectThat(result).isEqualTo(2)
         }
