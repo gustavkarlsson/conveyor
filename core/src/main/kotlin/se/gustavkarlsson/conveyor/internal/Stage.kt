@@ -1,8 +1,8 @@
 package se.gustavkarlsson.conveyor.internal
 
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
-import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
+import se.gustavkarlsson.conveyor.StoreStoppedException
 
 internal class Stage {
     private var current: Stage = Stage.NotYetStarted
