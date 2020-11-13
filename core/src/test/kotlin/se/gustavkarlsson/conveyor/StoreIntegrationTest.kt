@@ -5,9 +5,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.test.SetStateAction
-import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.test.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.SetStateAction
+import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
+import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo

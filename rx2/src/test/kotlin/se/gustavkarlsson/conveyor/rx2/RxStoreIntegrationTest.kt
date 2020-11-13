@@ -6,7 +6,7 @@ import io.reactivex.disposables.Disposable
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.buildStore
-import se.gustavkarlsson.conveyor.rx2.test.memoizedTestCoroutineScope
+import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 
 object RxStoreIntegrationTest : Spek({
     val scope by memoizedTestCoroutineScope()
