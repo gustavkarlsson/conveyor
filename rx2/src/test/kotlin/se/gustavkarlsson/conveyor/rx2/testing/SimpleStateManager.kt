@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.rx2.test
+package se.gustavkarlsson.conveyor.rx2.testing
 
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector

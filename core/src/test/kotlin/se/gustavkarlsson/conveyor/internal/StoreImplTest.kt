@@ -11,11 +11,11 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.TrackingActionManager
-import se.gustavkarlsson.conveyor.test.hasBeenCancelledWith
-import se.gustavkarlsson.conveyor.test.hasIssued
-import se.gustavkarlsson.conveyor.test.hasNeverBeenCancelled
-import se.gustavkarlsson.conveyor.test.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.TrackingActionManager
+import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
+import se.gustavkarlsson.conveyor.testing.hasIssued
+import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
+import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo

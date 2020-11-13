@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.test
+package se.gustavkarlsson.conveyor.testing
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
