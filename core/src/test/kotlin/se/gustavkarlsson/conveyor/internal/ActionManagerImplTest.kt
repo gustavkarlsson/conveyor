@@ -14,6 +14,7 @@ import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
+import strikt.assertions.message
 
 object ActionManagerImplTest : Spek({
     val action = action<Int> {}
@@ -43,7 +44,8 @@ object ActionManagerImplTest : Spek({
         }
 
         describe("that was cancelled") {
-            val exception = CancellationException("Purposefully cancelled")
+            val cancellationMessage = "Purposefully cancelled"
+            val exception = CancellationException(cancellationMessage)
             beforeEachTest {
                 subject.cancel(exception)
             }
@@ -51,12 +53,12 @@ object ActionManagerImplTest : Spek({
             it("actions emits error") {
                 expectThrows<CancellationException> {
                     subject.actions.first()
-                }.isEqualTo(exception)
+                }.message.isEqualTo(cancellationMessage)
             }
             it("throws exception when action is issued") {
                 expectThrows<CancellationException> {
                     subject.issue(action)
-                }.isEqualTo(exception)
+                }.message.isEqualTo(cancellationMessage)
             }
             it("can be cancelled again") {
                 subject.cancel(null)
