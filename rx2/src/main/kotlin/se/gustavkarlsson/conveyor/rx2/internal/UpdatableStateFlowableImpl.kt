@@ -2,7 +2,9 @@ package se.gustavkarlsson.conveyor.rx2.internal
 
 import io.reactivex.Flowable
 import io.reactivex.Single
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.rx2.asFlowable
 import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.rxSingle
@@ -19,10 +21,15 @@ internal class UpdatableStateFlowableImpl<State : Any>(
     override val value: State get() = state.value
     override fun subscribeActual(subscriber: Subscriber<in State>) = flowable.subscribe(subscriber)
     override fun update(block: State.() -> Single<State>): Single<State> =
-        rxSingle {
+        rxSingle(Dispatchers.Unconfined) {
             state.update {
                 block().await()
             }
         }
+
+    override fun updateBlocking(block: State.() -> State): State = runBlocking {
+        state.update { block() }
+    }
+
     override val subscriptionCount: StateFlowable<Int> = StateFlowableImpl(state.subscriptionCount)
 }

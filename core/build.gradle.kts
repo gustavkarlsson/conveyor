@@ -35,17 +35,10 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
 
-    // Junit
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${Versions.junit5}")
+    testImplementation(project(":testing"))
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${Versions.junit5}")
-
-    //Spek
-    testImplementation("org.spekframework.spek2:spek-dsl-jvm:${Versions.spek}")
     testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spek}")
     testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
-
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:${Versions.kotlinxCoroutines}")
-    testImplementation("io.strikt:strikt-core:${Versions.strikt}")
 
     detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
 }
@@ -61,9 +54,8 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = Versions.java.toString()
-    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
-    if (name == "compileTestKotlin") {
+    kotlinOptions.jvmTarget = Versions.java
+if (name == "compileTestKotlin") {
         kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.FlowPreview"
         kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
     }

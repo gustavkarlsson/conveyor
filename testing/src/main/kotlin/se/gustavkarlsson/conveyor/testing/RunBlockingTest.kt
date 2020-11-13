@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.test
+package se.gustavkarlsson.conveyor.testing
 
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope

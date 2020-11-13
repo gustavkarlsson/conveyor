@@ -1,5 +1,9 @@
 package se.gustavkarlsson.conveyor
 
+public class StoreNotYetStartedException : IllegalStateException("Store has not yet been started")
+
+public class StoreAlreadyStartedException : IllegalStateException("Store has already been started")
+
 public class StoreStoppedException(
     public val cancellationReason: Throwable?,
 ) : IllegalStateException(createMessage(cancellationReason))
