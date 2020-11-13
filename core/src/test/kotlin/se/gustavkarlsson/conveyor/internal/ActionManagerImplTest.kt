@@ -8,8 +8,6 @@ import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.IncrementStateAction
-import se.gustavkarlsson.conveyor.test.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.test.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
