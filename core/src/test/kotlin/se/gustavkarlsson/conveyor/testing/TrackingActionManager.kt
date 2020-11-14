@@ -1,8 +1,8 @@
 package se.gustavkarlsson.conveyor.testing
 
-import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.consumeAsFlow
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.internal.ActionManager
 import strikt.api.Assertion
@@ -15,6 +15,7 @@ class TrackingActionManager<State> : ActionManager<State> {
 
     override fun issue(action: Action<State>) {
         _issuedActions.add(action)
+        require(actionsChannel.offer(action)) { "Offer failed" }
     }
 
     private val _cancellations = mutableListOf<Throwable?>()
@@ -24,7 +25,8 @@ class TrackingActionManager<State> : ActionManager<State> {
         _cancellations += cause
     }
 
-    override val actions: Flow<Action<State>> = flow { awaitCancellation() }
+    private val actionsChannel = Channel<Action<State>>()
+    override val actions: Flow<Action<State>> = actionsChannel.consumeAsFlow()
 }
 
 fun <State> Assertion.Builder<TrackingActionManager<State>>.hasIssued(

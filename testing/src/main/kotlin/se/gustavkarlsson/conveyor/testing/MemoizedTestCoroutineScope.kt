@@ -3,10 +3,10 @@ package se.gustavkarlsson.conveyor.testing
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.TestCoroutineScope
-import org.spekframework.spek2.dsl.GroupBody
+import org.spekframework.spek2.dsl.LifecycleAware
 import org.spekframework.spek2.lifecycle.MemoizedValue
 
-fun GroupBody.memoizedTestCoroutineScope(): MemoizedValue<TestCoroutineScope> =
+fun LifecycleAware.memoizedTestCoroutineScope(): MemoizedValue<TestCoroutineScope> =
     memoized(
         factory = { TestCoroutineScope(Job()) },
         destructor = {

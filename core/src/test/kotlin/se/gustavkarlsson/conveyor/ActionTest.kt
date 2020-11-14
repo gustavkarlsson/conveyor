@@ -8,9 +8,9 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object ActionTest : Spek({
+    val state by memoized { UpdatableStateFlowImpl(0) }
 
-    describe("A simple action") {
-        val state by memoized { UpdatableStateFlowImpl(0) }
+    describe("An action created with lambda") {
         val subject by memoized {
             action<Int> { state ->
                 state.update { this + 1 }

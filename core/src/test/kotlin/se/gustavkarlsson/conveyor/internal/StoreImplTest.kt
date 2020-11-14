@@ -22,12 +22,14 @@ import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
     val initialState = 0
-    val action = action<Int> {}
+    val action = action<Int> { state ->
+        state.update { this + 1 }
+    }
     val state by memoized { UpdatableStateFlowImpl(initialState) }
-    val actionIssuer by memoized { TrackingActionManager<Int>() }
+    val actionManager by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionIssuer) }
+        val subject by memoized { StoreImpl(state, actionManager) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -62,10 +64,15 @@ object StoreImplTest : Spek({
             }
             it("issue issues action") {
                 subject.issue(action)
-                expectThat(actionIssuer).hasIssued(action)
+                expectThat(actionManager).hasIssued(action)
             }
             it("nothing has been cancelled") {
-                expectThat(actionIssuer).hasNeverBeenCancelled()
+                expectThat(actionManager).hasNeverBeenCancelled()
+            }
+            it("actions are processed when issued") {
+                subject.issue(action)
+                val result = subject.state.value
+                expectThat(result).isEqualTo(1)
             }
 
             describe("that was stopped") {
@@ -87,8 +94,8 @@ object StoreImplTest : Spek({
                         subject.issue(action)
                     }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
-                it("actionIssuer has been cancelled by exception") {
-                    expectThat(actionIssuer).hasBeenCancelledWith(cancellationException)
+                it("actionManager has been cancelled by exception") {
+                    expectThat(actionManager).hasBeenCancelledWith(cancellationException)
                 }
             }
         }
