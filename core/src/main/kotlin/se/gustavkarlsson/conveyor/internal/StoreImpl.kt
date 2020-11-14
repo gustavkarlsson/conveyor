@@ -3,6 +3,8 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
@@ -11,8 +13,11 @@ import se.gustavkarlsson.conveyor.UpdatableStateFlow
 internal class StoreImpl<State>(
     private val updatableState: UpdatableStateFlow<State>,
     private val actionManager: ActionManager<State>,
+    startActions: Iterable<Action<State>>, // FIXME Test
 ) : Store<State> {
     override val state = updatableState
+
+    private var startActions = startActions.toMutableList()
 
     private val stage = Stage() // TODO Introduce interface?
 
@@ -24,8 +29,20 @@ internal class StoreImpl<State>(
     }
 
     private fun CoroutineScope.processActions(): Job = launch {
-        actionManager.actions.collect { action ->
+        val actions = flow {
+            emitAll(consumeStartActions())
+            emitAll(actionManager.actions)
+        }
+        actions.collect { action ->
             launch { action.execute(updatableState) }
+        }
+    }
+
+    private fun consumeStartActions() = flow {
+        val actions = startActions
+        startActions.clear()
+        for (action in actions) {
+            emit(action)
         }
     }
 

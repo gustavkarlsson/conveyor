@@ -29,7 +29,7 @@ object StoreImplTest : Spek({
     val actionManager by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionManager) }
+        val subject by memoized { StoreImpl(state, actionManager, emptyList()) } // FIXME Test startActions
 
         it("state.value returns current state") {
             val result = subject.state.value
