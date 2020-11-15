@@ -7,5 +7,5 @@ public interface ActionIssuer<State> {
 public fun <State> ActionIssuer<State>.issue(
     block: suspend (state: UpdatableStateFlow<State>) -> Unit,
 ) {
-    issue(action(block))
+    issue(Action(block))
 }

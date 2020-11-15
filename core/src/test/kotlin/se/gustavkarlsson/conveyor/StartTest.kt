@@ -9,7 +9,7 @@ object StartTest : Spek({
 
     describe("A store") {
         val store by memoized {
-            buildStore(0)
+            Store(0)
         }
 
         it("starts when invoking start extension function") {
