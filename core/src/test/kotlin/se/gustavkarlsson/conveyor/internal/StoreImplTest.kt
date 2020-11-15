@@ -10,7 +10,7 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
-import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.TrackingActionManager
 import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
 import se.gustavkarlsson.conveyor.testing.hasIssued
@@ -22,9 +22,7 @@ import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
     val initialState = 0
-    val action = Action<Int> { state ->
-        state.update { this + 1 }
-    }
+    val action = IncrementingAction(1)
     val state by memoized { UpdatableStateFlowImpl(initialState) }
     val actionManager by memoized { TrackingActionManager<Int>() }
 
