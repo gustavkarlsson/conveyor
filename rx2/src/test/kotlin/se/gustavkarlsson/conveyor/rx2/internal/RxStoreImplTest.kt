@@ -10,7 +10,6 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.action
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.first
@@ -21,7 +20,7 @@ import strikt.assertions.isTrue
 object RxStoreImplTest : Spek({
     val state = "state"
     val innerStore by memoized { FakeStore(state) }
-    val action = action<String> {}
+    val action = Action<String> {}
 
     describe("An RxStoreImpl") {
         val subject by memoized { RxStoreImpl(innerStore) }

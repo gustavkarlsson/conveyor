@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -15,7 +15,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.message
 
 object ActionManagerImplTest : Spek({
-    val action = action<Int> {}
+    val action = Action<Int> {}
 
     describe("A ActionManagerImpl") {
         val subject by memoized { ActionManagerImpl<Int>() }

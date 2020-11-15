@@ -12,7 +12,7 @@ object ActionTest : Spek({
 
     describe("An action created with lambda") {
         val subject by memoized {
-            action<Int> { state ->
+            Action<Int> { state ->
                 state.update { this + 1 }
             }
         }

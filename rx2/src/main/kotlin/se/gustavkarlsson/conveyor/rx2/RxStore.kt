@@ -16,5 +16,5 @@ public interface RxStore<State : Any> : ActionIssuer<State> {
 public fun <State : Any> ActionIssuer<State>.issue(
     block: (state: UpdatableStateFlowable<State>) -> Completable,
 ) {
-    issue(completableAction(block))
+    issue(CompletableAction(block))
 }

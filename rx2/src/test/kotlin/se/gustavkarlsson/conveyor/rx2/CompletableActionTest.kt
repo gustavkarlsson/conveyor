@@ -26,7 +26,7 @@ object CompletableActionTest : Spek({
 
     describe("A lambda created CompletableAction") {
         val subject by memoized {
-            completableAction<String> { state ->
+            CompletableAction<String> { state ->
                 state
                     .update { Single.just(stateToSet) }
                     .ignoreElement()

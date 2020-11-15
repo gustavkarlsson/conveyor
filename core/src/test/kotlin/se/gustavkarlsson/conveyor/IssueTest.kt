@@ -12,7 +12,7 @@ object IssueTest : Spek({
 
     describe("A store that was started") {
         val store by memoized {
-            buildStore(0).apply { start(scope) }
+            Store(0).apply { start(scope) }
         }
 
         it("issue extension function executes body as expected") {
