@@ -21,7 +21,7 @@ object StoreIntegrationTest : Spek({
 
     describe("A minimal store") {
         val subject by memoized {
-            buildStore(initialState)
+            Store(initialState)
         }
 
         it("state emits initial") {
@@ -77,7 +77,7 @@ object StoreIntegrationTest : Spek({
                 }
                 it("throws exception when an action is issued") {
                     expectThrows<StoreStoppedException> {
-                        subject.issue(action {})
+                        subject.issue(Action {})
                     }
                 }
                 it("state.value returns initial") {
