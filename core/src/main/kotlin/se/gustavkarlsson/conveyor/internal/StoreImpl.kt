@@ -13,7 +13,7 @@ import se.gustavkarlsson.conveyor.UpdatableStateFlow
 internal class StoreImpl<State>(
     private val updatableState: UpdatableStateFlow<State>,
     private val actionManager: ActionManager<State>,
-    startActions: Iterable<Action<State>>, // FIXME Test
+    startActions: Iterable<Action<State>>,
 ) : Store<State> {
     override val state = updatableState
 
@@ -39,7 +39,7 @@ internal class StoreImpl<State>(
     }
 
     private fun consumeStartActions() = flow {
-        val actions = startActions
+        val actions = startActions.toList()
         startActions.clear()
         for (action in actions) {
             emit(action)
