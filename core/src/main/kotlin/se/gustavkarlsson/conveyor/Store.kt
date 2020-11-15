@@ -13,8 +13,14 @@ public interface Store<State> : ActionIssuer<State> {
 }
 
 @Suppress("FunctionName")
-public fun <State> Store(initialState: State): Store<State> =
-    StoreImpl(UpdatableStateFlowImpl(initialState), ActionManagerImpl())
+public fun <State> Store(
+    initialState: State,
+    startActions: Iterable<Action<State>> = emptyList(), // FIXME Test
+): Store<State> {
+    val updatableStateFlow = UpdatableStateFlowImpl(initialState)
+    val actionManager = ActionManagerImpl<State>()
+    return StoreImpl(updatableStateFlow, actionManager, startActions)
+}
 
 public fun <State> CoroutineScope.start(store: Store<State>): Job =
     store.start(this)
