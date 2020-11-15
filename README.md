@@ -9,9 +9,59 @@ A pragmatic and predictable state container utilizing kotlin coroutines.
 
 Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
-## Usage
+## Example
+```kotlin
+fun main() {
+    val store = buildStore(initialState = "initial")
+    with(GlobalScope) {
+        // Start processing actions
+        val job = start(store)
 
-Start with `buildStore(initialState)` and explore from there :wink:
+        // Print state changes
+        launch {
+            store.state.collect {
+                println("State: $it")
+            }
+        }
+
+        // Issue a simple action that sets the state
+        store.issue { state ->
+            state.update { "updating" }
+        }
+
+        // Issue a more complex action that repeatedly updates the state
+        store.issue(RepeatingAppenderAction(append = "."))
+
+        // Run for a while
+        runBlocking { delay(5000) }
+
+        // Stop processing actions
+        job.cancel()
+    }
+}
+
+private class RepeatingAppenderAction(
+    private val append: String,
+) : Action<String> {
+    override suspend fun execute(state: UpdatableStateFlow<String>) {
+        while (true) {
+            delay(1000)
+            state.update { this + append }
+        }
+    }
+}
+```
+
+Outputs:
+
+```
+State: initial
+State: updating
+State: updating.
+State: updating..
+State: updating...
+State: updating....
+```
 
 ## Downloading
 

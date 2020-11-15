@@ -1,50 +1,58 @@
 package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StateAccess
 import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-@FlowPreview
-@ExperimentalCoroutinesApi
 internal class StoreImpl<State>(
-    private val stateAccess: StateAccess<State>,
-    private val actionIssuer: ActionIssuer<State>,
-    private val actionProcessors: Iterable<ActionProcessor<State>>,
-    private val cancellables: Iterable<Cancellable>,
+    private val updatableState: UpdatableStateFlow<State>,
+    private val actionManager: ActionManager<State>,
+    startActions: Iterable<Action<State>>,
 ) : Store<State> {
-    override val state = stateAccess.state
+    override val state = updatableState
 
-    private val stage = Stage()
+    private var startActions = startActions.toMutableList()
+
+    private val stage = Stage() // TODO Introduce interface?
 
     override fun start(scope: CoroutineScope): Job {
         stage.start()
-        val job = scope.startProcessing()
+        val job = scope.processActions()
         job.invokeOnCompletion(::stop)
         return job
     }
 
-    private fun CoroutineScope.startProcessing(): Job = launch {
-        for (processor in actionProcessors) {
-            launch { processor.process(stateAccess) }
+    private fun CoroutineScope.processActions(): Job = launch {
+        val actions = flow {
+            emitAll(consumeStartActions())
+            emitAll(actionManager.actions)
         }
-        awaitCancellation()
+        actions.collect { action ->
+            launch { action.execute(updatableState) }
+        }
+    }
+
+    private fun consumeStartActions() = flow {
+        val actions = startActions.toList()
+        startActions.clear()
+        for (action in actions) {
+            emit(action)
+        }
     }
 
     private fun stop(throwable: Throwable?) {
         stage.stop(throwable)
-        for (cancellable in cancellables) {
-            cancellable.cancel(throwable)
-        }
+        actionManager.cancel(throwable)
     }
 
     override fun issue(action: Action<State>) {
         stage.requireStarted()
-        actionIssuer.issue(action)
+        actionManager.issue(action)
     }
 }

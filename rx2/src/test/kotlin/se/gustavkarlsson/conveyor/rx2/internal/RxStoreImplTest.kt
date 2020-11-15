@@ -10,7 +10,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.testing.NullAction
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.first
@@ -21,13 +21,13 @@ import strikt.assertions.isTrue
 object RxStoreImplTest : Spek({
     val state = "state"
     val innerStore by memoized { FakeStore(state) }
-    val action = action<String> {}
+    val action = NullAction<String>()
 
     describe("An RxStoreImpl") {
         val subject by memoized { RxStoreImpl(innerStore) }
 
-        it("currentState gets state") {
-            val currentState = subject.currentState
+        it("state.value gets state") {
+            val currentState = subject.state.value
             expectThat(currentState).isEqualTo(state)
         }
         it("state gets state") {

@@ -4,28 +4,29 @@ import io.reactivex.Completable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.rx2.await
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StateAccess
-import se.gustavkarlsson.conveyor.rx2.internal.RxStateAccessImpl
+import se.gustavkarlsson.conveyor.UpdatableStateFlow
+import se.gustavkarlsson.conveyor.rx2.internal.UpdatableStateFlowableImpl
 
 @ExperimentalCoroutinesApi
 public abstract class CompletableAction<State : Any> : Action<State> {
-    final override suspend fun execute(stateAccess: StateAccess<State>) {
-        val rxStateAccess = RxStateAccessImpl(stateAccess)
-        val completable = createCompletable(rxStateAccess)
+    final override suspend fun execute(state: UpdatableStateFlow<State>) {
+        val flowable = UpdatableStateFlowableImpl(state)
+        val completable = execute(flowable)
         completable.await()
     }
 
-    protected abstract fun createCompletable(stateAccess: RxStateAccess<State>): Completable
+    protected abstract fun execute(state: UpdatableStateFlowable<State>): Completable
 }
 
 @ExperimentalCoroutinesApi
-public fun <State : Any> completableAction(
-    createCompletable: (stateAccess: RxStateAccess<State>) -> Completable,
-): CompletableAction<State> = ConstructorCompletableAction(createCompletable)
+@Suppress("FunctionName")
+public fun <State : Any> CompletableAction(
+    block: (state: UpdatableStateFlowable<State>) -> Completable,
+): CompletableAction<State> = ConstructorCompletableAction(block)
 
 @ExperimentalCoroutinesApi
 private class ConstructorCompletableAction<State : Any>(
-    private val makeCompletable: (RxStateAccess<State>) -> Completable,
+    private val block: (UpdatableStateFlowable<State>) -> Completable,
 ) : CompletableAction<State>() {
-    override fun createCompletable(stateAccess: RxStateAccess<State>): Completable = makeCompletable(stateAccess)
+    override fun execute(state: UpdatableStateFlowable<State>): Completable = block(state)
 }

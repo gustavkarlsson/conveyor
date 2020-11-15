@@ -10,37 +10,24 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
-import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.DelayingTrackingActionProcessor
-import se.gustavkarlsson.conveyor.test.SimpleStateAccess
-import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.test.TrackingCancellable
-import se.gustavkarlsson.conveyor.test.hasBeenCancelledWith
-import se.gustavkarlsson.conveyor.test.hasCompletedCount
-import se.gustavkarlsson.conveyor.test.hasIssued
-import se.gustavkarlsson.conveyor.test.hasNeverBeenCancelled
-import se.gustavkarlsson.conveyor.test.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.IncrementingAction
+import se.gustavkarlsson.conveyor.testing.TrackingActionManager
+import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
+import se.gustavkarlsson.conveyor.testing.hasIssued
+import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
+import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
     val initialState = 0
-    val action = action<Int> {}
-    val stateAccess by memoized { SimpleStateAccess(initialState) }
-    val actionIssuer by memoized { TrackingActionIssuer<Int>() }
-    val processor by memoized { DelayingTrackingActionProcessor<Int>() }
-    val cancellable by memoized { TrackingCancellable() }
+    val action = IncrementingAction(1)
+    val state by memoized { UpdatableStateFlowImpl(initialState) }
+    val actionManager by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized {
-            StoreImpl(
-                stateAccess = stateAccess,
-                actionIssuer = actionIssuer,
-                actionProcessors = listOf(processor, processor),
-                cancellables = listOf(cancellable),
-            )
-        }
+        val subject by memoized { StoreImpl(state, actionManager, emptyList()) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -75,15 +62,15 @@ object StoreImplTest : Spek({
             }
             it("issue issues action") {
                 subject.issue(action)
-                expectThat(actionIssuer).hasIssued(action)
-            }
-            it("processors run in parallel") {
-                expectThat(processor).hasCompletedCount(0)
-                startScope.advanceTimeBy(1)
-                expectThat(processor).hasCompletedCount(2)
+                expectThat(actionManager).hasIssued(action)
             }
             it("nothing has been cancelled") {
-                expectThat(cancellable).hasNeverBeenCancelled()
+                expectThat(actionManager).hasNeverBeenCancelled()
+            }
+            it("actions are processed when issued") {
+                subject.issue(action)
+                val result = subject.state.value
+                expectThat(result).isEqualTo(1)
             }
 
             describe("that was stopped") {
@@ -105,9 +92,31 @@ object StoreImplTest : Spek({
                         subject.issue(action)
                     }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
-                it("cancellable has been cancelled by exception") {
-                    expectThat(cancellable).hasBeenCancelledWith(cancellationException)
+                it("actionManager has been cancelled by exception") {
+                    expectThat(actionManager).hasBeenCancelledWith(cancellationException)
                 }
+            }
+        }
+    }
+    describe("A store with two start actions") {
+        val subject by memoized { StoreImpl(state, actionManager, listOf(action, action)) }
+
+        it("no action has run") {
+            expectThat(state.value).isEqualTo(0)
+        }
+
+        describe("that was started") {
+            val startScope by memoized { TestCoroutineScope() }
+            lateinit var job: Job
+            beforeEachTest {
+                job = subject.start(startScope)
+            }
+            afterEachTest {
+                job.cancel("Test ended")
+            }
+
+            it("issued both actions") {
+                expectThat(state.value).isEqualTo(2)
             }
         }
     }
