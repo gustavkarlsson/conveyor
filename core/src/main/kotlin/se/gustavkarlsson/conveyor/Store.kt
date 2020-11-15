@@ -15,7 +15,7 @@ public interface Store<State> : ActionIssuer<State> {
 @Suppress("FunctionName")
 public fun <State> Store(
     initialState: State,
-    startActions: Iterable<Action<State>> = emptyList(), // FIXME Test
+    startActions: Iterable<Action<State>> = emptyList(),
 ): Store<State> {
     val updatableStateFlow = UpdatableStateFlowImpl(initialState)
     val actionManager = ActionManagerImpl<State>()
