@@ -16,11 +16,21 @@ public interface Store<State> : ActionIssuer<State> {
 public fun <State> Store(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
+    plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val updatableStateFlow = UpdatableStateFlowImpl(initialState)
+    val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
+    val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
+    val updatableStateFlow = UpdatableStateFlowImpl(overriddenInitialState)
     val actionManager = ActionManagerImpl<State>()
-    return StoreImpl(updatableStateFlow, actionManager, startActions)
+    return StoreImpl(updatableStateFlow, actionManager, overriddenStartActions)
 }
 
 public fun <State> CoroutineScope.start(store: Store<State>): Job =
     store.start(this)
+
+private fun <State, T> T.override(
+    plugins: Iterable<Plugin<State>>,
+    operation: Plugin<State>.(T) -> T,
+): T = plugins.fold(this) { acc: T, plugin: Plugin<State> ->
+    plugin.operation(acc)
+}
