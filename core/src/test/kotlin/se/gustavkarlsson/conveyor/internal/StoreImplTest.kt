@@ -27,7 +27,7 @@ object StoreImplTest : Spek({
     val actionManager by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionManager, emptyList()) }
+        val subject by memoized { StoreImpl(state, actionManager, emptyList(), emptyList()) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -99,7 +99,7 @@ object StoreImplTest : Spek({
         }
     }
     describe("A store with two start actions") {
-        val subject by memoized { StoreImpl(state, actionManager, listOf(action, action)) }
+        val subject by memoized { StoreImpl(state, actionManager, listOf(action, action), emptyList()) }
 
         it("no action has run") {
             expectThat(state.value).isEqualTo(0)

@@ -18,11 +18,15 @@ public fun <State> Store(
     startActions: Iterable<Action<State>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
+    val emptyList = emptyList<Transformer<Action<State>>>().asIterable()
+
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
+    val overriddenActionTransformers = emptyList.override(plugins) { overrideActionTransformers(it) }
+
     val updatableStateFlow = UpdatableStateFlowImpl(overriddenInitialState)
     val actionManager = ActionManagerImpl<State>()
-    return StoreImpl(updatableStateFlow, actionManager, overriddenStartActions)
+    return StoreImpl(updatableStateFlow, actionManager, overriddenStartActions, overriddenActionTransformers)
 }
 
 public fun <State> CoroutineScope.start(store: Store<State>): Job =

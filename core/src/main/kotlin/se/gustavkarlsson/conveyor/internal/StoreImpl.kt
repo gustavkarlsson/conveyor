@@ -8,12 +8,14 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 internal class StoreImpl<State>(
     private val updatableState: UpdatableStateFlow<State>,
     private val actionManager: ActionManager<State>,
     startActions: Iterable<Action<State>>,
+    private val actionTransformers: Iterable<Transformer<Action<State>>>, // TODO test
 ) : Store<State> {
     override val state = updatableState
 
@@ -33,9 +35,11 @@ internal class StoreImpl<State>(
             emitAll(consumeStartActions())
             emitAll(actionManager.actions)
         }
-        actions.collect { action ->
-            launch { action.execute(updatableState) }
-        }
+        actions
+            .transform(actionTransformers)
+            .collect { action ->
+                launch { action.execute(updatableState) }
+            }
     }
 
     private fun consumeStartActions() = flow {
