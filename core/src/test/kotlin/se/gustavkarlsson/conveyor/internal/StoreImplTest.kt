@@ -27,7 +27,7 @@ object StoreImplTest : Spek({
     val actionManager by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionManager, emptyList(), emptyList()) }
+        val subject by memoized { StoreImpl(state, actionManager, emptyList()) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -95,28 +95,6 @@ object StoreImplTest : Spek({
                 it("actionManager has been cancelled by exception") {
                     expectThat(actionManager).hasBeenCancelledWith(cancellationException)
                 }
-            }
-        }
-    }
-    describe("A store with two start actions") {
-        val subject by memoized { StoreImpl(state, actionManager, listOf(action, action), emptyList()) }
-
-        it("no action has run") {
-            expectThat(state.value).isEqualTo(0)
-        }
-
-        describe("that was started") {
-            val startScope by memoized { TestCoroutineScope() }
-            lateinit var job: Job
-            beforeEachTest {
-                job = subject.start(startScope)
-            }
-            afterEachTest {
-                job.cancel("Test ended")
-            }
-
-            it("issued both actions") {
-                expectThat(state.value).isEqualTo(2)
             }
         }
     }

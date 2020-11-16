@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.internal.ActionManagerImpl
+import se.gustavkarlsson.conveyor.internal.ActionProcessor
 import se.gustavkarlsson.conveyor.internal.StoreImpl
 import se.gustavkarlsson.conveyor.internal.UpdatableStateFlowImpl
 
@@ -18,15 +19,25 @@ public fun <State> Store(
     startActions: Iterable<Action<State>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val emptyList = emptyList<Transformer<Action<State>>>().asIterable()
+    val initialActionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
-    val overriddenActionTransformers = emptyList.override(plugins) { overrideActionTransformers(it) }
+    val overriddenActionTransformers = initialActionTransformers.override(plugins) { overrideActionTransformers(it) }
 
-    val updatableStateFlow = UpdatableStateFlowImpl(overriddenInitialState)
     val actionManager = ActionManagerImpl<State>()
-    return StoreImpl(updatableStateFlow, actionManager, overriddenStartActions, overriddenActionTransformers)
+    val updatableStateFlow = UpdatableStateFlowImpl(overriddenInitialState)
+    val actionProcessor = ActionProcessor(
+        startActions = overriddenStartActions,
+        actionStream = actionManager.actions,
+        transformers = overriddenActionTransformers,
+        updatableState = updatableStateFlow
+    )
+    return StoreImpl(
+        updatableState = updatableStateFlow,
+        actionManager = actionManager,
+        processors = listOf(actionProcessor),
+    )
 }
 
 public fun <State> CoroutineScope.start(store: Store<State>): Job =
