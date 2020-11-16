@@ -11,6 +11,7 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
+import se.gustavkarlsson.conveyor.testing.SuspendingProcessor
 import se.gustavkarlsson.conveyor.testing.TrackingActionManager
 import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
 import se.gustavkarlsson.conveyor.testing.hasIssued
@@ -27,7 +28,7 @@ object StoreImplTest : Spek({
     val actionManager by memoized { TrackingActionManager<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionManager, emptyList()) }
+        val subject by memoized { StoreImpl(state, actionManager, listOf(SuspendingProcessor)) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -69,8 +70,7 @@ object StoreImplTest : Spek({
             }
             it("actions are processed when issued") {
                 subject.issue(action)
-                val result = subject.state.value
-                expectThat(result).isEqualTo(1)
+                expectThat(actionManager).hasIssued(action)
             }
 
             describe("that was stopped") {

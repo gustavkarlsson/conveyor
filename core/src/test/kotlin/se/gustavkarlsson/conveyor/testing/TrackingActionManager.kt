@@ -25,7 +25,7 @@ class TrackingActionManager<State> : ActionManager<State> {
         _cancellations += cause
     }
 
-    private val actionsChannel = Channel<Action<State>>()
+    private val actionsChannel = Channel<Action<State>>(Channel.BUFFERED)
     override val actions: Flow<Action<State>> = actionsChannel.consumeAsFlow()
 }
 

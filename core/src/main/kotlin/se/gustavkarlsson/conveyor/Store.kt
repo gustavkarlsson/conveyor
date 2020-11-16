@@ -19,11 +19,11 @@ public fun <State> Store(
     startActions: Iterable<Action<State>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val initialActionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
+    val actionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
-    val overriddenActionTransformers = initialActionTransformers.override(plugins) { overrideActionTransformers(it) }
+    val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
 
     val actionManager = ActionManagerImpl<State>()
     val updatableStateFlow = UpdatableStateFlowImpl(overriddenInitialState)
@@ -34,7 +34,7 @@ public fun <State> Store(
         updatableState = updatableStateFlow
     )
     return StoreImpl(
-        updatableState = updatableStateFlow,
+        stateFlow = updatableStateFlow,
         actionManager = actionManager,
         processors = listOf(actionProcessor),
     )

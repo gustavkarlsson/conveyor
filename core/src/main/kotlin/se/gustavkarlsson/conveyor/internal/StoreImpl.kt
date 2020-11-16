@@ -2,18 +2,18 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 internal class StoreImpl<State>(
-    updatableState: UpdatableStateFlow<State>,
+    stateFlow: StateFlow<State>,
     private val actionManager: ActionManager<State>,
     private val processors: Iterable<Processor>,
 ) : Store<State> {
-    override val state = updatableState
+    override val state = stateFlow
 
     private val stage = Stage() // TODO Introduce interface?
 
