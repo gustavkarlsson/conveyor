@@ -12,4 +12,8 @@ public interface Plugin<State> {
     public fun overrideActionTransformers( // TODO test
         actionTransformers: Iterable<Transformer<Action<State>>>,
     ): Iterable<Transformer<Action<State>>> = actionTransformers
+
+    public fun overrideStateTransformers( // TODO test
+        stateTransformers: Iterable<Transformer<State>>,
+    ): Iterable<Transformer<State>> = stateTransformers
 }

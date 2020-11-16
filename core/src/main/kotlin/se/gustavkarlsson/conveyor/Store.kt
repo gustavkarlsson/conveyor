@@ -5,6 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.internal.ActionManagerImpl
 import se.gustavkarlsson.conveyor.internal.ActionProcessor
+import se.gustavkarlsson.conveyor.internal.StateProcessor
 import se.gustavkarlsson.conveyor.internal.StoreImpl
 import se.gustavkarlsson.conveyor.internal.UpdatableStateFlowImpl
 
@@ -20,23 +21,26 @@ public fun <State> Store(
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
     val actionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
+    val stateTransformers = emptyList<Transformer<State>>().asIterable()
 
     val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
     val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
     val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
+    val overriddenStateTransformers = stateTransformers.override(plugins) { overrideStateTransformers(it) }
 
     val actionManager = ActionManagerImpl<State>()
-    val updatableStateFlow = UpdatableStateFlowImpl(overriddenInitialState)
+    val updatableState = UpdatableStateFlowImpl(overriddenInitialState)
+    val stateProcessor = StateProcessor(updatableState, overriddenStateTransformers)
     val actionProcessor = ActionProcessor(
         startActions = overriddenStartActions,
         actionStream = actionManager.actions,
         transformers = overriddenActionTransformers,
-        updatableState = updatableStateFlow
+        updatableState = updatableState
     )
     return StoreImpl(
-        stateFlow = updatableStateFlow,
+        stateFlow = stateProcessor.outgoingState,
         actionManager = actionManager,
-        processors = listOf(actionProcessor),
+        processors = listOf(stateProcessor, actionProcessor),
     )
 }
 
