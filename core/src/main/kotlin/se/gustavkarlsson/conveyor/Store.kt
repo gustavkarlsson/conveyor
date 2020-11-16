@@ -20,13 +20,13 @@ public fun <State> Store(
     startActions: Iterable<Action<State>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val actionTransformers = emptyList<Transformer<Action<State>>>().asIterable()
-    val stateTransformers = emptyList<Transformer<State>>().asIterable()
+    val actionTransformers: Iterable<Transformer<Action<State>>> = emptyList()
+    val stateTransformers: Iterable<Transformer<State>> = emptyList()
 
-    val overriddenInitialState = initialState.override(plugins) { overrideInitialState(it) }
-    val overriddenStartActions = startActions.override(plugins) { overrideStartActions(it) }
-    val overriddenActionTransformers = actionTransformers.override(plugins) { overrideActionTransformers(it) }
-    val overriddenStateTransformers = stateTransformers.override(plugins) { overrideStateTransformers(it) }
+    val overriddenInitialState = plugins.override(initialState) { overrideInitialState(it) }
+    val overriddenStartActions = plugins.override(startActions) { overrideStartActions(it) }
+    val overriddenActionTransformers = plugins.override(actionTransformers) { overrideActionTransformers(it) }
+    val overriddenStateTransformers = plugins.override(stateTransformers) { overrideStateTransformers(it) }
 
     val actionManager = ActionManagerImpl<State>()
     val updatableState = UpdatableStateFlowImpl(overriddenInitialState)
@@ -47,9 +47,9 @@ public fun <State> Store(
 public fun <State> CoroutineScope.start(store: Store<State>): Job =
     store.start(this)
 
-private fun <State, T> T.override(
-    plugins: Iterable<Plugin<State>>,
+private fun <State, T> Iterable<Plugin<State>>.override(
+    value: T,
     operation: Plugin<State>.(T) -> T,
-): T = plugins.fold(this) { acc: T, plugin: Plugin<State> ->
+): T = fold(value) { acc: T, plugin: Plugin<State> ->
     plugin.operation(acc)
 }
