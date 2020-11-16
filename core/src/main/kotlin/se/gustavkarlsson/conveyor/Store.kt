@@ -30,13 +30,13 @@ public fun <State> Store(
 
     val actionManager = ActionManagerImpl<State>()
     val updatableState = UpdatableStateFlowImpl(overriddenInitialState)
-    val stateProcessor = StateProcessor(updatableState, overriddenStateTransformers)
     val actionProcessor = ActionProcessor(
         startActions = overriddenStartActions,
         actionStream = actionManager.actions,
         transformers = overriddenActionTransformers,
         updatableState = updatableState
     )
+    val stateProcessor = StateProcessor(updatableState, overriddenStateTransformers)
     return StoreImpl(
         stateFlow = stateProcessor.outgoingState,
         actionManager = actionManager,
