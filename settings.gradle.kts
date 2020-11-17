@@ -4,5 +4,5 @@ include(
     "core",
     "rx2",
     "plugin-vcr",
-    "testing",
+    "testing"
 )
