@@ -3,7 +3,6 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestCoroutineScope
@@ -12,39 +11,31 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
-import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.test.SimpleStateAccess
-import se.gustavkarlsson.conveyor.test.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.test.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.IncrementingAction
+import se.gustavkarlsson.conveyor.testing.SuspendingProcessor
+import se.gustavkarlsson.conveyor.testing.TrackingActionManager
+import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
+import se.gustavkarlsson.conveyor.testing.hasIssued
+import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
+import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
-    val initialState = "initial"
-    val action = action<String> {}
-    val stateAccess by memoized { SimpleStateAccess(initialState) }
-    val actionIssuer by memoized { TrackingActionIssuer<String>() }
-    val liveActionsCounter by memoized { TrackingLiveActionsCounter() }
+    val initialState = 0
+    val action = IncrementingAction(1)
+    val state by memoized { UpdatableStateFlowImpl(initialState) }
+    val actionManager by memoized { TrackingActionManager<Int>() }
 
-    // TODO Add more tests with processors and cancellables
     describe("A minimal store") {
-        val subject by memoized {
-            StoreImpl(
-                stateAccess = stateAccess,
-                actionIssuer = actionIssuer,
-                liveActionsCounter = liveActionsCounter,
-                actionFlow = flow { delay(Long.MAX_VALUE) }, // FIXME empty?
-                cancellables = emptyList(),
-            )
-        }
+        val subject by memoized { StoreImpl(state, actionManager, listOf(SuspendingProcessor)) }
 
-        it("currentState returns current state") {
-            val result = subject.currentState
+        it("state.value returns current state") {
+            val result = subject.state.value
             expectThat(result).isEqualTo(initialState)
         }
-        it("state returns state") {
+        it("state returns current state") {
             val result = runBlockingTest {
                 subject.state.first()
             }
@@ -71,15 +62,20 @@ object StoreImplTest : Spek({
                     subject.start(startScope)
                 }
             }
-            it("issueAction issues action") {
-                runBlockingTest {
-                    subject.issue(action)
-                }
-                expectThat(actionIssuer.issuedActions).containsExactly(action)
+            it("issue issues action") {
+                subject.issue(action)
+                expectThat(actionManager).hasIssued(action)
+            }
+            it("nothing has been cancelled") {
+                expectThat(actionManager).hasNeverBeenCancelled()
+            }
+            it("actions are processed when issued") {
+                subject.issue(action)
+                expectThat(actionManager).hasIssued(action)
             }
 
             describe("that was stopped") {
-                val cancellationException by memoized { CancellationException("Job cancelled at beginning of test") }
+                val cancellationException = CancellationException("Job cancelled at beginning of test")
                 beforeEachTest { job.cancel(cancellationException) }
 
                 it("stopping again succeeds") {
@@ -97,17 +93,10 @@ object StoreImplTest : Spek({
                         subject.issue(action)
                     }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
+                it("actionManager has been cancelled by exception") {
+                    expectThat(actionManager).hasBeenCancelledWith(cancellationException)
+                }
             }
         }
     }
 })
-
-private class TrackingLiveActionsCounter(var count: Int = 0) : LiveActionsCounter {
-    override fun increment() {
-        count++
-    }
-
-    override fun decrement() {
-        count--
-    }
-}
