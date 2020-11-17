@@ -8,17 +8,17 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
-public class SimpleFileTape<T>(
+public class SimpleFileTape<State>(
     file: File,
-    private val deserialize: (ByteArray) -> T,
-    private val serialize: (T) -> ByteArray,
+    private val deserialize: (ByteArray) -> State,
+    private val serialize: (State) -> ByteArray,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
-) : AbstractFileTape<T>(file, bufferSize, dispatcher) {
-    override fun readSample(stream: InputStream): Sample<T> =
+) : AbstractFileTape<State>(file, bufferSize, dispatcher) {
+    override fun readSample(stream: InputStream): Sample<State> =
         stream.readSample(deserialize)
 
-    override fun writeSample(sample: Sample<T>, stream: OutputStream): Unit =
+    override fun writeSample(sample: Sample<State>, stream: OutputStream): Unit =
         stream.writeSample(sample, serialize)
 }
 
