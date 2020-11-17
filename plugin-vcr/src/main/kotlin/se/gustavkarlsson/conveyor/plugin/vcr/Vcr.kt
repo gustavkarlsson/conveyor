@@ -2,8 +2,7 @@ package se.gustavkarlsson.conveyor.plugin.vcr
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.ConflatedBroadcastChannel
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Plugin
 import se.gustavkarlsson.conveyor.Transformer
@@ -16,10 +15,7 @@ import se.gustavkarlsson.conveyor.plugin.vcr.internal.TrackPosition
 @FlowPreview
 @ExperimentalCoroutinesApi
 public class Vcr<State> : Plugin<State>, Control<State> {
-
-    private val modeChannel = ConflatedBroadcastChannel<Mode<State>>(Mode.Idle)
-
-    private val mode = modeChannel.asFlow()
+    private val mode = MutableStateFlow<Mode<State>>(Mode.Idle)
 
     override fun overrideStartActions(
         startActions: Iterable<Action<State>>,
@@ -31,17 +27,17 @@ public class Vcr<State> : Plugin<State>, Control<State> {
 
     override fun play(tape: ReadableTape<State>) {
         val reading = tape.openForReading()
-        modeChannel.offer(Mode.Playing(reading))
+        mode.value = Mode.Playing(reading)
     }
 
     override fun record(tape: WriteableTape<State>) {
         val writing = tape.openForWriting()
         val trackPosition = TrackPosition(System::currentTimeMillis)
         trackPosition.start()
-        modeChannel.offer(Mode.Recording(writing, trackPosition))
+        mode.value = Mode.Recording(writing, trackPosition)
     }
 
     override fun stop() {
-        modeChannel.offer(Mode.Idle)
+        mode.value = Mode.Idle
     }
 }
