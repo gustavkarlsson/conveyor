@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor
+package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.internal.transform
+import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
