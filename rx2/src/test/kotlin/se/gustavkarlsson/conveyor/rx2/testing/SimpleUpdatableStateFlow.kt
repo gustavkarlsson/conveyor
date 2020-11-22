@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 // TODO Near duplicate of StateManager
-class SimpleStateManager<State>(initialState: State) : UpdatableStateFlow<State> {
+class SimpleUpdatableStateFlow<State>(initialState: State) : UpdatableStateFlow<State> {
     private val mutableFlow = MutableStateFlow(initialState)
     override val value by mutableFlow::value
     override val replayCache by mutableFlow::replayCache
