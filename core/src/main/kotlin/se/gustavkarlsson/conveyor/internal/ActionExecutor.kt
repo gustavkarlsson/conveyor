@@ -12,23 +12,23 @@ import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 // TODO test
-internal class ActionProcessor<State>(
+internal class ActionExecutor<State>(
     startActions: Iterable<Action<State>>,
-    private val actionStream: Flow<Action<State>>,
+    private val actions: Flow<Action<State>>,
     private val transformers: Iterable<Transformer<Action<State>>>,
-    private val updatableState: UpdatableStateFlow<State>,
-) : Processor {
+    private val state: UpdatableStateFlow<State>,
+) : Launcher {
     private var startActions: List<Action<State>>? = startActions.toList()
 
-    override fun process(scope: CoroutineScope): Job = scope.launch {
+    override fun launch(scope: CoroutineScope): Job = scope.launch {
         val actions = flow {
             emitAll(consumeStartActionsAsFlow())
-            emitAll(actionStream)
+            emitAll(actions)
         }
         actions
             .transform(transformers)
             .collect { action ->
-                launch { action.execute(updatableState) }
+                launch { action.execute(state) }
             }
     }
 

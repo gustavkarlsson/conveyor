@@ -10,8 +10,8 @@ import se.gustavkarlsson.conveyor.Store
 
 internal class StoreImpl<State>(
     stateFlow: StateFlow<State>,
-    private val actionManager: ActionManager<State>,
-    private val processors: Iterable<Processor>,
+    private val actionIssuer: ActionIssuer<State>,
+    private val launchers: Iterable<Launcher>,
 ) : Store<State> {
     override val state = stateFlow
 
@@ -20,8 +20,8 @@ internal class StoreImpl<State>(
     override fun start(scope: CoroutineScope): Job {
         stage.start()
         val job = scope.launch {
-            processors.map { processor ->
-                processor.process(scope)
+            launchers.map { launcher ->
+                launcher.launch(scope)
             }.joinAll()
         }
         job.invokeOnCompletion(::stop)
@@ -30,11 +30,11 @@ internal class StoreImpl<State>(
 
     private fun stop(throwable: Throwable?) {
         stage.stop(throwable)
-        actionManager.cancel(throwable)
+        actionIssuer.cancel(throwable)
     }
 
     override fun issue(action: Action<State>) {
         stage.requireStarted()
-        actionManager.issue(action)
+        actionIssuer.issue(action)
     }
 }

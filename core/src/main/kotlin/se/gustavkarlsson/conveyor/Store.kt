@@ -3,9 +3,9 @@ package se.gustavkarlsson.conveyor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
-import se.gustavkarlsson.conveyor.internal.ActionManagerImpl
-import se.gustavkarlsson.conveyor.internal.ActionProcessor
-import se.gustavkarlsson.conveyor.internal.StateProcessor
+import se.gustavkarlsson.conveyor.internal.ActionIssuerImpl
+import se.gustavkarlsson.conveyor.internal.ActionExecutor
+import se.gustavkarlsson.conveyor.internal.StateTransformer
 import se.gustavkarlsson.conveyor.internal.StoreImpl
 import se.gustavkarlsson.conveyor.internal.UpdatableStateFlowImpl
 
@@ -28,19 +28,22 @@ public fun <State> Store(
     val overriddenActionTransformers = plugins.override(actionTransformers) { overrideActionTransformers(it) }
     val overriddenStateTransformers = plugins.override(stateTransformers) { overrideStateTransformers(it) }
 
-    val actionManager = ActionManagerImpl<State>()
-    val updatableState = UpdatableStateFlowImpl(overriddenInitialState)
-    val actionProcessor = ActionProcessor(
+    val actionIssuer = ActionIssuerImpl<State>()
+    val state = UpdatableStateFlowImpl(overriddenInitialState)
+    val actionExecutor = ActionExecutor(
         startActions = overriddenStartActions,
-        actionStream = actionManager.actions,
+        actions = actionIssuer.issuedActions,
         transformers = overriddenActionTransformers,
-        updatableState = updatableState
+        state = state,
     )
-    val stateProcessor = StateProcessor(updatableState, overriddenStateTransformers)
+    val stateTransformer = StateTransformer(
+        incomingState = state,
+        transformers = overriddenStateTransformers,
+    )
     return StoreImpl(
-        stateFlow = stateProcessor.outgoingState,
-        actionManager = actionManager,
-        processors = listOf(stateProcessor, actionProcessor),
+        stateFlow = stateTransformer.outgoingState,
+        actionIssuer = actionIssuer,
+        launchers = listOf(stateTransformer, actionExecutor),
     )
 }
 
