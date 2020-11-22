@@ -1,15 +1,13 @@
 package se.gustavkarlsson.conveyor.testing
 
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.internal.ActionManager
+import se.gustavkarlsson.conveyor.internal.ActionIssuer
 import strikt.api.Assertion
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
-class TrackingActionManager<State> : ActionManager<State> {
+class TrackingActionIssuer<State> : ActionIssuer<State> {
     private val _issuedActions = mutableListOf<Action<State>>()
     val issuedActions: List<Action<State>> = _issuedActions
 
@@ -26,25 +24,24 @@ class TrackingActionManager<State> : ActionManager<State> {
     }
 
     private val actionsChannel = Channel<Action<State>>(Channel.BUFFERED)
-    override val actions: Flow<Action<State>> = actionsChannel.consumeAsFlow()
 }
 
-fun <State> Assertion.Builder<TrackingActionManager<State>>.hasIssued(
+fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasIssued(
     vararg expected: Action<State>
-): Assertion.Builder<TrackingActionManager<State>> =
+): Assertion.Builder<TrackingActionIssuer<State>> =
     with("issuedActions", { issuedActions }) {
         containsExactly(*expected)
     }
 
-fun <State> Assertion.Builder<TrackingActionManager<State>>.hasBeenCancelledWith(
+fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasBeenCancelledWith(
     vararg expected: Throwable?,
-): Assertion.Builder<TrackingActionManager<State>> =
+): Assertion.Builder<TrackingActionIssuer<State>> =
     with("cancellations", { cancellations }) {
         containsExactly(*expected)
     }
 
-fun <State> Assertion.Builder<TrackingActionManager<State>>.hasNeverBeenCancelled(
-): Assertion.Builder<TrackingActionManager<State>> =
+fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasNeverBeenCancelled(
+): Assertion.Builder<TrackingActionIssuer<State>> =
     with("cancellations", { cancellations }) {
         isEmpty()
     }

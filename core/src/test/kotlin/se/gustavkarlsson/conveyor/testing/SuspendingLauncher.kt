@@ -4,8 +4,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
-import se.gustavkarlsson.conveyor.internal.Processor
+import se.gustavkarlsson.conveyor.internal.Launcher
 
-object SuspendingProcessor : Processor {
-    override fun process(scope: CoroutineScope): Job = scope.launch { awaitCancellation() }
+object SuspendingLauncher : Launcher {
+    override fun launch(scope: CoroutineScope): Job = scope.launch { awaitCancellation() }
 }

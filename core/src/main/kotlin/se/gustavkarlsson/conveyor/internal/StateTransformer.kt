@@ -9,13 +9,13 @@ import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Transformer
 
 // TODO Test
-internal class StateProcessor<State>(
-    private val incomingState: UpdatableStateFlowImpl<State>,
+internal class StateTransformer<State>(
+    private val incomingState: StateFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
-) : Processor {
+) : Launcher {
     private val mutableState = MutableStateFlow(incomingState.value)
     val outgoingState: StateFlow<State> = mutableState
-    override fun process(scope: CoroutineScope): Job = scope.launch {
+    override fun launch(scope: CoroutineScope): Job = scope.launch {
         incomingState
             .transform(transformers)
             .collect { mutableState.value = it }
