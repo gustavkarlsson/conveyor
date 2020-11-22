@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Transformer
 
-// TODO Test
 internal class StateTransformer<State>(
     private val incomingState: StateFlow<State>,
     private val transformers: Iterable<Transformer<State>>,

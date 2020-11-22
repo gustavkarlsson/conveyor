@@ -77,7 +77,7 @@ object ActionExecutorTest : Spek({
             }
         }
     }
-    describe("A ActionExecutor with 2 transformers that was started") {
+    describe("A ActionExecutor with 2 transformers that was launched") {
         val startAction = IncrementingAction(1)
         val transformer1 = Transformer<Action<Int>> { flow ->
             flow.flatMapConcat { action ->
