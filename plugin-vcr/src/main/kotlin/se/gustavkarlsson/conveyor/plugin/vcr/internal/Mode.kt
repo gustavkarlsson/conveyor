@@ -11,5 +11,8 @@ internal sealed class Mode<out State> {
         val trackPosition: TrackPosition,
     ) : Mode<State>()
 
-    data class Playing<State>(val reading: ReadableTape.Reading<State>) : Mode<State>()
+    data class Playing<State>(
+        val reading: ReadableTape.Reading<State>,
+        val bufferSize: Int,
+    ) : Mode<State>()
 }

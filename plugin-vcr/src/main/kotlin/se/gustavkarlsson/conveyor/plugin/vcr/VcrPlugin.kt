@@ -21,9 +21,9 @@ public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
         actionTransformers: Iterable<Transformer<Action<State>>>,
     ): Iterable<Transformer<Action<State>>> = actionTransformers + PlaybackActionFilter(mode)
 
-    override fun play(tape: ReadableTape<State>) {
+    override fun play(tape: ReadableTape<State>, bufferSize: Int) {
         val reading = tape.openForReading()
-        mode.value = Mode.Playing(reading)
+        mode.value = Mode.Playing(reading, bufferSize)
     }
 
     override fun record(tape: WriteableTape<State>) {

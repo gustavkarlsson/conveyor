@@ -1,7 +1,11 @@
 package se.gustavkarlsson.conveyor.plugin.vcr
 
 public interface Vcr<State> {
-    public fun play(tape: ReadableTape<State>)
+    public fun play(tape: ReadableTape<State>, bufferSize: Int = DEFAULT_PLAY_BUFFER_SIZE)
     public fun record(tape: WriteableTape<State>)
     public fun stop()
+
+    public companion object {
+        public const val DEFAULT_PLAY_BUFFER_SIZE: Int = 5
+    }
 }
