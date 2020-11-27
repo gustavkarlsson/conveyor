@@ -27,7 +27,7 @@ private suspend fun <State> ReadableTape.Reading<State>.playbackStates(
 ) = use { reading ->
     while (true) {
         when (val sample = reading.read()) {
-            is Sample.Delay -> delay(sample.timeMillis)
+            is Sample.Delay -> delay(sample.delayMillis)
             is Sample.State -> state.update { sample.state }
             null -> break
         }

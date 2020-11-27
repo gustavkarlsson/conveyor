@@ -12,8 +12,11 @@ internal class PlaybackActionFilter<State>(
 ) : Transformer<Action<State>> {
     override fun transform(flow: Flow<Action<State>>): Flow<Action<State>> =
         combineTransform(flow, mode) { action, mode ->
-            if (mode !is Mode.Playing<*> || action is PlaybackAction || action is RecordAction) {
-                emit(action)
+            when (mode) {
+                Mode.Idle, is Mode.Recording -> emit(action)
+                is Mode.Playing -> when (action) {
+                    is PlaybackAction, is RecordAction -> emit(action)
+                }
             }
         }
 }

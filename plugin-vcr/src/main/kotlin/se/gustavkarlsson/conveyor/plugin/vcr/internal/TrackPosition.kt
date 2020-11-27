@@ -1,11 +1,12 @@
 package se.gustavkarlsson.conveyor.plugin.vcr.internal
 
-import kotlin.properties.Delegates
+import kotlin.properties.Delegates.notNull
 
+// TODO This is not that nice. Rework?
 internal class TrackPosition(
     private val getCurrent: () -> Long,
 ) {
-    private var last by Delegates.notNull<Long>()
+    private var last by notNull<Long>()
 
     fun start() {
         last = getCurrent()

@@ -66,7 +66,7 @@ private fun InputStream.readInt(): Int {
 
 private fun <State> OutputStream.writeSample(sample: Sample<State>, serializer: SimpleFileTape.Serializer<State>) {
     when (sample) {
-        is Sample.Delay -> writeDelay(sample.timeMillis)
+        is Sample.Delay -> writeDelay(sample.delayMillis)
         is Sample.State -> writeState(sample.state, serializer)
     }
 }
