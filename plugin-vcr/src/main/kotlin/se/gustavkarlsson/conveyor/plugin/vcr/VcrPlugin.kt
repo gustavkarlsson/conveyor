@@ -1,7 +1,5 @@
 package se.gustavkarlsson.conveyor.plugin.vcr
 
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Plugin
@@ -12,8 +10,6 @@ import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackActionFilter
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.RecordAction
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.TrackPosition
 
-@FlowPreview
-@ExperimentalCoroutinesApi
 public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
     private val mode = MutableStateFlow<Mode<State>>(Mode.Idle)
 
