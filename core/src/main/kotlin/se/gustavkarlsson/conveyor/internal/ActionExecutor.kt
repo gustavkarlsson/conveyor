@@ -11,7 +11,6 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-// TODO test
 internal class ActionExecutor<State>(
     startActions: Iterable<Action<State>>,
     private val actions: Flow<Action<State>>,
@@ -33,7 +32,7 @@ internal class ActionExecutor<State>(
     }
 
     private fun consumeStartActionsAsFlow(): Flow<Action<State>> = flow {
-        val actions = requireNotNull(startActions) { "Already consumed" }
+        val actions = checkNotNull(startActions) { "Already consumed" }
         startActions = null
         for (action in actions) {
             emit(action)
