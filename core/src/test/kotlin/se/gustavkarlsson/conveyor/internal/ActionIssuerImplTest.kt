@@ -7,36 +7,36 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.action
+import se.gustavkarlsson.conveyor.testing.NullAction
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.message
 
-object ActionManagerImplTest : Spek({
-    val action = action<Int> {}
+object ActionIssuerImplTest : Spek({
+    val action = NullAction<Int>()
 
-    describe("A ActionManagerImpl") {
-        val subject by memoized { ActionManagerImpl<Int>() }
+    describe("A ActionIssuerImpl") {
+        val subject by memoized { ActionIssuerImpl<Int>() }
 
-        it("actions suspends waiting for first item") {
+        it("issuedActions suspends waiting for first item") {
             expectSuspends {
-                subject.actions.first()
+                subject.issuedActions.first()
             }
         }
-        it("actions emits action issued after subscribing") {
+        it("issuedActions emits action issued after subscribing") {
             val result = runBlockingTest {
-                val deferred = async { subject.actions.first() }
+                val deferred = async { subject.issuedActions.first() }
                 subject.issue(action)
                 deferred.await()
             }
             expectThat(result).isEqualTo(action)
         }
-        it("actions emits action issued before subscribing") {
+        it("issuedActions emits action issued before subscribing") {
             val result = runBlockingTest {
                 subject.issue(action)
-                subject.actions.first()
+                subject.issuedActions.first()
             }
             expectThat(result).isEqualTo(action)
         }
@@ -48,9 +48,9 @@ object ActionManagerImplTest : Spek({
                 subject.cancel(exception)
             }
 
-            it("actions emits error") {
+            it("issuedActions emits error") {
                 expectThrows<CancellationException> {
-                    subject.actions.first()
+                    subject.issuedActions.first()
                 }.message.isEqualTo(cancellationMessage)
             }
             it("throws exception when action is issued") {

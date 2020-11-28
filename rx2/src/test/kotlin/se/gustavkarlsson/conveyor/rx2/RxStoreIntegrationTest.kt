@@ -5,14 +5,14 @@ import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.buildStore
+import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 
 object RxStoreIntegrationTest : Spek({
     val scope by memoizedTestCoroutineScope()
 
     describe("A started RxStore") {
-        val subject by memoized { buildStore(0).toRxStore() }
+        val subject by memoized { Store(0).asRxStore() }
 
         var disposable: Disposable? = null
         beforeEachTest { disposable = subject.start(scope) }

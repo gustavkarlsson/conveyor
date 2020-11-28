@@ -5,6 +5,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.testing.NullAction
 import se.gustavkarlsson.conveyor.testing.SetStateAction
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
@@ -17,11 +18,12 @@ object StoreIntegrationTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val fixedStateAction1 = SetStateAction(state1)
+    val action = NullAction<String>()
     val scope by memoizedTestCoroutineScope()
 
     describe("A minimal store") {
         val subject by memoized {
-            buildStore(initialState)
+            Store(initialState)
         }
 
         it("state emits initial") {
@@ -77,7 +79,7 @@ object StoreIntegrationTest : Spek({
                 }
                 it("throws exception when an action is issued") {
                     expectThrows<StoreStoppedException> {
-                        subject.issue(action {})
+                        subject.issue(action)
                     }
                 }
                 it("state.value returns initial") {

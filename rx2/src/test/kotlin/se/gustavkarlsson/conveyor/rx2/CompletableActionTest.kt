@@ -5,13 +5,13 @@ import io.reactivex.Single
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.rx2.testing.SimpleStateManager
+import se.gustavkarlsson.conveyor.rx2.testing.SimpleUpdatableStateFlow
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object CompletableActionTest : Spek({
     val stateToSet = "state"
-    val state by memoized { SimpleStateManager("initial") }
+    val state by memoized { SimpleUpdatableStateFlow("initial") }
 
     describe("A tracking CompletableAction") {
         val subject by memoized { TrackingCompletableAction(stateToSet) }
@@ -26,7 +26,7 @@ object CompletableActionTest : Spek({
 
     describe("A lambda created CompletableAction") {
         val subject by memoized {
-            completableAction<String> { state ->
+            CompletableAction<String> { state ->
                 state
                     .update { Single.just(stateToSet) }
                     .ignoreElement()

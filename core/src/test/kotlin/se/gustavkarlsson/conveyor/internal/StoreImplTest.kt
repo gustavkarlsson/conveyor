@@ -10,8 +10,9 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
-import se.gustavkarlsson.conveyor.action
-import se.gustavkarlsson.conveyor.testing.TrackingActionManager
+import se.gustavkarlsson.conveyor.testing.IncrementingAction
+import se.gustavkarlsson.conveyor.testing.SuspendingLauncher
+import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
 import se.gustavkarlsson.conveyor.testing.hasIssued
 import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
@@ -22,12 +23,12 @@ import strikt.assertions.isEqualTo
 
 object StoreImplTest : Spek({
     val initialState = 0
-    val action = action<Int> {}
+    val action = IncrementingAction(1)
     val state by memoized { UpdatableStateFlowImpl(initialState) }
-    val actionIssuer by memoized { TrackingActionManager<Int>() }
+    val actionIssuer by memoized { TrackingActionIssuer<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionIssuer) }
+        val subject by memoized { StoreImpl(state, actionIssuer, listOf(SuspendingLauncher)) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -66,6 +67,10 @@ object StoreImplTest : Spek({
             }
             it("nothing has been cancelled") {
                 expectThat(actionIssuer).hasNeverBeenCancelled()
+            }
+            it("actions are issued") {
+                subject.issue(action)
+                expectThat(actionIssuer).hasIssued(action)
             }
 
             describe("that was stopped") {

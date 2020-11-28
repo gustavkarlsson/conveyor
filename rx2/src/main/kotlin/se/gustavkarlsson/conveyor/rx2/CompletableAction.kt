@@ -19,7 +19,8 @@ public abstract class CompletableAction<State : Any> : Action<State> {
 }
 
 @ExperimentalCoroutinesApi
-public fun <State : Any> completableAction(
+@Suppress("FunctionName")
+public fun <State : Any> CompletableAction(
     block: (state: UpdatableStateFlowable<State>) -> Completable,
 ): CompletableAction<State> = ConstructorCompletableAction(block)
 

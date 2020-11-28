@@ -4,7 +4,8 @@ public interface Action<State> {
     public suspend fun execute(state: UpdatableStateFlow<State>)
 }
 
-public fun <State> action(
+@Suppress("FunctionName")
+public fun <State> Action(
     block: suspend (state: UpdatableStateFlow<State>) -> Unit,
 ): Action<State> = ConstructorAction(block)
 
