@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
-    id("io.gitlab.arturbosch.detekt") version Versions.detekt
+    id("io.gitlab.arturbosch.detekt")
 }
 
 repositories {
