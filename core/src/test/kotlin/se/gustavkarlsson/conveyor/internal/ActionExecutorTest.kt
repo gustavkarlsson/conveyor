@@ -48,8 +48,11 @@ object ActionExecutorTest : Spek({
                 expectThat(state.value).isEqualTo(1)
             }
             it("throws if launched again") {
-                // FIXME why does this fail?
-                expectThrows<IllegalStateException> { subject.launch(scope) }
+                expectThrows<IllegalStateException> {
+                    runBlockingTest {
+                        subject.launch(this)
+                    }
+                }
             }
         }
     }
