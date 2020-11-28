@@ -1,7 +1,6 @@
 package se.gustavkarlsson.conveyor.plugin.vcr.tapes
 
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
 import java.io.File
 import java.io.InputStream
@@ -12,7 +11,7 @@ public class SimpleFileTape<State>(
     file: File,
     private val serializer: Serializer<State>,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    dispatcher: CoroutineDispatcher = SingleThreadDispatcher,
 ) : AbstractFileTape<State>(file, bufferSize, dispatcher) {
     override fun readSample(stream: InputStream): Sample<State> =
         stream.readSample(serializer)

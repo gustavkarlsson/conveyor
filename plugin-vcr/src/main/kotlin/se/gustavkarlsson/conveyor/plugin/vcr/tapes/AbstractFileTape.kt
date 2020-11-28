@@ -1,7 +1,6 @@
 package se.gustavkarlsson.conveyor.plugin.vcr.tapes
 
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import se.gustavkarlsson.conveyor.plugin.vcr.ReadableTape
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
@@ -13,7 +12,7 @@ import java.io.OutputStream
 public abstract class AbstractFileTape<T>(
     private val file: File,
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val dispatcher: CoroutineDispatcher = SingleThreadDispatcher,
 ) : ReadableTape<T>, WriteableTape<T> {
     final override fun openForReading(): ReadableTape.Reading<T> = Reading()
 
