@@ -8,10 +8,9 @@ import se.gustavkarlsson.conveyor.plugin.vcr.internal.Mode
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackAction
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackActionFilter
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.RecordAction
-import se.gustavkarlsson.conveyor.plugin.vcr.internal.TrackPosition
 
 public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
-    private val mode = MutableStateFlow<Mode<State>>(Mode.Idle)
+    private val mode = MutableStateFlow<Mode<State>>(Mode.Idle) // FIXME Rename mode?
 
     override fun overrideStartActions(
         startActions: Iterable<Action<State>>,
@@ -26,11 +25,9 @@ public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
         mode.value = Mode.Playing(reading, bufferSize)
     }
 
-    override fun record(tape: WriteableTape<State>) {
+    override fun record(tape: WriteableTape<State>, bufferSize: Int) {
         val writing = tape.openForWriting()
-        val trackPosition = TrackPosition(System::currentTimeMillis)
-        trackPosition.start()
-        mode.value = Mode.Recording(writing, trackPosition)
+        mode.value = Mode.Recording(writing, bufferSize)
     }
 
     override fun stop() {

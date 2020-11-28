@@ -8,7 +8,7 @@ internal sealed class Mode<out State> {
 
     data class Recording<State>(
         val writing: WriteableTape.Writing<State>,
-        val trackPosition: TrackPosition,
+        val bufferSize: Int,
     ) : Mode<State>()
 
     data class Playing<State>(
