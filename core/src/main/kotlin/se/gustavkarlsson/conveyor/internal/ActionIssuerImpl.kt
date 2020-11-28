@@ -5,9 +5,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import se.gustavkarlsson.conveyor.Action
 
-internal class ActionManagerImpl<State> : ActionManager<State> {
+internal class ActionIssuerImpl<State> : ActionIssuer<State> {
     private val actionChannel = Channel<Action<State>>(Channel.UNLIMITED)
-    override val actions = actionChannel.consumeAsFlow()
+    val issuedActions = actionChannel.consumeAsFlow()
     override fun issue(action: Action<State>) {
         actionChannel.offer(action)
     }

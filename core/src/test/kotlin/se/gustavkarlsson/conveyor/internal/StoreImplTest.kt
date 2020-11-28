@@ -11,7 +11,8 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
-import se.gustavkarlsson.conveyor.testing.TrackingActionManager
+import se.gustavkarlsson.conveyor.testing.SuspendingLauncher
+import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
 import se.gustavkarlsson.conveyor.testing.hasIssued
 import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
@@ -24,10 +25,10 @@ object StoreImplTest : Spek({
     val initialState = 0
     val action = IncrementingAction(1)
     val state by memoized { UpdatableStateFlowImpl(initialState) }
-    val actionManager by memoized { TrackingActionManager<Int>() }
+    val actionIssuer by memoized { TrackingActionIssuer<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionManager) }
+        val subject by memoized { StoreImpl(state, actionIssuer, listOf(SuspendingLauncher)) }
 
         it("state.value returns current state") {
             val result = subject.state.value
@@ -62,15 +63,14 @@ object StoreImplTest : Spek({
             }
             it("issue issues action") {
                 subject.issue(action)
-                expectThat(actionManager).hasIssued(action)
+                expectThat(actionIssuer).hasIssued(action)
             }
             it("nothing has been cancelled") {
-                expectThat(actionManager).hasNeverBeenCancelled()
+                expectThat(actionIssuer).hasNeverBeenCancelled()
             }
-            it("actions are processed when issued") {
+            it("actions are issued") {
                 subject.issue(action)
-                val result = subject.state.value
-                expectThat(result).isEqualTo(1)
+                expectThat(actionIssuer).hasIssued(action)
             }
 
             describe("that was stopped") {
@@ -92,8 +92,8 @@ object StoreImplTest : Spek({
                         subject.issue(action)
                     }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
-                it("actionManager has been cancelled by exception") {
-                    expectThat(actionManager).hasBeenCancelledWith(cancellationException)
+                it("actionIssuer has been cancelled by exception") {
+                    expectThat(actionIssuer).hasBeenCancelledWith(cancellationException)
                 }
             }
         }
