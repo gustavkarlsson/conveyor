@@ -14,7 +14,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawOpacity
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import se.gustavkarlsson.conveyor.demo.LoginEvents
@@ -72,7 +72,7 @@ private fun PasswordTextField(text: String, onChange: (String) -> Unit) {
 private fun LoginIndicator(isVisible: Boolean) {
     val opacity = if (isVisible) 1F else 0F
     LinearProgressIndicator(
-        modifier = Modifier.padding(4.dp).drawOpacity(opacity),
+        modifier = Modifier.padding(4.dp).alpha(opacity),
         color = MaterialTheme.colors.secondary,
     )
 }

@@ -16,7 +16,7 @@ import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawOpacity
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import se.gustavkarlsson.conveyor.demo.LoggedInEvents
 import se.gustavkarlsson.conveyor.demo.State
@@ -89,7 +89,7 @@ private fun OperationIndicator(isVisible: Boolean, progress: Float) {
         animSpec = ProgressIndicatorConstants.DefaultProgressAnimationSpec,
     )
     LinearProgressIndicator(
-        modifier = Modifier.padding(4.dp).drawOpacity(opacity),
+        modifier = Modifier.padding(4.dp).alpha(opacity),
         color = MaterialTheme.colors.secondary,
         progress = animatedProgress,
     )

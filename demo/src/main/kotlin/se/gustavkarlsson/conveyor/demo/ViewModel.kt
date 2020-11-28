@@ -4,7 +4,7 @@ package se.gustavkarlsson.conveyor.demo
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.StateFlow
-import se.gustavkarlsson.conveyor.buildStore
+import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.demo.actions.ChangeEmailAction
 import se.gustavkarlsson.conveyor.demo.actions.ChangePasswordAction
 import se.gustavkarlsson.conveyor.demo.actions.LoginAction
@@ -23,7 +23,7 @@ interface LoggedInEvents {
 }
 
 class ViewModel(api: Api, initialState: State) : LoginEvents, LoggedInEvents {
-    private val store = buildStore(initialState).apply { start(GlobalScope) }
+    private val store = Store(initialState).apply { start(GlobalScope) }
     val state: StateFlow<State> = store.state
     private val loginAction = LoginAction(api)
     private val operationAction = OperationAction(api)
