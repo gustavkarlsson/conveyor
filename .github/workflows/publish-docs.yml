@@ -29,12 +29,12 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Generate docs
-        run: ./gradlew dokkaJekyll
+        run: ./gradlew dokkaHtmlMultiModule
 
       - name: Copy docs to temp directory
         run: |
           mkdir -p ~/temp/dokka
-          find **/build/dokka/jekyll -mindepth 1 -maxdepth 1 | xargs -i cp -r {} ~/temp/dokka
+          cp -r build/dokka/htmlMultiModule/* ~/temp/dokka
 
       - name: Check out pages
         uses: actions/checkout@v2
