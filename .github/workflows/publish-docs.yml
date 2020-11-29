@@ -52,5 +52,4 @@ jobs:
         env:
           SHA: ${{ github.sha }}
         run: |
-          git commit -m "Update API documentation from $SHA"
-          git log -n 1 --stat
+          echo "Update API documentation from $SHA"
