@@ -1,10 +1,10 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -40,10 +40,10 @@ object StateTransformerTest : Spek({
     }
 
     describe("A StateTransformer with 2 transformers that was launched") {
-        val doubler = Transformer<Int> { flow ->
+        val doubler = { flow: Flow<Int> ->
             flow.map { it * 2 }
         }
-        val adder = Transformer<Int> { flow ->
+        val adder = { flow: Flow<Int> ->
             flow.map { it + 1 }
         }
         val subject by memoized { StateTransformer(incomingState, listOf(doubler, adder)) }

@@ -7,6 +7,7 @@ import se.gustavkarlsson.conveyor.internal.ActionExecutor
 import se.gustavkarlsson.conveyor.internal.ActionIssuerImpl
 import se.gustavkarlsson.conveyor.internal.StateTransformer
 import se.gustavkarlsson.conveyor.internal.StoreImpl
+import se.gustavkarlsson.conveyor.internal.Transformer
 import se.gustavkarlsson.conveyor.internal.UpdatableStateFlowImpl
 
 /**
@@ -46,25 +47,30 @@ public fun <State> Store(
     startActions: Iterable<Action<State>> = emptyList(),
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
-    val actionTransformers: Iterable<Transformer<Action<State>>> = emptyList()
-    val stateTransformers: Iterable<Transformer<State>> = emptyList()
-
-    val overriddenInitialState = plugins.override(initialState) { overrideInitialState(it) }
-    val overriddenStartActions = plugins.override(startActions) { overrideStartActions(it) }
-    val overriddenActionTransformers = plugins.override(actionTransformers) { overrideActionTransformers(it) }
-    val overriddenStateTransformers = plugins.override(stateTransformers) { overrideStateTransformers(it) }
+    val actualInitialState = plugins.fold(initialState) { state, plugin ->
+        plugin.overrideInitialState(state)
+    }
+    val actualStartActions = plugins.fold(startActions) { actions, plugin ->
+        actions + plugin.addStartActions()
+    }
+    val actionTransformers = plugins.fold(emptyList<Transformer<Action<State>>>()) { transformers, plugin ->
+        transformers + { plugin.transformActions(it) }
+    }
+    val stateTransformers = plugins.fold(emptyList<Transformer<State>>()) { transformers, plugin ->
+        transformers + { plugin.transformStates(it) }
+    }
 
     val actionIssuer = ActionIssuerImpl<State>()
-    val state = UpdatableStateFlowImpl(overriddenInitialState)
+    val state = UpdatableStateFlowImpl(actualInitialState)
     val actionExecutor = ActionExecutor(
-        startActions = overriddenStartActions,
+        startActions = actualStartActions,
         actions = actionIssuer.issuedActions,
-        transformers = overriddenActionTransformers,
+        transformers = actionTransformers,
         state = state,
     )
     val stateTransformer = StateTransformer(
         incomingState = state,
-        transformers = overriddenStateTransformers,
+        transformers = stateTransformers,
     )
     return StoreImpl(
         stateFlow = stateTransformer.outgoingState,
@@ -83,10 +89,3 @@ public fun <State> Store(
  */
 public fun <State> CoroutineScope.start(store: Store<State>): Job =
     store.start(this)
-
-private fun <State, T> Iterable<Plugin<State>>.override(
-    value: T,
-    operation: Plugin<State>.(T) -> T,
-): T = fold(value) { acc: T, plugin: Plugin<State> ->
-    plugin.operation(acc)
-}

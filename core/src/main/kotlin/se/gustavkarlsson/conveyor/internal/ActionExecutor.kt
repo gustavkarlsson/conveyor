@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 internal class ActionExecutor<State>(
