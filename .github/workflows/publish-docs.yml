@@ -1,0 +1,58 @@
+name: Publish Documentation
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  publish:
+    name: Publish Documentation
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - name: Restore cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Generate docs
+        run: ./gradlew dokkaHtmlMultiModule
+
+      - name: Copy docs to temp directory
+        run: |
+          mkdir -p ~/temp/dokka
+          cp -r build/dokka/htmlMultiModule/* ~/temp/dokka
+
+      - name: Check out pages
+        uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+
+      - name: Replace old docs with generated
+        run: |
+          git rm --ignore-unmatch -r -q api
+          mkdir api
+          cp -r ~/temp/dokka/* api
+          git add api
+
+      - name: Commit and push
+        env:
+          SHA: ${{ github.sha }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Update API documentation from $SHA"
+          git push origin gh-pages

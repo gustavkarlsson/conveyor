@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
@@ -32,14 +33,16 @@ object PluginTest : Spek({
             expectThat(result).isEqualTo(6)
         }
     }
-    describe("A store with overridden start actions") {
+    describe("A store with added start actions") {
         val plugin1 = object : Plugin<Int> {
-            override fun overrideStartActions(startActions: Iterable<Action<Int>>) =
-                startActions + Action { it.update { this + 2 } }
+            override fun addStartActions(): Iterable<Action<Int>> {
+                return listOf(Action { it.update { this + 2 } })
+            }
         }
         val plugin2 = object : Plugin<Int> {
-            override fun overrideStartActions(startActions: Iterable<Action<Int>>) =
-                startActions + Action { it.update { this * 2 } }
+            override fun addStartActions(): Iterable<Action<Int>> {
+                return listOf(Action { it.update { this * 2 } })
+            }
         }
         val store by memoized {
             Store(1, plugins = listOf(plugin1, plugin2))
@@ -51,18 +54,16 @@ object PluginTest : Spek({
             expectThat(result).isEqualTo(6)
         }
     }
-    describe("A store with overridden action transformers") {
+    describe("A store with transformed actions") {
         val plugin1 = object : Plugin<Int> {
-            override fun overrideActionTransformers(actionTransformers: Iterable<Transformer<Action<Int>>>) =
-                actionTransformers + Transformer { actions ->
-                    actions.flatMapConcat { flowOf(it, it) }
-                }
+            override fun transformActions(actions: Flow<Action<Int>>): Flow<Action<Int>> {
+                return actions.flatMapConcat { flowOf(it, it) }
+            }
         }
         val plugin2 = object : Plugin<Int> {
-            override fun overrideActionTransformers(actionTransformers: Iterable<Transformer<Action<Int>>>) =
-                actionTransformers + Transformer { actions ->
-                    actions.drop(1)
-                }
+            override fun transformActions(actions: Flow<Action<Int>>): Flow<Action<Int>> {
+                return actions.drop(1)
+            }
         }
         val store by memoized {
             Store(1, plugins = listOf(plugin1, plugin2))
@@ -80,18 +81,16 @@ object PluginTest : Spek({
             expectThat(result).isEqualTo(12)
         }
     }
-    describe("A store with overridden state transformers") {
+    describe("A store with transformed state") {
         val plugin1 = object : Plugin<Int> {
-            override fun overrideStateTransformers(stateTransformers: Iterable<Transformer<Int>>) =
-                stateTransformers + Transformer { states ->
-                    states.map { it + 2 }
-                }
+            override fun transformStates(states: Flow<Int>): Flow<Int> {
+                return states.map { it + 2 }
+            }
         }
         val plugin2 = object : Plugin<Int> {
-            override fun overrideStateTransformers(stateTransformers: Iterable<Transformer<Int>>) =
-                stateTransformers + Transformer { states ->
-                    states.map { it * 2 }
-                }
+            override fun transformStates(states: Flow<Int>): Flow<Int> {
+                return states.map { it * 2 }
+            }
         }
         val store by memoized {
             Store(1, plugins = listOf(plugin1, plugin2))
