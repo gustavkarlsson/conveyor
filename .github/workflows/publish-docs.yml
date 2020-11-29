@@ -3,7 +3,7 @@ name: Publish Documentation
 on:
   push:
     branches:
-      - generate-kdoc-pages # FIXME Update this before merging
+      - master
 
 jobs:
   publish:
