@@ -52,4 +52,6 @@ jobs:
         env:
           SHA: ${{ github.sha }}
         run: |
-          echo "Update API documentation from $SHA"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -m "Update API documentation from $SHA"
