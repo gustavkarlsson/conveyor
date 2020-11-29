@@ -41,12 +41,16 @@ jobs:
         with:
           ref: gh-pages
 
-      - name: Clear existing docs
+      - name: Replace docs
         run: |
           git rm --ignore-unmatch -r -q api
           mkdir api
           cp -r ~/temp/dokka/* api
           git add api
 
-      - name: Print changes
-        run: git status
+      - name: Commit and push
+        env:
+          SHA: ${{ github.sha }}
+          run: |
+            git commit -m "Update API documentation from $SHA"
+            git log -n 1 --stat
