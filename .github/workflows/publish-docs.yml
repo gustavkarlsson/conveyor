@@ -41,7 +41,7 @@ jobs:
         with:
           ref: gh-pages
 
-      - name: Replace docs
+      - name: Replace old docs with generated
         run: |
           git rm --ignore-unmatch -r -q api
           mkdir api
