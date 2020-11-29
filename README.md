@@ -12,7 +12,7 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 ## Example
 ```kotlin
 fun main() {
-    val store = buildStore(initialState = "initial")
+    val store = Store(initialState = "initial")
     with(GlobalScope) {
         // Start processing actions
         val job = start(store)
