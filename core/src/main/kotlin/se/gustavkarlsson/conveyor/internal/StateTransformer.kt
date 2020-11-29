@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import se.gustavkarlsson.conveyor.Transformer
 
 internal class StateTransformer<State>(
     private val incomingState: StateFlow<State>,

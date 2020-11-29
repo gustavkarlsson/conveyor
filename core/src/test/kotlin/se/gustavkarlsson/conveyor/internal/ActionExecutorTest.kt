@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
@@ -7,7 +8,6 @@ import kotlinx.coroutines.flow.flowOf
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.Transformer
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
@@ -56,7 +56,7 @@ object ActionExecutorTest : Spek({
             }
         }
     }
-    describe("A ActionExecutor with 2 start actions") {
+    describe("An ActionExecutor with 2 start actions") {
         val startAction1 = IncrementingAction(1)
         val startAction2 = IncrementingAction(2)
         val subject by memoized {
@@ -80,14 +80,14 @@ object ActionExecutorTest : Spek({
             }
         }
     }
-    describe("A ActionExecutor with 2 transformers that was launched") {
+    describe("An ActionExecutor with 2 transformers that was launched") {
         val startAction = IncrementingAction(1)
-        val transformer1 = Transformer<Action<Int>> { flow ->
+        val transformer1 = { flow: Flow<Action<Int>> ->
             flow.flatMapConcat { action ->
                 flowOf(action, action)
             }
         }
-        val transformer2 = Transformer<Action<Int>> { flow ->
+        val transformer2 = { flow: Flow<Action<Int>> ->
             flow.drop(1)
         }
         val subject by memoized {
