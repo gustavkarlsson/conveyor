@@ -16,7 +16,7 @@ public interface UpdatableStateFlow<State> : StateFlow<State> {
      */
     public suspend fun update(block: suspend State.() -> State): State
 
-    // FIXME verify internal/external subscription count
+    // FIXME This is the internal subscription count. How to solve?
     /**
      * The number of subscribers of this flow.
      */
