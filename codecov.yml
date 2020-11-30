@@ -1,0 +1,3 @@
+ignore:
+  - "buildSrc/"
+  - "testing/"
