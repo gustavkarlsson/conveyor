@@ -14,7 +14,6 @@ internal class RxStoreImpl<State : Any>(
 ) : RxStore<State> {
     override val state: StateFlowable<State> = StateFlowableImpl(store.state)
 
-    // FIXME test
     override var disposable: Disposable? = null
         private set
 

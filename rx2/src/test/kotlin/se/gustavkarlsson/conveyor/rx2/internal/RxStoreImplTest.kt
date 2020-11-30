@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.rx2.internal
 
+import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
@@ -11,15 +12,20 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.testing.NullAction
+import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
+import strikt.assertions.isNotNull
+import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
 object RxStoreImplTest : Spek({
     val state = "state"
+    val scope by memoizedTestCoroutineScope()
     val innerStore by memoized { FakeStore(state) }
     val action = NullAction<String>()
 
@@ -45,6 +51,35 @@ object RxStoreImplTest : Spek({
                 .describedAs("started jobs")
                 .hasSize(1)
                 .first().get { isCancelled }.isTrue()
+        }
+        it("disposable is null") {
+            expectThat(subject.disposable).isNull()
+        }
+
+        describe("that was started") {
+            lateinit var disposable: Disposable
+            beforeEachTest {
+                disposable = subject.start(scope)
+            }
+
+            it("disposable is equal to disposable returned by start") {
+                expectThat(subject.disposable).isEqualTo(disposable)
+            }
+            it("disposable is not disposed") {
+                expectThat(subject.disposable).describedAs("disposable")
+                    .isNotNull()
+                    .get { isDisposed }.isFalse()
+            }
+
+            describe("that was disposed") {
+                beforeEachTest { disposable.dispose() }
+
+                it("disposable is disposed") {
+                    expectThat(subject.disposable).describedAs("disposable")
+                        .isNotNull()
+                        .get { isDisposed }.isTrue()
+                }
+            }
         }
     }
 })

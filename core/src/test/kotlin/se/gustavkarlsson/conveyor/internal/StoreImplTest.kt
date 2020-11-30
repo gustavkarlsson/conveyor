@@ -78,6 +78,9 @@ object StoreImplTest : Spek({
                 subject.issue(action)
                 expectThat(actionIssuer).hasIssued(action)
             }
+            it("job is equal to job returned by start") {
+                expectThat(subject.job).isEqualTo(job)
+            }
             it("job is active") {
                 expectThat(subject.job).describedAs("job")
                     .isNotNull()
