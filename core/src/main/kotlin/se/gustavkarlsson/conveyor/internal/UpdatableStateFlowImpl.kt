@@ -18,4 +18,8 @@ internal class UpdatableStateFlowImpl<State> private constructor(
             state.value = newState
             newState
         }
+
+    // FIXME rename
+    // FIXME test
+    override lateinit var liveCount: StateFlow<Int>
 }

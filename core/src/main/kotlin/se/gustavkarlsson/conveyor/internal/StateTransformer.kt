@@ -13,6 +13,9 @@ internal class StateTransformer<State>(
 ) : Launcher {
     private val mutableState = MutableStateFlow(incomingState.value)
     val outgoingState: StateFlow<State> = mutableState
+
+    // FIXME test
+    val outgoingSubscriberCount: StateFlow<Int> by mutableState::subscriptionCount
     override fun launch(scope: CoroutineScope): Job = scope.launch {
         incomingState
             .transform(transformers)
