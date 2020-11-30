@@ -9,10 +9,10 @@ import strikt.api.expectThrows
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 
-object StageTest : Spek({
-    describe("A Stage") {
+object StageManagerTest : Spek({
+    describe("A StageManager") {
         val cancellationReason = Exception()
-        val subject by memoized { Stage() }
+        val subject by memoized { StageManager() }
 
         it("stop throws exception") {
             expectThrows<StoreNotYetStartedException> {
