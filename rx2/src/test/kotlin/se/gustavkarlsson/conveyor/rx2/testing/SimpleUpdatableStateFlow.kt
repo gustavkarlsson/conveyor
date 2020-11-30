@@ -10,7 +10,6 @@ class SimpleUpdatableStateFlow<State>(initialState: State) : UpdatableStateFlow<
     private val mutableFlow = MutableStateFlow(initialState)
     override val value by mutableFlow::value
     override val replayCache by mutableFlow::replayCache
-    override val subscriptionCount by mutableFlow::subscriptionCount
 
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<State>) = mutableFlow.collect(collector)

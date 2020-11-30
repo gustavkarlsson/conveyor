@@ -10,7 +10,6 @@ import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.rxSingle
 import org.reactivestreams.Subscriber
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
-import se.gustavkarlsson.conveyor.rx2.StateFlowable
 import se.gustavkarlsson.conveyor.rx2.UpdatableStateFlowable
 
 @ExperimentalCoroutinesApi
@@ -30,6 +29,4 @@ internal class UpdatableStateFlowableImpl<State : Any>(
     override fun updateBlocking(block: State.() -> State): State = runBlocking {
         state.update { block() }
     }
-
-    override val subscriptionCount: StateFlowable<Int> = StateFlowableImpl(state.subscriptionCount)
 }

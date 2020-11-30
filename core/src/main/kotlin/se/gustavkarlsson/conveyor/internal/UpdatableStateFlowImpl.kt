@@ -18,7 +18,4 @@ internal class UpdatableStateFlowImpl<State> private constructor(
             state.value = newState
             newState
         }
-
-    // FIXME This is the internal subscription count. How to solve?
-    override val subscriptionCount: StateFlow<Int> by state::subscriptionCount
 }

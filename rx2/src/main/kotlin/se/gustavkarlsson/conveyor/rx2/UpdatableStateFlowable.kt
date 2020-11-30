@@ -23,10 +23,4 @@ public abstract class UpdatableStateFlowable<State : Any> : StateFlowable<State>
      * even if the provided block does not block.
      */
     public abstract fun updateBlocking(block: State.() -> State): State
-
-    // FIXME This is the internal subscription count. How to solve?
-    /**
-     * The number of subscribers of this flowable.
-     */
-    public abstract val subscriptionCount: StateFlowable<Int>
 }

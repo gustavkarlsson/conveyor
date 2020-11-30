@@ -15,10 +15,4 @@ public interface UpdatableStateFlow<State> : StateFlow<State> {
      * even if the provided block does not suspend.
      */
     public suspend fun update(block: suspend State.() -> State): State
-
-    // FIXME This is the internal subscription count. How to solve?
-    /**
-     * The number of subscribers of this flow.
-     */
-    public val subscriptionCount: StateFlow<Int>
 }
