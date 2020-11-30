@@ -14,9 +14,14 @@ internal class RxStoreImpl<State : Any>(
 ) : RxStore<State> {
     override val state: StateFlowable<State> = StateFlowableImpl(store.state)
 
+    override var disposable: Disposable? = null
+        private set
+
     override fun start(scope: CoroutineScope): Disposable {
         val job = store.start(scope)
-        return JobDisposable(job)
+        val disposable = JobDisposable(job)
+        this.disposable = disposable
+        return disposable
     }
 
     override fun issue(action: Action<State>) = store.issue(action)

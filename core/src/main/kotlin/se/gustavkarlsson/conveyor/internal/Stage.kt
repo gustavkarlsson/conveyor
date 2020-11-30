@@ -11,19 +11,24 @@ internal class Stage {
     fun start() {
         current = when (val current = current) {
             Stage.NotYetStarted -> Stage.Started
-            Stage.Started -> throw StoreAlreadyStartedException()
+            is Stage.Started -> throw StoreAlreadyStartedException()
             is Stage.Stopped -> throw StoreStoppedException(current.cancellationReason)
         }
     }
 
+    @Synchronized
     fun stop(cancellationReason: Throwable?) {
-        current = Stage.Stopped(cancellationReason)
+        current = when (val current = current) {
+            Stage.NotYetStarted -> throw StoreNotYetStartedException()
+            is Stage.Started -> Stage.Stopped(cancellationReason)
+            is Stage.Stopped -> throw StoreStoppedException(current.cancellationReason)
+        }
     }
 
     fun requireStarted() =
         when (val current = current) {
-            Stage.Started -> Unit
             Stage.NotYetStarted -> throw StoreNotYetStartedException()
+            is Stage.Started -> Unit
             is Stage.Stopped -> throw StoreStoppedException(current.cancellationReason)
         }
 

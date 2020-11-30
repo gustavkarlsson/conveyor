@@ -14,13 +14,15 @@ object StageTest : Spek({
         val cancellationReason = Exception()
         val subject by memoized { Stage() }
 
+        it("stop throws exception") {
+            expectThrows<StoreNotYetStartedException> {
+                subject.stop(null)
+            }
+        }
         it("requireStarted throws exception") {
             expectThrows<StoreNotYetStartedException> {
                 subject.requireStarted()
             }
-        }
-        it("stop succeeds") {
-            subject.stop(null)
         }
 
         describe("that was started") {
@@ -33,6 +35,9 @@ object StageTest : Spek({
             }
             it("requireStarted succeeds") {
                 subject.requireStarted()
+            }
+            it("stop succeeds") {
+                subject.stop(null)
             }
 
             describe("that was stopped with a reason") {
@@ -48,6 +53,11 @@ object StageTest : Spek({
                         subject.requireStarted()
                     }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
                 }
+                it("stop throws exception") {
+                    expectThrows<StoreStoppedException> {
+                        subject.stop(null)
+                    }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
+                }
             }
 
             describe("that was stopped without a reason") {
@@ -61,6 +71,11 @@ object StageTest : Spek({
                 it("requireStarted throws exception") {
                     expectThrows<StoreStoppedException> {
                         subject.requireStarted()
+                    }.get { this.cancellationReason }.isNull()
+                }
+                it("stop throws exception") {
+                    expectThrows<StoreStoppedException> {
+                        subject.stop(cancellationReason)
                     }.get { this.cancellationReason }.isNull()
                 }
             }

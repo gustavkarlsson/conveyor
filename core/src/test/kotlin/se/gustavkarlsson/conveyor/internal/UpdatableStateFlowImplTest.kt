@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
@@ -27,7 +28,7 @@ object UpdatableStateFlowImplTest : Spek({
         it("flow emits initial") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.toList()
+                    subject.take(2).toList()
                 }
                 deferred.cancel()
                 deferred.await()
@@ -71,7 +72,7 @@ object UpdatableStateFlowImplTest : Spek({
         it("flow emits initial and state1 when updating it to state1 when collecting") {
             val result = runBlockingTest {
                 val deferred = async {
-                    subject.toList()
+                    subject.take(3).toList()
                 }
                 subject.update { state1 }
                 deferred.cancel()
