@@ -55,6 +55,8 @@ private class FakeStore<State>(initialState: State) : Store<State> {
     private val _startedJobs = mutableListOf<Job>()
     val startedJobs: List<Job> = _startedJobs
 
+    override val job: Job? get() = _startedJobs.firstOrNull()
+
     override fun start(scope: CoroutineScope): Job {
         val job = scope.launch { awaitCancellation() }
         _startedJobs += job

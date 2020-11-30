@@ -20,6 +20,9 @@ import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
+import strikt.assertions.isNull
+import strikt.assertions.isTrue
 
 object StoreImplTest : Spek({
     val initialState = 0
@@ -44,6 +47,9 @@ object StoreImplTest : Spek({
             expectThrows<StoreNotYetStartedException> {
                 subject.issue(action)
             }
+        }
+        it("job is null") {
+            expectThat(subject.job).isNull()
         }
 
         describe("that was started") {
@@ -72,6 +78,11 @@ object StoreImplTest : Spek({
                 subject.issue(action)
                 expectThat(actionIssuer).hasIssued(action)
             }
+            it("job is active") {
+                expectThat(subject.job).describedAs("job")
+                    .isNotNull()
+                    .get { isActive }.isTrue()
+            }
 
             describe("that was stopped") {
                 val cancellationException = CancellationException("Job cancelled at beginning of test")
@@ -94,6 +105,11 @@ object StoreImplTest : Spek({
                 }
                 it("actionIssuer has been cancelled by exception") {
                     expectThat(actionIssuer).hasBeenCancelledWith(cancellationException)
+                }
+                it("job is cancelled") {
+                    expectThat(subject.job).describedAs("job")
+                        .isNotNull()
+                        .get { isCancelled }.isTrue()
                 }
             }
         }

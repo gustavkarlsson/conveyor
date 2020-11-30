@@ -26,6 +26,11 @@ public interface Store<State> : ActionIssuer<State> {
     public val state: StateFlow<State>
 
     /**
+     * The job of this store, if it has been started.
+     */
+    public val job: Job?
+
+    /**
      * Starts the store in the provided scope.
      * This will run any "start actions" provided and also allows new actions to be issued.
      *

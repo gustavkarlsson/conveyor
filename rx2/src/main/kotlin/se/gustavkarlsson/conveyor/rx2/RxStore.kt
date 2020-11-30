@@ -20,6 +20,11 @@ public interface RxStore<State : Any> : ActionIssuer<State> {
     public val state: StateFlowable<State>
 
     /**
+     * The disposable of this store, if it has been started.
+     */
+    public val disposable: Disposable?
+
+    /**
      * Starts the store in the provided scope.
      * This will run any "start actions" provided and also allows new actions to be issued.
      *

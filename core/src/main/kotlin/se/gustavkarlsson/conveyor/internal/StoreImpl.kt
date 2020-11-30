@@ -17,6 +17,8 @@ internal class StoreImpl<State>(
 
     private val stage = Stage() // TODO Introduce interface?
 
+    override val job: Job? get() = stage.job
+
     override fun start(scope: CoroutineScope): Job {
         stage.start()
         val job = scope.launch {
@@ -24,6 +26,7 @@ internal class StoreImpl<State>(
                 launcher.launch(scope)
             }.joinAll()
         }
+        stage.setJob(job)
         job.invokeOnCompletion(::stop)
         return job
     }
@@ -34,7 +37,7 @@ internal class StoreImpl<State>(
     }
 
     override fun issue(action: Action<State>) {
-        stage.requireStarted()
+        stage.requireActive()
         actionIssuer.issue(action)
     }
 }
