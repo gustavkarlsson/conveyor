@@ -12,13 +12,14 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
+// FIXME test storeSubscriberCount and transformation
 object UpdatableStateFlowImplTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
 
     describe("An UpdatableStateFlowImpl") {
-        val subject by memoized { UpdatableStateFlowImpl(initialState) }
+        val subject by memoized { StateManager(initialState, emptyList()) }
 
         it("value returns initial") {
             expectThat(subject.value).isEqualTo(initialState)

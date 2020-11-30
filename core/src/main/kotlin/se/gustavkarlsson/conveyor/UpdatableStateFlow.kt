@@ -17,7 +17,6 @@ public interface UpdatableStateFlow<State> : StateFlow<State> {
      */
     public suspend fun update(block: suspend State.() -> State): State
 
-    // FIXME rename?
     /**
      * The number of subscriber of the **store**
      * Acts like [MutableSharedFlow.subscriptionCount] but for the external state flow of the store.

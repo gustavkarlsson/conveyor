@@ -5,10 +5,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.internal.ActionExecutor
 import se.gustavkarlsson.conveyor.internal.ActionIssuerImpl
-import se.gustavkarlsson.conveyor.internal.StateTransformer
+import se.gustavkarlsson.conveyor.internal.StateManager
 import se.gustavkarlsson.conveyor.internal.StoreImpl
 import se.gustavkarlsson.conveyor.internal.Transformer
-import se.gustavkarlsson.conveyor.internal.UpdatableStateFlowImpl
 
 /**
  * A predictable state container. The state can be read through [state]
@@ -66,22 +65,17 @@ public fun <State> Store(
     }
 
     val actionIssuer = ActionIssuerImpl<State>()
-    val state = UpdatableStateFlowImpl(actualInitialState)
+    val stateManager = StateManager(actualInitialState, stateTransformers)
     val actionExecutor = ActionExecutor(
         startActions = actualStartActions,
         actions = actionIssuer.issuedActions,
         transformers = actionTransformers,
-        state = state,
+        state = stateManager,
     )
-    val stateTransformer = StateTransformer(
-        incomingState = state,
-        transformers = stateTransformers,
-    )
-    state.storeSubscriberCount = stateTransformer.outgoingSubscriberCount
     return StoreImpl(
-        stateFlow = stateTransformer.outgoingState,
+        stateFlow = stateManager.outgoingState,
         actionIssuer = actionIssuer,
-        launchers = listOf(stateTransformer, actionExecutor),
+        launchers = listOf(stateManager, actionExecutor),
     )
 }
 
