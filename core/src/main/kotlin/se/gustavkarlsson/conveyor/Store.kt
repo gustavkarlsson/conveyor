@@ -26,7 +26,7 @@ public interface Store<State> : ActionIssuer<State> {
     public val state: StateFlow<State>
 
     /**
-     * The job of this store, if it has been started.
+     * The job of this store, if it has been started. Cancelling it will stop the store.
      */
     public val job: Job?
 

@@ -20,7 +20,7 @@ public interface RxStore<State : Any> : ActionIssuer<State> {
     public val state: StateFlowable<State>
 
     /**
-     * The disposable of this store, if it has been started.
+     * The disposable of this store, if it has been started. Disposing it will stop the store.
      */
     public val disposable: Disposable?
 
