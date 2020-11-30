@@ -1,14 +1,11 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.Job
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
-import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.isNotNull
 import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 
@@ -17,26 +14,18 @@ object StageTest : Spek({
         val cancellationReason = Exception()
         val subject by memoized { Stage() }
 
-        it("setJob throws exception") {
-            expectThrows<StoreNotYetStartedException> {
-                subject.setJob(Job())
-            }
-        }
         it("stop throws exception") {
             expectThrows<StoreNotYetStartedException> {
                 subject.stop(null)
             }
         }
-        it("requireActive throws exception") {
+        it("requireStarted throws exception") {
             expectThrows<StoreNotYetStartedException> {
-                subject.requireActive()
+                subject.requireStarted()
             }
         }
-        it("has no job") {
-            expectThat(subject.job).isNull()
-        }
 
-        describe("that is starting") {
+        describe("that was started") {
             beforeEachTest { subject.start() }
 
             it("start throws exception") {
@@ -44,95 +33,50 @@ object StageTest : Spek({
                     subject.start()
                 }
             }
-            it("requireActive throws exception") {
-                expectThrows<StoreNotYetStartedException> {
-                    subject.requireActive()
-                }
+            it("requireStarted succeeds") {
+                subject.requireStarted()
             }
-            it("stop throws exception") {
-                expectThrows<StoreNotYetStartedException> {
-                    subject.stop(null)
-                }
-            }
-            it("has no job") {
-                expectThat(subject.job).isNull()
+            it("stop succeeds") {
+                subject.stop(null)
             }
 
-            describe("that had its job set") {
-                val job by memoized { Job() }
-                beforeEachTest { subject.setJob(job) }
+            describe("that was stopped with a reason") {
+                beforeEachTest { subject.stop(cancellationReason) }
 
                 it("start throws exception") {
-                    expectThrows<StoreAlreadyStartedException> {
+                    expectThrows<StoreStoppedException> {
                         subject.start()
-                    }
+                    }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
                 }
-                it("setJob throws exception") {
-                    expectThrows<StoreAlreadyStartedException> {
-                        subject.setJob(Job())
-                    }
+                it("requireStarted throws exception") {
+                    expectThrows<StoreStoppedException> {
+                        subject.requireStarted()
+                    }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
                 }
-                it("requireActive succeeds") {
-                    subject.requireActive()
+                it("stop throws exception") {
+                    expectThrows<StoreStoppedException> {
+                        subject.stop(null)
+                    }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
                 }
-                it("has a job") {
-                    expectThat(subject.job).isNotNull()
-                }
+            }
 
-                describe("that was stopped with a reason") {
-                    beforeEachTest { subject.stop(cancellationReason) }
+            describe("that was stopped without a reason") {
+                beforeEachTest { subject.stop(null) }
 
-                    it("start throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.start()
-                        }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
-                    }
-                    it("setJob throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.setJob(Job())
-                        }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
-                    }
-                    it("requireActive throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.requireActive()
-                        }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
-                    }
-                    it("stop throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.stop(null)
-                        }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
-                    }
-                    it("has a job") {
-                        expectThat(subject.job).isNotNull()
-                    }
+                it("start throws exception") {
+                    expectThrows<StoreStoppedException> {
+                        subject.start()
+                    }.get { this.cancellationReason }.isNull()
                 }
-
-                describe("that was stopped without a reason") {
-                    beforeEachTest { subject.stop(null) }
-
-                    it("start throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.start()
-                        }.get { this.cancellationReason }.isNull()
-                    }
-                    it("setJob throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.setJob(Job())
-                        }.get { this.cancellationReason }.isNull()
-                    }
-                    it("requireActive throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.requireActive()
-                        }.get { this.cancellationReason }.isNull()
-                    }
-                    it("stop throws exception") {
-                        expectThrows<StoreStoppedException> {
-                            subject.stop(cancellationReason)
-                        }.get { this.cancellationReason }.isNull()
-                    }
-                    it("has a job") {
-                        expectThat(subject.job).isNotNull()
-                    }
+                it("requireStarted throws exception") {
+                    expectThrows<StoreStoppedException> {
+                        subject.requireStarted()
+                    }.get { this.cancellationReason }.isNull()
+                }
+                it("stop throws exception") {
+                    expectThrows<StoreStoppedException> {
+                        subject.stop(cancellationReason)
+                    }.get { this.cancellationReason }.isNull()
                 }
             }
         }
