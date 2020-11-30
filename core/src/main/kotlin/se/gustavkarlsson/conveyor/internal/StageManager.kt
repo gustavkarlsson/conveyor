@@ -4,32 +4,32 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 
-internal class Stage {
-    private var current: Stage = Stage.NotYetStarted
+internal class StageManager {
+    private var stage: Stage = Stage.NotYetStarted
 
     @Synchronized
     fun start() {
-        current = when (val current = current) {
+        stage = when (val stage = stage) {
             Stage.NotYetStarted -> Stage.Started
             is Stage.Started -> throw StoreAlreadyStartedException()
-            is Stage.Stopped -> throw StoreStoppedException(current.cancellationReason)
+            is Stage.Stopped -> throw StoreStoppedException(stage.cancellationReason)
         }
     }
 
     @Synchronized
     fun stop(cancellationReason: Throwable?) {
-        current = when (val current = current) {
+        stage = when (val stage = stage) {
             Stage.NotYetStarted -> throw StoreNotYetStartedException()
             is Stage.Started -> Stage.Stopped(cancellationReason)
-            is Stage.Stopped -> throw StoreStoppedException(current.cancellationReason)
+            is Stage.Stopped -> throw StoreStoppedException(stage.cancellationReason)
         }
     }
 
     fun requireStarted() =
-        when (val current = current) {
+        when (val stage = stage) {
             Stage.NotYetStarted -> throw StoreNotYetStartedException()
             is Stage.Started -> Unit
-            is Stage.Stopped -> throw StoreStoppedException(current.cancellationReason)
+            is Stage.Stopped -> throw StoreStoppedException(stage.cancellationReason)
         }
 
     private sealed class Stage {
