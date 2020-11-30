@@ -7,6 +7,9 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 import se.gustavkarlsson.conveyor.rx2.internal.UpdatableStateFlowableImpl
 
+/**
+ * An [Action] that executes using a [Completable].
+ */
 @ExperimentalCoroutinesApi
 public abstract class CompletableAction<State : Any> : Action<State> {
     final override suspend fun execute(state: UpdatableStateFlow<State>) {
@@ -15,9 +18,15 @@ public abstract class CompletableAction<State : Any> : Action<State> {
         completable.await()
     }
 
+    /**
+     * The completable that runs the action. The state can be accessed through the state argument.
+     */
     protected abstract fun execute(state: UpdatableStateFlowable<State>): Completable
 }
 
+/**
+ * Creates an action with the completable returned from the given block as its execute function.
+ */
 @ExperimentalCoroutinesApi
 @Suppress("FunctionName")
 public fun <State : Any> CompletableAction(

@@ -19,5 +19,6 @@ internal class UpdatableStateFlowImpl<State> private constructor(
             newState
         }
 
+    // FIXME verify internal/external subscription count
     override val subscriptionCount: StateFlow<Int> by state::subscriptionCount
 }
