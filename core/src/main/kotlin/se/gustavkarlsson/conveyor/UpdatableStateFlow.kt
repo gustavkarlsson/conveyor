@@ -22,5 +22,5 @@ public interface UpdatableStateFlow<State> : StateFlow<State> {
      * The number of subscriber of the **store**
      * Acts like [MutableSharedFlow.subscriptionCount] but for the external state flow of the store.
      */
-    public val liveCount: StateFlow<Int>
+    public val storeSubscriberCount: StateFlow<Int>
 }

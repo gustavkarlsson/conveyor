@@ -77,7 +77,7 @@ public fun <State> Store(
         incomingState = state,
         transformers = stateTransformers,
     )
-    state.liveCount = stateTransformer.outgoingSubscriberCount
+    state.storeSubscriberCount = stateTransformer.outgoingSubscriberCount
     return StoreImpl(
         stateFlow = stateTransformer.outgoingState,
         actionIssuer = actionIssuer,
