@@ -2,8 +2,13 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -18,7 +23,7 @@ object UpdatableStateFlowImplTest : Spek({
     val state2 = "state2"
 
     describe("An UpdatableStateFlowImpl") {
-        val subject by memoized { UpdatableStateFlowImpl(initialState) }
+        val subject by memoized { StateManager(initialState, emptyList()) }
 
         it("value returns initial") {
             expectThat(subject.value).isEqualTo(initialState)
@@ -77,6 +82,62 @@ object UpdatableStateFlowImplTest : Spek({
                 deferred.await()
             }
             expectThat(result).containsExactly(initialState, state1)
+        }
+        it("storeSubscriberCount is initially 0") {
+            expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
+                .isEqualTo(0)
+        }
+        it("storeSubscriberCount updates with subscribers to outgoing state") {
+            runBlockingTest {
+                val job1 = launch {
+                    subject.outgoingState.collect {}
+                }
+                val job2 = launch {
+                    subject.outgoingState.collect {}
+                }
+                expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
+                    .isEqualTo(2)
+                job1.cancel()
+                job2.cancel()
+            }
+        }
+        it("storeSubscriberCount does not update with subscribers to internal state") {
+            runBlockingTest {
+                val job = launch {
+                    subject.collect {}
+                }
+                expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
+                    .isEqualTo(0)
+                job.cancel()
+            }
+        }
+    }
+    describe("An UpdatableStateFlowImpl with transformers") {
+        val addIndex : Transformer<String> = { flow ->
+            flow.withIndex()
+                .map { "${it.value}-${it.index}" }
+        }
+        val dropOdd : Transformer<String> = { flow ->
+            flow.filter {
+                val index = it.substringAfter("-").toInt()
+                index % 2 == 0
+            }
+        }
+        val subject by memoized { StateManager(initialState, listOf(addIndex, dropOdd)) }
+
+        it("transformers run when launched") {
+            val result = mutableListOf<String>()
+            runBlockingTest {
+                val launchJob = subject.launch(this)
+                val collectJob = launch { subject.outgoingState.toCollection(result) }
+
+                subject.update { "first" }
+                subject.update { "second" }
+
+                launchJob.cancel()
+                collectJob.cancel()
+            }
+            expectThat(result).containsExactly("initial-0", "second-2")
         }
     }
 })

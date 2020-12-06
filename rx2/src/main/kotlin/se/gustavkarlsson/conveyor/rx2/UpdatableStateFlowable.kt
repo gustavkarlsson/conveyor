@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.rx2
 
 import io.reactivex.Single
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 /**
  * A [StateFlowable] that can be updated sequentially, guaranteeing predictable state changes.
@@ -23,4 +24,10 @@ public abstract class UpdatableStateFlowable<State : Any> : StateFlowable<State>
      * even if the provided block does not block.
      */
     public abstract fun updateBlocking(block: State.() -> State): State
+
+    /**
+     * The number of subscriber of the **store**
+     * Acts like [MutableSharedFlow.subscriptionCount] but for the external state flowable of the store.
+     */
+    public abstract val storeSubscriberCount: StateFlowable<Int>
 }

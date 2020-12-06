@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -15,4 +16,10 @@ public interface UpdatableStateFlow<State> : StateFlow<State> {
      * even if the provided block does not suspend.
      */
     public suspend fun update(block: suspend State.() -> State): State
+
+    /**
+     * The number of subscriber of the **store**
+     * Acts like [MutableSharedFlow.subscriptionCount] but for the external state flow of the store.
+     */
+    public val storeSubscriberCount: StateFlow<Int>
 }

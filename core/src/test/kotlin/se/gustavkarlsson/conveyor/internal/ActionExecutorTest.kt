@@ -9,6 +9,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
+import se.gustavkarlsson.conveyor.testing.SimpleUpdatableStateFlow
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
@@ -19,7 +20,7 @@ object ActionExecutorTest : Spek({
     val initialState = 0
     val scope by memoizedTestCoroutineScope()
     val actions by memoized { MutableSharedFlow<Action<Int>>() }
-    val state by memoized { UpdatableStateFlowImpl(initialState) }
+    val state by memoized { SimpleUpdatableStateFlow(initialState) }
 
     describe("A minimal ActionExecutor") {
         val subject by memoized {
