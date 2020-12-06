@@ -41,5 +41,9 @@ object UpdatableStateFlowableImplTest : Spek({
             runBlocking { state.update { 2 } }
             testSubscriber.assertValues(1, 2)
         }
+        it("subscription count matches wrapped count") {
+            state.storeSubscriberCount.value = 5
+            expectThat(subject.storeSubscriberCount.value).isEqualTo(5)
+        }
     }
 })
