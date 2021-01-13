@@ -48,6 +48,14 @@ object ActionExecutorTest : Spek({
                 }
                 expectThat(state.value).isEqualTo(1)
             }
+            it("executes actions in parallel") {
+                runBlockingTest {
+                    actions.emit(IncrementingAction(1, 100))
+                    actions.emit(IncrementingAction(1, 100))
+                    scope.advanceTimeBy(100)
+                }
+                expectThat(state.value).isEqualTo(2)
+            }
             it("throws if launched again") {
                 expectThrows<IllegalStateException> {
                     runBlockingTest {
