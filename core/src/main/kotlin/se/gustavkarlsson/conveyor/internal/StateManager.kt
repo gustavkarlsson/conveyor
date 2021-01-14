@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
+// FIXME add tests for backpressure, integrate SuspendingMutableStateFlow
 internal class StateManager<State> private constructor(
     private val incomingMutableState: MutableStateFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
