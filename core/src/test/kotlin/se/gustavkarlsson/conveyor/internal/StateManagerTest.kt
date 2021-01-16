@@ -1,28 +1,34 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
+import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-object UpdatableStateFlowImplTest : Spek({
+object StateManagerTest : Spek({
+    val scope by memoizedTestCoroutineScope()
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
 
-    describe("An UpdatableStateFlowImpl") {
+    describe("A StateManager") {
         val subject by memoized { StateManager(initialState, emptyList()) }
 
         it("value returns initial") {
@@ -111,13 +117,29 @@ object UpdatableStateFlowImplTest : Spek({
                 job.cancel()
             }
         }
+        it("slow collector of outgoingState does not miss any emissions") {
+            val collected = mutableListOf<String>()
+            subject.launch(scope)
+            scope.runBlockingTest {
+                val job = launch {
+                    subject.outgoingState
+                        .onEach { delay(1) }
+                        .toCollection(collected)
+                }
+                launch { subject.update { "first" } }
+                launch { subject.update { "second" } }
+                advanceTimeBy(3)
+                job.cancel()
+            }
+            expectThat(collected).containsExactly("initial", "first", "second")
+        }
     }
-    describe("An UpdatableStateFlowImpl with transformers") {
-        val addIndex : Transformer<String> = { flow ->
+    describe("A StateManager with transformers") {
+        val addIndex: Transformer<String> = { flow ->
             flow.withIndex()
                 .map { "${it.value}-${it.index}" }
         }
-        val dropOdd : Transformer<String> = { flow ->
+        val dropOdd: Transformer<String> = { flow ->
             flow.filter {
                 val index = it.substringAfter("-").toInt()
                 index % 2 == 0
@@ -138,6 +160,37 @@ object UpdatableStateFlowImplTest : Spek({
                 collectJob.cancel()
             }
             expectThat(result).containsExactly("initial-0", "second-2")
+        }
+    }
+    describe("A StateManager with a delaying transformer") {
+        val delay: Transformer<String> = { flow ->
+            flow.onEach { delay(10) }
+        }
+        val subject by memoized { StateManager(initialState, listOf(delay)) }
+        beforeEachTest { subject.launch(scope) }
+
+        it("suspends emissions due to backpressure") {
+            expectThrows<TimeoutCancellationException> {
+                withTimeout(15) {
+                    subject.update { "first" }
+                    subject.update { "second" }
+                }
+            }
+        }
+        it("does not miss any emissions") {
+            val values = mutableListOf<String>()
+            scope.runBlockingTest {
+                launch {
+                    subject.update { "first" }
+                }
+                launch {
+                    subject.update { "second" }
+                }
+                values += subject.value
+                advanceTimeBy(10)
+                values += subject.value
+            }
+            expectThat(values).containsExactly("first", "second")
         }
     }
 })
