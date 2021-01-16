@@ -10,15 +10,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-// FIXME add tests for backpressure, integrate SuspendingMutableStateFlow
+// FIXME Make outgoing state support backPressure control (on/off) and add tests for it
 internal class StateManager<State> private constructor(
-    private val incomingMutableState: MutableStateFlow<State>,
+    private val incomingMutableState: SuspendingMutableStateFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
 ) : StateFlow<State> by incomingMutableState, UpdatableStateFlow<State>, Launcher {
     constructor(
         initialValue: State,
         transformers: Iterable<Transformer<State>>,
-    ) : this(MutableStateFlow(initialValue), transformers)
+    ) : this(SuspendingMutableStateFlow(initialValue), transformers)
 
     private val outgoingMutableState = MutableStateFlow(incomingMutableState.value)
     val outgoingState: StateFlow<State> = outgoingMutableState
