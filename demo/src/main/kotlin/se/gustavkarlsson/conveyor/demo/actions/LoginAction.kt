@@ -17,7 +17,7 @@ class LoginAction(private val api: Api) : Action<State> {
         state.update {
             when {
                 this !is State.Login -> this
-                userName == null -> copy(isLoggingIn = false)
+                userName == null -> copy(isLoggingIn = false, showInvalidLogin = true)
                 else -> State.LoggedIn(name = userName)
             }
         }

@@ -31,6 +31,7 @@ fun LoginScreen(state: State.Login, events: LoginEvents) {
         EmailTextField(state.emailText, events::onEmailTextChanged)
         PasswordTextField(state.passwordText, events::onPasswordTextChanged)
         LoginIndicator(state.isLoginIndicatorVisible)
+        InvalidLoginText(state.showInvalidLogin)
         LoginButton(state.isLoginButtonEnabled, events::onLoginButtonClicked)
     }
 }
@@ -74,6 +75,19 @@ private fun LoginIndicator(isVisible: Boolean) {
     LinearProgressIndicator(
         modifier = Modifier.padding(4.dp).alpha(opacity),
         color = MaterialTheme.colors.secondary,
+    )
+}
+
+@Composable
+private fun InvalidLoginText(showInvalidLogin: Boolean) {
+    val text = if (showInvalidLogin) {
+        "Invalid login"
+    } else {
+        ""
+    }
+    Text(
+        modifier = Modifier.padding(8.dp),
+        text = text,
     )
 }
 

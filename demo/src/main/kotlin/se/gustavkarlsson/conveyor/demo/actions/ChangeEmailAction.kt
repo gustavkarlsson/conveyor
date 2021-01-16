@@ -10,7 +10,7 @@ class ChangeEmailAction(private val text: String) : Action<State> {
             require(this is State.Login)
             if (!isLoggingIn) {
                 val sanitizedText = text.trim().toLowerCase()
-                copy(emailText = sanitizedText)
+                copy(emailText = sanitizedText, showInvalidLogin = false)
             } else this
         }
     }

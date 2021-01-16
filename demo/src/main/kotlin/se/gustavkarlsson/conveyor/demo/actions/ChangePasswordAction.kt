@@ -9,7 +9,7 @@ class ChangePasswordAction(private val text: String) : Action<State> {
         state.update {
             require(this is State.Login)
             if (!isLoggingIn) {
-                copy(passwordText = text)
+                copy(passwordText = text, showInvalidLogin = false)
             } else this
         }
     }

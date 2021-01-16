@@ -9,6 +9,7 @@ sealed class State {
         val emailText: String = "",
         val passwordText: String = "",
         val isLoggingIn: Boolean = false,
+        val showInvalidLogin: Boolean = false,
     ) : State() {
         val isLoginIndicatorVisible: Boolean get() = isLoggingIn
         val isLoginButtonEnabled: Boolean

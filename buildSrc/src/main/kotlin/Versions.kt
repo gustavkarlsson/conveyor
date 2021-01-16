@@ -5,7 +5,7 @@ object Versions {
     const val detekt = "1.14.2"
     const val dokka = "1.4.10.2"
     const val jacoco = "0.8.6"
-    const val compose = "0.2.0-build131"
+    const val compose = "0.2.0-build132"
 
     // Dependencies
     const val kotlinxCoroutines = "1.4.2"
