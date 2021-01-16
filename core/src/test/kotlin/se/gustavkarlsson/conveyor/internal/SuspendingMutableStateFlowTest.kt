@@ -2,6 +2,7 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -13,6 +14,7 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import strikt.assertions.isLessThan
+import strikt.assertions.isNotNull
 
 object SuspendingMutableStateFlowTest : Spek({
     val scope by memoizedTestCoroutineScope()
@@ -25,6 +27,13 @@ object SuspendingMutableStateFlowTest : Spek({
                 subject.emit(5)
             }
             expectThat(subject.value).isEqualTo(5)
+        }
+        it("makes first value streamable") {
+            var result: Any? = null
+            runBlockingTest {
+                result = subject.firstOrNull()
+            }
+            expectThat(result).isNotNull()
         }
         it("does not skip any items for slow collectors") {
             val targetCount = 10

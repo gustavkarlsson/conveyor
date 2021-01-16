@@ -24,6 +24,10 @@ private constructor(
         initialValue = initialValue,
     )
 
+    init {
+        check(inner.tryEmit(initialValue)) { "Initial value rejected" }
+    }
+
     private val mutex = Mutex()
 
     suspend fun emit(value: T) {

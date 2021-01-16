@@ -17,12 +17,12 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
-object UpdatableStateFlowImplTest : Spek({
+object StateManagerTest : Spek({
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
 
-    describe("An UpdatableStateFlowImpl") {
+    describe("A StateManager") {
         val subject by memoized { StateManager(initialState, emptyList()) }
 
         it("value returns initial") {
@@ -112,7 +112,7 @@ object UpdatableStateFlowImplTest : Spek({
             }
         }
     }
-    describe("An UpdatableStateFlowImpl with transformers") {
+    describe("A StateManager with transformers") {
         val addIndex : Transformer<String> = { flow ->
             flow.withIndex()
                 .map { "${it.value}-${it.index}" }
