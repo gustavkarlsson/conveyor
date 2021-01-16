@@ -2,7 +2,6 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -10,7 +9,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-// FIXME Make outgoing state support backPressure control (on/off) and add tests for it
 internal class StateManager<State> private constructor(
     private val incomingMutableState: SuspendingMutableStateFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
@@ -20,7 +18,7 @@ internal class StateManager<State> private constructor(
         transformers: Iterable<Transformer<State>>,
     ) : this(SuspendingMutableStateFlow(initialValue), transformers)
 
-    private val outgoingMutableState = MutableStateFlow(incomingMutableState.value)
+    private val outgoingMutableState = SuspendingMutableStateFlow(incomingMutableState.value)
     val outgoingState: StateFlow<State> = outgoingMutableState
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {

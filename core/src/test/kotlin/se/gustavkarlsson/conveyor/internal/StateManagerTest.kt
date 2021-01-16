@@ -23,6 +23,7 @@ import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 
 object StateManagerTest : Spek({
+    val scope by memoizedTestCoroutineScope()
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
@@ -116,6 +117,22 @@ object StateManagerTest : Spek({
                 job.cancel()
             }
         }
+        it("slow collector of outgoingState does not miss any emissions") {
+            val collected = mutableListOf<String>()
+            subject.launch(scope)
+            scope.runBlockingTest {
+                val job = launch {
+                    subject.outgoingState
+                        .onEach { delay(1) }
+                        .toCollection(collected)
+                }
+                launch { subject.update { "first" } }
+                launch { subject.update { "second" } }
+                advanceTimeBy(3)
+                job.cancel()
+            }
+            expectThat(collected).containsExactly("initial", "first", "second")
+        }
     }
     describe("A StateManager with transformers") {
         val addIndex: Transformer<String> = { flow ->
@@ -146,7 +163,6 @@ object StateManagerTest : Spek({
         }
     }
     describe("A StateManager with a delaying transformer") {
-        val scope by memoizedTestCoroutineScope()
         val delay: Transformer<String> = { flow ->
             flow.onEach { delay(10) }
         }
