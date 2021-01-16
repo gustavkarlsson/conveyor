@@ -7,7 +7,7 @@ import se.gustavkarlsson.conveyor.StoreStoppedException
 internal class StageManager {
     private var stage: Stage = Stage.NotYetStarted
 
-    @Synchronized
+    // FIXME Synchronized
     fun start() {
         stage = when (val stage = stage) {
             Stage.NotYetStarted -> Stage.Started
@@ -16,7 +16,7 @@ internal class StageManager {
         }
     }
 
-    @Synchronized
+    // FIXME Synchronized
     fun stop(cancellationReason: Throwable?) {
         stage = when (val stage = stage) {
             Stage.NotYetStarted -> throw StoreNotYetStartedException()
