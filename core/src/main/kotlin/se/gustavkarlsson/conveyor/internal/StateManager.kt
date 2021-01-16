@@ -26,14 +26,14 @@ internal class StateManager<State> private constructor(
     override fun launch(scope: CoroutineScope): Job = scope.launch {
         incomingMutableState
             .transform(transformers)
-            .collect { outgoingMutableState.value = it }
+            .collect { outgoingMutableState.emit(it) }
     }
 
     private val writeMutex = Mutex()
     override suspend fun update(block: suspend State.() -> State): State =
         writeMutex.withLock {
             val newState = value.block()
-            incomingMutableState.value = newState
+            incomingMutableState.emit(newState)
             newState
         }
 
