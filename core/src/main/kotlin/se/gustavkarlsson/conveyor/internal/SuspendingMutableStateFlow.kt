@@ -37,7 +37,6 @@ private constructor(
         }
     }
 
-    // FIXME add test for this
     val subscriptionCount: StateFlow<Int> by inner::subscriptionCount
 
     override var value: T = initialValue

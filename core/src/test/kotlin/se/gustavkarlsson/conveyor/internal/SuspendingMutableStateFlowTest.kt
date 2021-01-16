@@ -53,6 +53,16 @@ object SuspendingMutableStateFlowTest : Spek({
             }
             expectThat(count).isEqualTo(targetCount)
         }
+        it("initially has a subscriptionCount of 0") {
+            expectThat(subject.subscriptionCount.value).isEqualTo(0)
+        }
+        it("has a subscriptionCount of 1 when one subscriber") {
+            runBlockingTest {
+                val job = launch { subject.collect() }
+                expectThat(subject.subscriptionCount.value).isEqualTo(1)
+                job.cancel()
+            }
+        }
     }
     describe("A SuspendingMutableStateFlow that does not suspend") {
         val subject by memoized { SuspendingMutableStateFlow(0, suspend = false) }
