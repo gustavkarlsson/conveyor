@@ -83,7 +83,7 @@ tasks.jacocoTestReport {
         "commonMain/src",
         "jvmMain/src"
     )
-    val classFiles = File("${buildDir}/classes/kotlin/jvm/")
+    val classFiles = File("${buildDir}/classes/kotlin/jvm/main/")
         .walkBottomUp()
         .toSet()
     classDirectories.setFrom(classFiles)
