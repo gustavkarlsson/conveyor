@@ -4,7 +4,7 @@ import io.reactivex.Single
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.rx2.testing.SimpleUpdatableStateFlow
+import se.gustavkarlsson.conveyor.testing.SimpleUpdatableStateFlow
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -40,6 +40,10 @@ object UpdatableStateFlowableImplTest : Spek({
             val testSubscriber = subject.test()
             runBlocking { state.update { 2 } }
             testSubscriber.assertValues(1, 2)
+        }
+        it("subscription count matches wrapped count") {
+            state.storeSubscriberCount.value = 5
+            expectThat(subject.storeSubscriberCount.value).isEqualTo(5)
         }
     }
 })
