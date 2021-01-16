@@ -1,16 +1,15 @@
-package se.gustavkarlsson.conveyor.rx2.testing
+package se.gustavkarlsson.conveyor.testing
 
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
-// TODO Near duplicate of StateManager
 class SimpleUpdatableStateFlow<State>(initialState: State) : UpdatableStateFlow<State> {
     private val mutableFlow = MutableStateFlow(initialState)
     override val value by mutableFlow::value
     override val replayCache by mutableFlow::replayCache
-    override val subscriptionCount by mutableFlow::subscriptionCount
+    override val storeSubscriberCount = MutableStateFlow(0)
 
     @InternalCoroutinesApi
     override suspend fun collect(collector: FlowCollector<State>) = mutableFlow.collect(collector)

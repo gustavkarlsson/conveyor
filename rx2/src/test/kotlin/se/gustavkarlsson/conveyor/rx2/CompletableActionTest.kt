@@ -5,7 +5,7 @@ import io.reactivex.Single
 import kotlinx.coroutines.runBlocking
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.rx2.testing.SimpleUpdatableStateFlow
+import se.gustavkarlsson.conveyor.testing.SimpleUpdatableStateFlow
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 

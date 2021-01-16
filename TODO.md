@@ -1,7 +1,4 @@
-* LiveData extension?
-* Let buildStore() return something that does not allow issuing actions, and let store.start() return one instead. Maybe it should implement job? ActionIssuer
-* Add AbstractLiveAction?
+* Add Backpressure control. Right now MutableStateFlow.value is used, which doesn't suspend and therefore states can go missing
+* Add LiveAction?
 * Add WatchAction?
-* Add watchers?
-* Add interceptors?
-* Add plugin support?
+* LiveData extension?

@@ -31,5 +31,5 @@ internal class UpdatableStateFlowableImpl<State : Any>(
         state.update { block() }
     }
 
-    override val subscriptionCount: StateFlowable<Int> = StateFlowableImpl(state.subscriptionCount)
+    override val storeSubscriberCount: StateFlowable<Int> = StateFlowableImpl(state.storeSubscriberCount)
 }
