@@ -14,7 +14,7 @@ private constructor(
     constructor(initialValue: T) : this(MutableSharedFlow(replay = 1), initialValue)
 
     init {
-        check(inner.tryEmit(initialValue)) { "Initial value rejected" }
+        check(inner.tryEmit(initialValue))
     }
 
     private val mutex = Mutex()
