@@ -34,6 +34,10 @@ kotlin {
             }
         }
     }
+    js {
+        browser()
+        nodejs()
+    }
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -42,9 +46,8 @@ kotlin {
                 // TODO detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
             }
         }
-        val jvmMain by getting {
-            // jvmMain is required for jacoco to work
-        }
+        val jvmMain by getting {}
+        val jsMain by getting {}
         val jvmTest by getting {
             dependencies {
                 implementation(project(":testing"))
