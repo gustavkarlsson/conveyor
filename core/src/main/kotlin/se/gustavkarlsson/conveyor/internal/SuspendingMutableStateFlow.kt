@@ -1,6 +1,5 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,17 +11,7 @@ private constructor(
     private val inner: MutableSharedFlow<T>,
     initialValue: T,
 ) : SharedFlow<T> by inner, StateFlow<T> {
-    constructor(
-        initialValue: T,
-        suspend: Boolean = true,
-    ) : this(
-        inner = MutableSharedFlow(
-            replay = 1,
-            extraBufferCapacity = 0,
-            onBufferOverflow = if (suspend) BufferOverflow.SUSPEND else BufferOverflow.DROP_OLDEST,
-        ),
-        initialValue = initialValue,
-    )
+    constructor(initialValue: T) : this(MutableSharedFlow(replay = 1), initialValue)
 
     init {
         check(inner.tryEmit(initialValue)) { "Initial value rejected" }
