@@ -84,8 +84,8 @@ tasks.jacocoTestReport {
         .walkBottomUp()
         .toSet()
     classDirectories.setFrom(classFiles)
-    sourceDirectories.setFrom(files(coverageSourceDirs))
-    additionalSourceDirs.setFrom(files(coverageSourceDirs))
+    sourceDirectories.setFrom(coverageSourceDirs)
+    additionalSourceDirs.setFrom(coverageSourceDirs)
     executionData.setFrom(files("${buildDir}/jacoco/jvmTest.exec"))
     reports {
         xml.isEnabled = true
