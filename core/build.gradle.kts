@@ -14,6 +14,10 @@ repositories {
     jcenter()
 }
 
+dependencies {
+    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
+}
+
 kotlin {
     explicitApi()
     targets.all {
@@ -43,7 +47,6 @@ kotlin {
             dependencies {
                 implementation(project.dependencies.platform("org.jetbrains.kotlin:kotlin-bom"))
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
-                // TODO detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
             }
         }
         val jvmMain by getting {}
