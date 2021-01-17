@@ -82,17 +82,11 @@ publishing {
 
 tasks.jacocoTestReport {
     dependsOn("jvmTest")
-    val coverageSourceDirs = arrayOf(
-        "commonMain/src",
-        "jvmMain/src"
-    )
-    val classFiles = File("${buildDir}/classes/kotlin/jvm/main/")
-        .walkBottomUp()
-        .toSet()
-    classDirectories.setFrom(classFiles)
-    sourceDirectories.setFrom(coverageSourceDirs)
-    additionalSourceDirs.setFrom(coverageSourceDirs)
-    executionData.setFrom(files("${buildDir}/jacoco/jvmTest.exec"))
+    val sourceDirs = arrayOf("commonMain/src", "jvmMain/src")
+    sourceDirectories.setFrom(sourceDirs)
+    additionalSourceDirs.setFrom(sourceDirs)
+    classDirectories.setFrom("${buildDir}/classes/kotlin/jvm/main/")
+    executionData.setFrom("${buildDir}/jacoco/jvmTest.exec")
     reports {
         xml.isEnabled = true
         html.isEnabled = true
