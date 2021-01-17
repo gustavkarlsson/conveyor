@@ -104,5 +104,5 @@ jacoco {
 }
 
 detekt {
-    input = files(fileTree("src").include("*/kotlin/**"))
+    input = files(fileTree("src").include("*/kotlin/"))
 }
