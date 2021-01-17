@@ -74,7 +74,7 @@ publishing {
             artifactId = "${rootProject.name}-${project.name}"
             version = "1.0-SNAPSHOT"
             artifact(tasks["jvmSourcesJar"])
-            artifact(tasks["javadocJar"])
+            // artifact(tasks["javadocJar"]) TODO re-add once dokka supports multiplatform
             artifact(tasks["jvmJar"])
         }
     }
