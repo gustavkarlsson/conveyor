@@ -99,3 +99,7 @@ tasks.jacocoTestReport {
 jacoco {
     toolVersion = Versions.jacoco
 }
+
+detekt {
+    input = files(fileTree("src").include("*/kotlin/**"))
+}
