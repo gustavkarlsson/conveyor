@@ -27,7 +27,7 @@ class TrackingActionIssuer<State> : ActionIssuer<State> {
 }
 
 fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasIssued(
-    vararg expected: Action<State>
+    vararg expected: Action<State>,
 ): Assertion.Builder<TrackingActionIssuer<State>> =
     with("issuedActions", { issuedActions }) {
         containsExactly(*expected)
@@ -40,8 +40,8 @@ fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasBeenCancelledWith(
         containsExactly(*expected)
     }
 
-fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasNeverBeenCancelled(
-): Assertion.Builder<TrackingActionIssuer<State>> =
+fun <State> Assertion.Builder<TrackingActionIssuer<State>>
+    .hasNeverBeenCancelled(): Assertion.Builder<TrackingActionIssuer<State>> =
     with("cancellations", { cancellations }) {
         isEmpty()
     }
