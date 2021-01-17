@@ -23,6 +23,5 @@ public fun <State> Action(
 private class ConstructorAction<State>(
     private val block: suspend (state: UpdatableStateFlow<State>) -> Unit,
 ) : Action<State> {
-
     override suspend fun execute(state: UpdatableStateFlow<State>) = block(state)
 }
