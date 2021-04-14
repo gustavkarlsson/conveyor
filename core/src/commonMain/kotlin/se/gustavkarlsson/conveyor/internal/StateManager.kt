@@ -28,12 +28,32 @@ internal class StateManager<State> private constructor(
     }
 
     private val writeMutex = Mutex()
-    override suspend fun update(block: suspend State.() -> State): State =
-        writeMutex.withLock {
+
+    override suspend fun update(block: suspend State.() -> State): State {
+        return writeMutex.withLock {
             val newState = value.block()
             incomingMutableState.emit(newState)
             newState
         }
+    }
+
+    // FIXME test
+    override suspend fun emit(value: State) {
+        writeMutex.withLock {
+            incomingMutableState.emit(value)
+        }
+    }
+
+    // FIXME test
+    override fun tryEmit(value: State): Boolean {
+        if (!writeMutex.tryLock()) return false
+        val emitted = incomingMutableState.tryEmit(value)
+        writeMutex.unlock()
+        return emitted
+    }
+
+    // FIXME test
+    override val subscriptionCount: StateFlow<Int> by incomingMutableState::subscriptionCount
 
     override val storeSubscriberCount: StateFlow<Int> by outgoingMutableState::subscriptionCount
 }

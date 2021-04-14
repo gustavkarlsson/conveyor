@@ -1,12 +1,13 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * A [StateFlow] that can be updated sequentially, guaranteeing predictable state changes.
  */
-public interface UpdatableStateFlow<State> : StateFlow<State> {
+public interface UpdatableStateFlow<State> : StateFlow<State>, MutableSharedFlow<State> { // FIXME rename?
     /**
      * Updates the state using the given block, returning the new state.
      * The receiver argument of the block is the current state at the time the block runs.
@@ -22,4 +23,10 @@ public interface UpdatableStateFlow<State> : StateFlow<State> {
      * Acts like [MutableSharedFlow.subscriptionCount] but for the external state flow of the store.
      */
     public val storeSubscriberCount: StateFlow<Int>
+
+    @ExperimentalCoroutinesApi
+    @Deprecated("Not supported", level = DeprecationLevel.HIDDEN)
+    override fun resetReplayCache() {
+        throw UnsupportedOperationException("UpdatableStateFlow.resetReplayCache is not supported")
+    }
 }
