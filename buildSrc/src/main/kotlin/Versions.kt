@@ -7,7 +7,7 @@ object Versions {
     const val jacoco = "0.8.6"
 
     // Dependencies
-    const val kotlinxCoroutines = "1.4.2"
+    const val kotlinxCoroutines = "1.4.3"
     const val rxJava2 = "2.2.20"
 
     // Test
