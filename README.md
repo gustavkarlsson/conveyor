@@ -15,7 +15,7 @@ fun main() {
     val store = Store(initialState = "initial")
     with(GlobalScope) {
         // Start processing actions
-        val job = start(store)
+        val job = store.start(this)
 
         // Print state changes
         launch {

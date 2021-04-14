@@ -78,14 +78,3 @@ public fun <State> Store(
         launchers = listOf(stateManager, actionExecutor),
     )
 }
-
-/**
- * Starts the provided store in this scope.
- * This will run any "start actions" provided and also allows new actions to be issued.
- *
- * A store can only be started once.
- *
- * The store will be stopped when its scope or the returned [Job] is cancelled.
- */
-public fun <State> CoroutineScope.start(store: Store<State>): Job =
-    store.start(this)
