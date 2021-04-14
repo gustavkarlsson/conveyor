@@ -11,7 +11,7 @@ object Versions {
     const val rxJava2 = "2.2.20"
 
     // Test
-    const val junit5 = "5.7.0"
+    const val junit5 = "5.7.1"
     const val spek = "2.0.15"
     const val strikt = "0.28.1"
 }
