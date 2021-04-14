@@ -1,3 +1,5 @@
+* BUG: Readme example prints initial twice
+* Add missing tests
 * Verify getting dependencies (js IR vs legacy)
 * Testing helper? Or make `UpdatableStateFlow` implementation public
 * Fix website with links to api
