@@ -1,7 +1,6 @@
 package se.gustavkarlsson.conveyor.rx2
 
 import io.reactivex.Completable
-import io.reactivex.Single
 import io.reactivex.disposables.Disposable
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -21,7 +20,7 @@ object RxStoreIntegrationTest : Spek({
         it("Executes update sequentially") {
             val testSubscriber = subject.state.test()
             subject.issue { state ->
-                state.update { Single.just(1) }.ignoreElement()
+                state.update { 1 }.ignoreElement()
             }
             testSubscriber.assertValues(0, 1)
         }

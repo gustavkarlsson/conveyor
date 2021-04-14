@@ -29,7 +29,7 @@ internal class StateManager<State> private constructor(
 
     private val writeMutex = Mutex()
 
-    override suspend fun update(block: suspend State.() -> State): State {
+    override suspend fun update(block: State.() -> State): State {
         return writeMutex.withLock {
             val newState = value.block()
             incomingMutableState.emit(newState)

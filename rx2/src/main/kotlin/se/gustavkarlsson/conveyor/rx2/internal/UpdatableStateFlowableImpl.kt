@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.rx2.asFlowable
-import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.rxSingle
 import org.reactivestreams.Subscriber
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
@@ -20,11 +19,9 @@ internal class UpdatableStateFlowableImpl<State : Any>(
     private val flowable: Flowable<State> = state.asFlowable()
     override val value: State get() = state.value
     override fun subscribeActual(subscriber: Subscriber<in State>) = flowable.subscribe(subscriber)
-    override fun update(block: State.() -> Single<State>): Single<State> =
+    override fun update(block: State.() -> State): Single<State> =
         rxSingle(Dispatchers.Unconfined) {
-            state.update {
-                block().await()
-            }
+            state.update { block() }
         }
 
     override fun updateBlocking(block: State.() -> State): State = runBlocking {

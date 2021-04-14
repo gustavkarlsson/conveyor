@@ -13,7 +13,7 @@ class SimpleUpdatableStateFlow<State> private constructor(
     override val value by mutableFlow::value
     override val storeSubscriberCount = MutableStateFlow(0)
 
-    override suspend fun update(block: suspend State.() -> State): State {
+    override suspend fun update(block: State.() -> State): State {
         val newValue = mutableFlow.value.block()
         mutableFlow.value = newValue
         return newValue

@@ -12,11 +12,10 @@ public interface UpdatableStateFlow<State> : StateFlow<State>, MutableSharedFlow
      * Updates the state using the given block, returning the new state.
      * The receiver argument of the block is the current state at the time the block runs.
      *
-     * State updates run sequentially, which guarantees that the state does not change while an update block runs.
-     * This function will therefore suspend if another update is in progress,
-     * even if the provided block does not suspend.
+     * Updates run sequentially, which guarantees that the state does not change while an update block runs.
+     * This function will therefore suspend if another update is in progress.
      */
-    public suspend fun update(block: suspend State.() -> State): State
+    public suspend fun update(block: State.() -> State): State
 
     /**
      * The number of subscriber of the **store**

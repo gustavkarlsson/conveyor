@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
  */
 public abstract class UpdatableStateFlowable<State : Any> : StateFlowable<State>() {
     /**
-     * Updates the state using the single produced by the given block, returning the new state.
+     * Updates the state using the given block, returning the new state in a single.
      * The receiver argument of the block is the current state at the time the block runs.
      *
      * State updates run sequentially, which guarantees that the state does not change while an update block runs.
      */
-    public abstract fun update(block: State.() -> Single<State>): Single<State>
+    public abstract fun update(block: State.() -> State): Single<State>
 
     /**
      * Updates the state using the given block, returning the new state.

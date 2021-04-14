@@ -26,7 +26,6 @@ object StateManagerTest : Spek({
     val scope by memoizedTestCoroutineScope()
     val initialState = "initial"
     val state1 = "state1"
-    val state2 = "state2"
 
     describe("A StateManager") {
         val subject by memoized { StateManager(initialState, emptyList()) }
@@ -49,34 +48,6 @@ object StateManagerTest : Spek({
                 subject.update { this + state1 }
             }
             expectThat(subject.value).isEqualTo(initialState + state1)
-        }
-        it("update twice runs sequentially") {
-            runBlockingTest {
-                launch {
-                    subject.update {
-                        delay(1)
-                        state1
-                    }
-                }
-                launch {
-                    subject.update { state2 }
-                }
-                advanceTimeBy(1)
-            }
-            expectThat(subject.value).isEqualTo(state2)
-        }
-        it("delayed update takes a while") {
-            runBlockingTest {
-                launch {
-                    subject.update {
-                        delay(1)
-                        state1
-                    }
-                }
-                expectThat(subject.value).isEqualTo(initialState)
-                advanceTimeBy(1)
-                expectThat(subject.value).isEqualTo(state1)
-            }
         }
         it("flow emits initial and state1 when updating it to state1 when collecting") {
             val result = runBlockingTest {
