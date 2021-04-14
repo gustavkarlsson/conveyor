@@ -13,5 +13,5 @@ object Versions {
     // Test
     const val junit5 = "5.7.1"
     const val spek = "2.0.15"
-    const val strikt = "0.28.1"
+    const val strikt = "0.30.1"
 }
