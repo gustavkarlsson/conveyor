@@ -1,5 +1,23 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
-
+$dokka.location:se.gustavkarlsson.conveyor.rx2////PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/index.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2//CompletableAction/#kotlin.Function1[se.gustavkarlsson.conveyor.rx2.UpdatableStateFlowable[TypeParam(bounds=[kotlin.Any])],io.reactivex.Completable]/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-completable-action.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2//asRxStore/se.gustavkarlsson.conveyor.Store[TypeParam(bounds=[kotlin.Any])]#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/as-rx-store.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2//issue/se.gustavkarlsson.conveyor.ActionIssuer[TypeParam(bounds=[kotlin.Any])]#kotlin.Function1[se.gustavkarlsson.conveyor.rx2.UpdatableStateFlowable[TypeParam(bounds=[kotlin.Any])],io.reactivex.Completable]/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/issue.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/CompletableAction///PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-completable-action/index.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/CompletableAction/CompletableAction/#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-completable-action/-completable-action.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/CompletableAction/execute/#se.gustavkarlsson.conveyor.UpdatableStateFlow[TypeParam(bounds=[kotlin.Any])]/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-completable-action/execute.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/RxStore///PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-rx-store/index.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/RxStore/disposable/#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-rx-store/disposable.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/RxStore/start/#kotlinx.coroutines.CoroutineScope/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-rx-store/start.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/RxStore/state/#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-rx-store/state.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/StateFlowable///PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-state-flowable/index.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/StateFlowable/StateFlowable/#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-state-flowable/-state-flowable.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/StateFlowable/value/#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-state-flowable/value.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/UpdatableStateFlowable///PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-updatable-state-flowable/index.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/UpdatableStateFlowable/UpdatableStateFlowable/#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-updatable-state-flowable/-updatable-state-flowable.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/UpdatableStateFlowable/storeSubscriberCount/#/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-updatable-state-flowable/store-subscriber-count.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/UpdatableStateFlowable/update/#kotlin.Function1[TypeParam(bounds=[kotlin.Any]),TypeParam(bounds=[kotlin.Any])]/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-updatable-state-flowable/update.html
+$dokka.location:se.gustavkarlsson.conveyor.rx2/UpdatableStateFlowable/updateBlocking/#kotlin.Function1[TypeParam(bounds=[kotlin.Any]),TypeParam(bounds=[kotlin.Any])]/PointingToDeclaration/rx2/se.gustavkarlsson.conveyor.rx2/-updatable-state-flowable/update-blocking.html
 se.gustavkarlsson.conveyor.rx2
 
