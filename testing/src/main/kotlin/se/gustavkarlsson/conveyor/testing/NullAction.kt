@@ -4,5 +4,5 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.UpdatableStateFlow
 
 class NullAction<T> : Action<T> {
-    override suspend fun execute(state: UpdatableStateFlow<T>) = Unit
+    override suspend fun execute(stateFlow: UpdatableStateFlow<T>) = Unit
 }

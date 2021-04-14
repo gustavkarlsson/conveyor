@@ -25,8 +25,8 @@ fun main() {
         }
 
         // Issue a simple action that sets the state
-        store.issue { state ->
-            state.update { "updating" }
+        store.issue { stateFlow ->
+            stateFlow.update { "updating" }
         }
 
         // Issue a more complex action that repeatedly updates the state
@@ -43,10 +43,10 @@ fun main() {
 private class RepeatingAppenderAction(
     private val append: String,
 ) : Action<String> {
-    override suspend fun execute(state: UpdatableStateFlow<String>) {
+    override suspend fun execute(stateFlow: UpdatableStateFlow<String>) {
         while (true) {
             delay(1000)
-            state.update { this + append }
+            stateFlow.update { this + append }
         }
     }
 }

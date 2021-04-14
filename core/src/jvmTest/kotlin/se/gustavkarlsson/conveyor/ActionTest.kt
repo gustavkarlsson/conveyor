@@ -9,16 +9,16 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object ActionTest : Spek({
-    val state by memoized { SimpleUpdatableStateFlow(0) }
+    val stateFlow by memoized { SimpleUpdatableStateFlow(0) }
 
     describe("An action created with lambda") {
         val subject by memoized { IncrementingAction(1) }
 
         it("runs when execute") {
             runBlockingTest {
-                subject.execute(state)
+                subject.execute(stateFlow)
             }
-            expectThat(state.value).isEqualTo(1)
+            expectThat(stateFlow.value).isEqualTo(1)
         }
     }
 })

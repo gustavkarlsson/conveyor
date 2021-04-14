@@ -8,8 +8,8 @@ class IncrementingAction(
     private val increment: Int,
     private val delayMillis: Long = 0,
 ) : Action<Int> {
-    override suspend fun execute(state: UpdatableStateFlow<Int>) {
+    override suspend fun execute(stateFlow: UpdatableStateFlow<Int>) {
         delay(delayMillis)
-        state.update { this + increment }
+        stateFlow.update { this + increment }
     }
 }

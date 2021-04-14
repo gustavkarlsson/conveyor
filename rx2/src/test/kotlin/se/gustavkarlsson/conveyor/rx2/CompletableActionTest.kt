@@ -10,16 +10,16 @@ import strikt.assertions.isEqualTo
 
 object CompletableActionTest : Spek({
     val stateToSet = "state"
-    val state by memoized { SimpleUpdatableStateFlow("initial") }
+    val stateFlow by memoized { SimpleUpdatableStateFlow("initial") }
 
     describe("A tracking CompletableAction") {
         val subject by memoized { TrackingCompletableAction(stateToSet) }
 
         it("executing works") {
             runBlocking {
-                subject.execute(state)
+                subject.execute(stateFlow)
             }
-            expectThat(state.value).isEqualTo(stateToSet)
+            expectThat(stateFlow.value).isEqualTo(stateToSet)
         }
     }
 
@@ -34,16 +34,16 @@ object CompletableActionTest : Spek({
 
         it("executing works") {
             runBlocking {
-                subject.execute(state)
+                subject.execute(stateFlow)
             }
-            expectThat(state.value).isEqualTo(stateToSet)
+            expectThat(stateFlow.value).isEqualTo(stateToSet)
         }
     }
 })
 
 private class TrackingCompletableAction<State : Any>(private val stateToSet: State) : CompletableAction<State>() {
-    override fun execute(state: UpdatableStateFlowable<State>): Completable =
-        state
+    override fun execute(stateFlow: UpdatableStateFlowable<State>): Completable =
+        stateFlow
             .update { stateToSet }
             .ignoreElement()
 }

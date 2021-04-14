@@ -12,8 +12,8 @@ import se.gustavkarlsson.conveyor.rx2.internal.UpdatableStateFlowableImpl
  */
 @ExperimentalCoroutinesApi
 public abstract class CompletableAction<State : Any> : Action<State> {
-    final override suspend fun execute(state: UpdatableStateFlow<State>) {
-        val flowable = UpdatableStateFlowableImpl(state)
+    final override suspend fun execute(stateFlow: UpdatableStateFlow<State>) {
+        val flowable = UpdatableStateFlowableImpl(stateFlow)
         val completable = execute(flowable)
         completable.await()
     }
@@ -21,7 +21,7 @@ public abstract class CompletableAction<State : Any> : Action<State> {
     /**
      * The completable that runs the action. The state can be accessed through the state argument.
      */
-    protected abstract fun execute(state: UpdatableStateFlowable<State>): Completable
+    protected abstract fun execute(stateFlow: UpdatableStateFlowable<State>): Completable
 }
 
 /**
@@ -37,5 +37,5 @@ public fun <State : Any> CompletableAction(
 private class ConstructorCompletableAction<State : Any>(
     private val block: (UpdatableStateFlowable<State>) -> Completable,
 ) : CompletableAction<State>() {
-    override fun execute(state: UpdatableStateFlowable<State>): Completable = block(state)
+    override fun execute(stateFlow: UpdatableStateFlowable<State>): Completable = block(stateFlow)
 }

@@ -9,7 +9,7 @@ public interface Action<State> {
     /**
      * The function that runs the action. The state can be accessed through the state argument.
      */
-    public suspend fun execute(state: UpdatableStateFlow<State>)
+    public suspend fun execute(stateFlow: UpdatableStateFlow<State>)
 }
 
 /**
@@ -17,11 +17,11 @@ public interface Action<State> {
  */
 @Suppress("FunctionName")
 public fun <State> Action(
-    block: suspend (state: UpdatableStateFlow<State>) -> Unit,
+    block: suspend (stateFlow: UpdatableStateFlow<State>) -> Unit,
 ): Action<State> = ConstructorAction(block)
 
 private class ConstructorAction<State>(
     private val block: suspend (state: UpdatableStateFlow<State>) -> Unit,
 ) : Action<State> {
-    override suspend fun execute(state: UpdatableStateFlow<State>) = block(state)
+    override suspend fun execute(stateFlow: UpdatableStateFlow<State>) = block(stateFlow)
 }
