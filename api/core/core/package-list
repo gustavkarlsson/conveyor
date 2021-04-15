@@ -1,5 +1,14 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
+$dokka.location:se.gustavkarlsson.conveyor.actions////PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/index.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/LiveAction///PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-live-action/index.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/LiveAction/LiveAction/#/PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-live-action/-live-action.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/LiveAction/execute/#se.gustavkarlsson.conveyor.AtomicStateFlow[TypeParam(bounds=[kotlin.Any?])]/PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-live-action/execute.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/LiveAction/onLive/#se.gustavkarlsson.conveyor.AtomicStateFlow[TypeParam(bounds=[kotlin.Any?])]/PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-live-action/on-live.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/WatchAction///PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-watch-action/index.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/WatchAction/WatchAction/#/PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-watch-action/-watch-action.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/WatchAction/execute/#se.gustavkarlsson.conveyor.AtomicStateFlow[TypeParam(bounds=[kotlin.Any?])]/PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-watch-action/execute.html
+$dokka.location:se.gustavkarlsson.conveyor.actions/WatchAction/onState/#TypeParam(bounds=[kotlin.Any?])/PointingToDeclaration/core/se.gustavkarlsson.conveyor.actions/-watch-action/on-state.html
 $dokka.location:se.gustavkarlsson.conveyor////PointingToDeclaration/core/se.gustavkarlsson.conveyor/index.html
 $dokka.location:se.gustavkarlsson.conveyor//Action/#kotlin.coroutines.SuspendFunction1[se.gustavkarlsson.conveyor.AtomicStateFlow[TypeParam(bounds=[kotlin.Any?])],kotlin.Unit]/PointingToDeclaration/core/se.gustavkarlsson.conveyor/-action.html
 $dokka.location:se.gustavkarlsson.conveyor//Store/#TypeParam(bounds=[kotlin.Any?])#kotlin.collections.Iterable[se.gustavkarlsson.conveyor.Action[TypeParam(bounds=[kotlin.Any?])]]#kotlin.collections.Iterable[se.gustavkarlsson.conveyor.Plugin[TypeParam(bounds=[kotlin.Any?])]]/PointingToDeclaration/core/se.gustavkarlsson.conveyor/-store.html
@@ -29,4 +38,5 @@ $dokka.location:se.gustavkarlsson.conveyor/StoreStoppedException///PointingToDec
 $dokka.location:se.gustavkarlsson.conveyor/StoreStoppedException/StoreStoppedException/#kotlin.Throwable?/PointingToDeclaration/core/se.gustavkarlsson.conveyor/-store-stopped-exception/-store-stopped-exception.html
 $dokka.location:se.gustavkarlsson.conveyor/StoreStoppedException/cancellationReason/#/PointingToDeclaration/core/se.gustavkarlsson.conveyor/-store-stopped-exception/cancellation-reason.html
 se.gustavkarlsson.conveyor
+se.gustavkarlsson.conveyor.actions
 
