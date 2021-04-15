@@ -8,6 +8,7 @@ object Versions {
 
     // Dependencies
     const val kotlinxCoroutines = "1.4.3"
+    const val rxJava2 = "2.2.20"
 
     // Test
     const val junit5 = "5.7.1"

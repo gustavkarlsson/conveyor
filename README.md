@@ -80,5 +80,6 @@ Then add the following dependency to your gradle build file:
 ```kotlin
 dependencies {
     implementation("com.github.gustavkarlsson.conveyor:conveyor-core:master-SNAPSHOT") // Main library
+    // implementation("com.github.gustavkarlsson.conveyor:conveyor-rx2:master-SNAPSHOT") // RxJava 2 support
 }
 ```
