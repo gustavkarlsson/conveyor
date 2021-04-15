@@ -1,6 +1,6 @@
 * BUG: Readme example prints initial twice
 * Add missing tests
-* Testing helper? Or make `UpdatableStateFlow` implementation public
+* Figure out how to make testing an action simple
 * Fix website with links to api
 * Mention api docs on readme
 * Add https://github.com/Kotlin/binary-compatibility-validator
