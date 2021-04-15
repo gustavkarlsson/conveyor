@@ -5,9 +5,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * A [StateFlow] that can be updated sequentially, guaranteeing predictable state changes.
+ * A [StateFlow] that can be updated atomically, guaranteeing predictable state changes.
  */
-public interface UpdatableStateFlow<State> : StateFlow<State>, MutableSharedFlow<State> { // FIXME rename?
+public interface AtomicStateFlow<State> : StateFlow<State>, MutableSharedFlow<State> {
     /**
      * Updates the state using the given block, returning the new state.
      * The receiver argument of the block is the current state at the time the block runs.

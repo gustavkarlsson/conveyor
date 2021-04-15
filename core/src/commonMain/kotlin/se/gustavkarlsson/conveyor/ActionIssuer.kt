@@ -20,7 +20,7 @@ public interface ActionIssuer<State> {
  * and [StoreStoppedException] if the store has stopped.
  */
 public fun <State> ActionIssuer<State>.issue(
-    block: suspend (state: UpdatableStateFlow<State>) -> Unit,
+    block: suspend (stateFlow: AtomicStateFlow<State>) -> Unit,
 ) {
     issue(Action(block))
 }

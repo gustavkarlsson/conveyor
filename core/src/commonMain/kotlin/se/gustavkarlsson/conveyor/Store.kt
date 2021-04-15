@@ -70,7 +70,7 @@ public fun <State> Store(
         startActions = actualStartActions,
         actions = actionIssuer.issuedActions,
         transformers = actionTransformers,
-        state = stateManager,
+        stateFlow = stateManager,
     )
     return StoreImpl(
         stateFlow = stateManager.outgoingState,

@@ -8,13 +8,13 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
+import se.gustavkarlsson.conveyor.AtomicStateFlow
 
 internal class ActionExecutor<State>(
     startActions: Iterable<Action<State>>,
     private val actions: Flow<Action<State>>,
     private val transformers: Iterable<Transformer<Action<State>>>,
-    private val state: UpdatableStateFlow<State>,
+    private val stateFlow: AtomicStateFlow<State>,
 ) : Launcher {
     private var startActions: List<Action<State>>? = startActions.toList()
 
@@ -26,7 +26,7 @@ internal class ActionExecutor<State>(
         actions
             .transform(transformers)
             .collect { action ->
-                launch { action.execute(state) }
+                launch { action.execute(stateFlow) }
             }
     }
 

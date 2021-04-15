@@ -7,12 +7,12 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
+import se.gustavkarlsson.conveyor.AtomicStateFlow
 
 internal class StateManager<State> private constructor(
     private val incomingMutableState: SuspendingMutableStateFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
-) : StateFlow<State> by incomingMutableState, UpdatableStateFlow<State>, Launcher {
+) : StateFlow<State> by incomingMutableState, AtomicStateFlow<State>, Launcher {
     constructor(
         initialValue: State,
         transformers: Iterable<Transformer<State>>,

@@ -3,11 +3,11 @@ package se.gustavkarlsson.conveyor.testing
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
+import se.gustavkarlsson.conveyor.AtomicStateFlow
 
-class SimpleUpdatableStateFlow<State> private constructor(
+class SimpleAtomicStateFlow<State> private constructor(
     private val mutableFlow: MutableStateFlow<State>,
-) : MutableSharedFlow<State> by mutableFlow, UpdatableStateFlow<State> {
+) : MutableSharedFlow<State> by mutableFlow, AtomicStateFlow<State> {
     constructor(initialState: State) : this(MutableStateFlow(initialState))
 
     override val value by mutableFlow::value
