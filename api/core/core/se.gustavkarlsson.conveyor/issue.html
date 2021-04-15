@@ -13,7 +13,7 @@
       <div id="main">
         <script type="text/javascript" src="../../../scripts/main.js"></script><div id="leftToggler"><span class="icon-toggler"></span></div>
 
-        <div class="main-content" id="content" pageids="core::se.gustavkarlsson.conveyor//issue/se.gustavkarlsson.conveyor.ActionIssuer[TypeParam(bounds=[kotlin.Any?])]#kotlin.coroutines.SuspendFunction1[se.gustavkarlsson.conveyor.UpdatableStateFlow[TypeParam(bounds=[kotlin.Any?])],kotlin.Unit]/PointingToDeclaration//1532296674">
+        <div class="main-content" id="content" pageids="core::se.gustavkarlsson.conveyor//issue/se.gustavkarlsson.conveyor.ActionIssuer[TypeParam(bounds=[kotlin.Any?])]#kotlin.coroutines.SuspendFunction1[se.gustavkarlsson.conveyor.AtomicStateFlow[TypeParam(bounds=[kotlin.Any?])],kotlin.Unit]/PointingToDeclaration//1706459763">
           <div class="navigation-wrapper" id="navigation-wrapper">
             <div class="breadcrumbs"><a href="../../index.html">core</a>/<a href="index.html">se.gustavkarlsson.conveyor</a>/<a href="issue.html">issue</a></div>
             <div class="pull-right d-flex">
@@ -26,7 +26,7 @@
 <div class="divergent-group" data-filterable-current=":core:dokkaHtmlPartial/commonMain" data-filterable-set=":core:dokkaHtmlPartial/commonMain"><div class="with-platform-tags"><span class="pull-right"></span></div>
 
   <div>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":core:dokkaHtmlPartial/commonMain"><div class="symbol monospace">fun &lt;<a href="issue.html">State</a>&gt; <a href="-action-issuer/index.html">ActionIssuer</a>&lt;<a href="issue.html">State</a>&gt;.<a href="issue.html">issue</a>(block: suspend (state: <a href="-updatable-state-flow/index.html">UpdatableStateFlow</a>&lt;<a href="issue.html">State</a>&gt;) -&gt; <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a>)<span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":core:dokkaHtmlPartial/commonMain"><div class="symbol monospace">fun &lt;<a href="issue.html">State</a>&gt; <a href="-action-issuer/index.html">ActionIssuer</a>&lt;<a href="issue.html">State</a>&gt;.<a href="issue.html">issue</a>(block: suspend (stateFlow: <a href="-atomic-state-flow/index.html">AtomicStateFlow</a>&lt;<a href="issue.html">State</a>&gt;) -&gt; <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a>)<span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
   </div>
 <p class="paragraph">Issues an action to the store with the given block its execute function. The store must be running.</p><p class="paragraph">Throws <a href="-store-not-yet-started-exception/index.html">StoreNotYetStartedException</a> if the store has not yet been started and <a href="-store-stopped-exception/index.html">StoreStoppedException</a> if the store has stopped.</p></div>
         </div>
