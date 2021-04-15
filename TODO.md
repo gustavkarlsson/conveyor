@@ -1,6 +1,5 @@
 * BUG: Readme example prints initial twice
 * Add missing tests
-* Put Rx2 on branch
 * Testing helper? Or make `UpdatableStateFlow` implementation public
 * Fix website with links to api
 * Mention api docs on readme
