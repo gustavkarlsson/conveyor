@@ -25,7 +25,6 @@ private constructor(
         }
     }
 
-    // FIXME test
     override fun tryEmit(value: T): Boolean {
         if (!writeMutex.tryLock()) return false
         val emitted = inner.tryEmit(value)

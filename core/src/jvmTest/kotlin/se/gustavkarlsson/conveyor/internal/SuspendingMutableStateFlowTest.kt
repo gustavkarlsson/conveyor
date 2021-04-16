@@ -9,8 +9,10 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 
 object SuspendingMutableStateFlowTest : Spek({
@@ -49,6 +51,26 @@ object SuspendingMutableStateFlowTest : Spek({
                 }
             }
             expectThat(count).isEqualTo(targetCount)
+        }
+        it("rejects tryEmit when blocked") {
+            var count = 0
+            var success: Boolean? = null
+            scope.runBlockingTest {
+                subject.emit(2)
+                launch {
+                    subject
+                        .take(1)
+                        .collect {
+                            delay(100)
+                            count++
+                        }
+                }
+                success = subject.tryEmit(3)
+            }
+            expect {
+                that(success).isFalse()
+                that(count).isEqualTo(1)
+            }
         }
         it("initially has a subscriptionCount of 0") {
             expectThat(subject.subscriptionCount.value).isEqualTo(0)
