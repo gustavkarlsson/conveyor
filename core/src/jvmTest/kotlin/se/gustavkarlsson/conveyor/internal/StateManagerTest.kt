@@ -54,7 +54,7 @@ object StateManagerTest : Spek({
                 val deferred = async {
                     subject.take(3).toList()
                 }
-                subject.update { state1 }
+                subject.emit(state1)
                 deferred.cancel()
                 deferred.await()
             }
@@ -97,8 +97,8 @@ object StateManagerTest : Spek({
                         .onEach { delay(1) }
                         .toCollection(collected)
                 }
-                launch { subject.update { "first" } }
-                launch { subject.update { "second" } }
+                subject.tryEmit("first")
+                subject.tryEmit("second")
                 advanceTimeBy(3)
                 job.cancel()
             }
@@ -124,8 +124,8 @@ object StateManagerTest : Spek({
                 val launchJob = subject.launch(this)
                 val collectJob = launch { subject.outgoingState.toCollection(result) }
 
-                subject.update { "first" }
-                subject.update { "second" }
+                subject.tryEmit("first")
+                subject.tryEmit("second")
 
                 launchJob.cancel()
                 collectJob.cancel()
@@ -143,8 +143,8 @@ object StateManagerTest : Spek({
         it("suspends emissions due to backpressure") {
             expectThrows<TimeoutCancellationException> {
                 withTimeout(15) {
-                    subject.update { "first" }
-                    subject.update { "second" }
+                    subject.emit("first")
+                    subject.emit("second")
                 }
             }
         }
@@ -152,10 +152,10 @@ object StateManagerTest : Spek({
             val values = mutableListOf<String>()
             scope.runBlockingTest {
                 launch {
-                    subject.update { "first" }
+                    subject.emit("first")
                 }
                 launch {
-                    subject.update { "second" }
+                    subject.emit("second")
                 }
                 values += subject.value
                 advanceTimeBy(10)
