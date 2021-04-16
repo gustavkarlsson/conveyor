@@ -5,6 +5,6 @@ import se.gustavkarlsson.conveyor.AtomicStateFlow
 
 class SetStateAction<State>(private val value: State) : Action<State> {
     override suspend fun execute(stateFlow: AtomicStateFlow<State>) {
-        stateFlow.update { value }
+        stateFlow.emit(value)
     }
 }
