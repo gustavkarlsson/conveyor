@@ -37,14 +37,12 @@ internal class StateManager<State> private constructor(
         }
     }
 
-    // FIXME test
     override suspend fun emit(value: State) {
         writeMutex.withLock {
             incomingMutableState.emit(value)
         }
     }
 
-    // FIXME test
     override fun tryEmit(value: State): Boolean {
         if (!writeMutex.tryLock()) return false
         val emitted = incomingMutableState.tryEmit(value)

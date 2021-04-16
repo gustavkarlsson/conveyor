@@ -17,15 +17,19 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
+import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
+import strikt.assertions.isTrue
 
 object StateManagerTest : Spek({
     val scope by memoizedTestCoroutineScope()
     val initialState = "initial"
     val state1 = "state1"
+    val state2 = "state2"
 
     describe("A StateManager") {
         val subject by memoized { StateManager(initialState, emptyList()) }
@@ -43,11 +47,30 @@ object StateManagerTest : Spek({
             }
             expectThat(result).containsExactly(initialState)
         }
-        it("value returns new state after updating it") {
+        it("update sets new state after updating it") {
             runBlockingTest {
                 subject.update { this + state1 }
             }
             expectThat(subject.value).isEqualTo(initialState + state1)
+        }
+        it("update returns new state after updating it") {
+            val result = runBlockingTest {
+                subject.update { this + state1 }
+            }
+            expectThat(result).isEqualTo(initialState + state1)
+        }
+        it("emit sets new state") {
+            runBlockingTest {
+                subject.emit(state1)
+            }
+            expectThat(subject.value).isEqualTo(state1)
+        }
+        it("tryEmit sets new state and returns true") {
+            val success = subject.tryEmit(state1)
+            expect {
+                that(success).isTrue()
+                that(subject.value).isEqualTo(state1)
+            }
         }
         it("flow emits initial and state1 when updating it to state1 when collecting") {
             val result = runBlockingTest {
@@ -162,6 +185,14 @@ object StateManagerTest : Spek({
                 values += subject.value
             }
             expectThat(values).containsExactly("first", "second")
+        }
+        it("tryEmit fails to set new state and returns false when blocked") {
+            subject.tryEmit(state1)
+            val success = subject.tryEmit(state2)
+            expect {
+                that(success).isFalse()
+                that(subject.value).isEqualTo(state1)
+            }
         }
     }
 })
