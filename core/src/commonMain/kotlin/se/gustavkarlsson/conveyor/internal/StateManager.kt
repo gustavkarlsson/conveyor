@@ -50,7 +50,6 @@ internal class StateManager<State> private constructor(
         return emitted
     }
 
-    // FIXME test
     override val subscriptionCount: StateFlow<Int> by incomingMutableState::subscriptionCount
 
     override val storeSubscriberCount: StateFlow<Int> by outgoingMutableState::subscriptionCount

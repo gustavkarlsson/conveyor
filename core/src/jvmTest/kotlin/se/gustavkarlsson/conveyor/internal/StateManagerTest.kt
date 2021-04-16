@@ -83,6 +83,34 @@ object StateManagerTest : Spek({
             }
             expectThat(result).containsExactly(initialState, state1)
         }
+        it("subscriberCount is initially 0") {
+            expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
+                .isEqualTo(0)
+        }
+        it("subscriberCount updates with subscribers") {
+            runBlockingTest {
+                val job1 = launch {
+                    subject.collect {}
+                }
+                val job2 = launch {
+                    subject.collect {}
+                }
+                expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
+                    .isEqualTo(2)
+                job1.cancel()
+                job2.cancel()
+            }
+        }
+        it("subscriberCount does not update with subscribers to outgoing internal state") {
+            runBlockingTest {
+                val job = launch {
+                    subject.outgoingState.collect {}
+                }
+                expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
+                    .isEqualTo(0)
+                job.cancel()
+            }
+        }
         it("storeSubscriberCount is initially 0") {
             expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
                 .isEqualTo(0)
