@@ -56,7 +56,6 @@ object SuspendingMutableStateFlowTest : Spek({
             var count = 0
             var success: Boolean? = null
             scope.runBlockingTest {
-                subject.emit(2)
                 launch {
                     subject
                         .take(1)
@@ -65,6 +64,7 @@ object SuspendingMutableStateFlowTest : Spek({
                             count++
                         }
                 }
+                subject.emit(2)
                 success = subject.tryEmit(3)
             }
             expect {
