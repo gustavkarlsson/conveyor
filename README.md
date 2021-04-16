@@ -43,7 +43,7 @@ fun main() {
 private class RepeatingAppenderAction(
     private val append: String,
 ) : Action<String> {
-    override suspend fun execute(stateFlow: UpdatableStateFlow<String>) {
+    override suspend fun execute(stateFlow: AtomicStateFlow<String>) {
         while (true) {
             delay(1000)
             stateFlow.update { this + append }
