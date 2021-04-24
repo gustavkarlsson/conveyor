@@ -1,0 +1,76 @@
+public abstract interface class se/gustavkarlsson/conveyor/Action {
+	public abstract fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/ActionIssuer {
+	public abstract fun issue (Lse/gustavkarlsson/conveyor/Action;)V
+}
+
+public final class se/gustavkarlsson/conveyor/ActionIssuerKt {
+	public static final fun issue (Lse/gustavkarlsson/conveyor/ActionIssuer;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class se/gustavkarlsson/conveyor/ActionKt {
+	public static final fun Action (Lkotlin/jvm/functions/Function2;)Lse/gustavkarlsson/conveyor/Action;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/AtomicStateFlow : kotlinx/coroutines/flow/MutableSharedFlow, kotlinx/coroutines/flow/StateFlow {
+	public abstract fun getStoreSubscriberCount ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract synthetic fun resetReplayCache ()V
+	public abstract fun update (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class se/gustavkarlsson/conveyor/AtomicStateFlow$DefaultImpls {
+	public static synthetic fun resetReplayCache (Lse/gustavkarlsson/conveyor/AtomicStateFlow;)V
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/Plugin {
+	public abstract fun addStartActions ()Ljava/lang/Iterable;
+	public abstract fun overrideInitialState (Ljava/lang/Object;)Ljava/lang/Object;
+	public abstract fun transformActions (Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+	public abstract fun transformStates (Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class se/gustavkarlsson/conveyor/Plugin$DefaultImpls {
+	public static fun addStartActions (Lse/gustavkarlsson/conveyor/Plugin;)Ljava/lang/Iterable;
+	public static fun overrideInitialState (Lse/gustavkarlsson/conveyor/Plugin;Ljava/lang/Object;)Ljava/lang/Object;
+	public static fun transformActions (Lse/gustavkarlsson/conveyor/Plugin;Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+	public static fun transformStates (Lse/gustavkarlsson/conveyor/Plugin;Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/Store : se/gustavkarlsson/conveyor/ActionIssuer {
+	public abstract fun getJob ()Lkotlinx/coroutines/Job;
+	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract fun start (Lkotlinx/coroutines/CoroutineScope;)Lkotlinx/coroutines/Job;
+}
+
+public final class se/gustavkarlsson/conveyor/StoreAlreadyStartedException : java/lang/IllegalStateException {
+	public fun <init> ()V
+}
+
+public final class se/gustavkarlsson/conveyor/StoreKt {
+	public static final fun Store (Ljava/lang/Object;Ljava/lang/Iterable;Ljava/lang/Iterable;)Lse/gustavkarlsson/conveyor/Store;
+	public static synthetic fun Store$default (Ljava/lang/Object;Ljava/lang/Iterable;Ljava/lang/Iterable;ILjava/lang/Object;)Lse/gustavkarlsson/conveyor/Store;
+}
+
+public final class se/gustavkarlsson/conveyor/StoreNotYetStartedException : java/lang/IllegalStateException {
+	public fun <init> ()V
+}
+
+public final class se/gustavkarlsson/conveyor/StoreStoppedException : java/lang/IllegalStateException {
+	public fun <init> (Ljava/lang/Throwable;)V
+	public final fun getCancellationReason ()Ljava/lang/Throwable;
+}
+
+public abstract class se/gustavkarlsson/conveyor/actions/LiveAction : se/gustavkarlsson/conveyor/Action {
+	public fun <init> ()V
+	public final fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun onLive (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class se/gustavkarlsson/conveyor/actions/WatchAction : se/gustavkarlsson/conveyor/Action {
+	public fun <init> ()V
+	public final fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun onState (Ljava/lang/Object;)V
+}
+

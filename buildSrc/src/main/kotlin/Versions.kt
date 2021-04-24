@@ -5,10 +5,11 @@ object Versions {
     const val detekt = "1.15.0"
     const val dokka = "1.4.30"
     const val jacoco = "0.8.6"
-    const val compose = "0.4.0-build184"
+    const val binaryCompatibilityValidator = "0.5.0"
 
     // Dependencies
     const val kotlinxCoroutines = "1.4.3"
+    const val compose = "0.4.0-build184"
 
     // Test
     const val junit5 = "5.7.1"
