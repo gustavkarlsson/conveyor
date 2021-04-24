@@ -2,10 +2,12 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 internal class StatefulMutableSharedFlow<T>
 private constructor(
-    inner: MutableSharedFlow<T>,
+    private val inner: MutableSharedFlow<T>,
     initialValue: T,
 ) : MutableSharedFlow<T> by inner, StateFlow<T> {
     constructor(initialValue: T) : this(MutableSharedFlow(replay = 1), initialValue)
@@ -14,6 +16,26 @@ private constructor(
         check(inner.tryEmit(initialValue)) { "Initial value rejected" }
     }
 
-    override val value: T
-        get() = replayCache.first()
+    private val writeMutex = Mutex()
+
+    // FIXME Write test to ensure distinct
+
+    override suspend fun emit(value: T) {
+        writeMutex.withLock {
+            if (this.value != value) {
+                inner.emit(value)
+            }
+        }
+    }
+
+    override fun tryEmit(value: T): Boolean {
+        if (!writeMutex.tryLock()) return false
+        val emitted = if (this.value != value) {
+            inner.tryEmit(value)
+        } else true
+        writeMutex.unlock()
+        return emitted
+    }
+
+    override val value: T get() = replayCache.first()
 }
