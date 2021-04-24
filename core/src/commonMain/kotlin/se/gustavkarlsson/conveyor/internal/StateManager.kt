@@ -10,15 +10,15 @@ import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.AtomicStateFlow
 
 internal class StateManager<State> private constructor(
-    private val incomingMutableState: SuspendingMutableStateFlow<State>,
+    private val incomingMutableState: StatefulMutableSharedFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
 ) : StateFlow<State> by incomingMutableState, AtomicStateFlow<State>, Launcher {
     constructor(
         initialValue: State,
         transformers: Iterable<Transformer<State>>,
-    ) : this(SuspendingMutableStateFlow(initialValue), transformers)
+    ) : this(StatefulMutableSharedFlow(initialValue), transformers)
 
-    private val outgoingMutableState = SuspendingMutableStateFlow(incomingMutableState.value)
+    private val outgoingMutableState = StatefulMutableSharedFlow(incomingMutableState.value)
     val outgoingState: StateFlow<State> = outgoingMutableState
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {

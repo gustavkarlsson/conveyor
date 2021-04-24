@@ -15,11 +15,11 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
 
-object SuspendingMutableStateFlowTest : Spek({
+object StatefulMutableSharedFlowTest : Spek({
     val scope by memoizedTestCoroutineScope()
 
-    describe("A SuspendingMutableStateFlow") {
-        val subject by memoized { SuspendingMutableStateFlow(0) }
+    describe("A StatefulMutableSharedFlow") {
+        val subject by memoized { StatefulMutableSharedFlow(0) }
 
         it("sets value when emitting") {
             runBlockingTest {
