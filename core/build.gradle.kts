@@ -7,7 +7,6 @@ plugins {
     id("org.jetbrains.dokka")
     id("io.gitlab.arturbosch.detekt")
     jacoco
-    id("org.jetbrains.kotlinx.binary-compatibility-validator")
 }
 
 repositories {
