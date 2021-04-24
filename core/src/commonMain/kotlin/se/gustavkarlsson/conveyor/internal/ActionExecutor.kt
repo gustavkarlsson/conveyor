@@ -1,7 +1,6 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
@@ -15,19 +14,21 @@ internal class ActionExecutor<State>(
     private val actions: Flow<Action<State>>,
     private val transformers: Iterable<Transformer<Action<State>>>,
     private val stateFlow: AtomicStateFlow<State>,
-) : Launcher {
+) : Process {
     private var startActions: List<Action<State>>? = startActions.toList()
 
-    override fun launch(scope: CoroutineScope): Job = scope.launch {
+    override suspend fun run() {
         val actions = flow {
             emitAll(consumeStartActionsAsFlow())
             emitAll(actions)
         }
-        actions
-            .transform(transformers)
-            .collect { action ->
-                launch { action.execute(stateFlow) }
-            }
+        coroutineScope {
+            actions
+                .transform(transformers)
+                .collect { action ->
+                    launch { action.execute(stateFlow) }
+                }
+        }
     }
 
     private fun consumeStartActionsAsFlow(): Flow<Action<State>> = flow {
