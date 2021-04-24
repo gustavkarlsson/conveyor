@@ -141,7 +141,7 @@ object StateManagerTest : Spek({
         }
         it("slow collector of outgoingState does not miss any emissions") {
             val collected = mutableListOf<String>()
-            subject.launch(scope)
+            scope.launch { subject.run() }
             scope.runBlockingTest {
                 val job = launch {
                     subject.outgoingState
@@ -169,16 +169,16 @@ object StateManagerTest : Spek({
         }
         val subject by memoized { StateManager(initialState, listOf(addIndex, dropOdd)) }
 
-        it("transformers run when launched") {
+        it("transformers run when run") {
             val result = mutableListOf<String>()
             runBlockingTest {
-                val launchJob = subject.launch(this)
+                val runJob = launch { subject.run() }
                 val collectJob = launch { subject.outgoingState.toCollection(result) }
 
                 subject.tryEmit("first")
                 subject.tryEmit("second")
 
-                launchJob.cancel()
+                runJob.cancel()
                 collectJob.cancel()
             }
             expectThat(result).containsExactly("initial-0", "second-2")
@@ -189,7 +189,9 @@ object StateManagerTest : Spek({
             flow.onEach { delay(10) }
         }
         val subject by memoized { StateManager(initialState, listOf(delay)) }
-        beforeEachTest { subject.launch(scope) }
+        beforeEachTest {
+            scope.launch { subject.run() }
+        }
 
         it("suspends emissions due to backpressure") {
             expectThrows<TimeoutCancellationException> {

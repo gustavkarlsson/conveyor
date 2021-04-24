@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
@@ -32,15 +33,17 @@ object ActionExecutorTest : Spek({
             )
         }
 
-        it("does not execute action before launch") {
+        it("does not execute action before run") {
             runBlockingTest {
                 actions.emit(IncrementingAction(1))
             }
             expectThat(stateFlow.value).isEqualTo(0)
         }
 
-        describe("that was launched") {
-            beforeEachTest { subject.launch(scope) }
+        describe("that was run") {
+            beforeEachTest {
+                scope.launch { subject.run() }
+            }
 
             it("executes action") {
                 runBlockingTest {
@@ -56,10 +59,10 @@ object ActionExecutorTest : Spek({
                 }
                 expectThat(stateFlow.value).isEqualTo(2)
             }
-            it("throws if launched again") {
+            it("throws if run again") {
                 expectThrows<IllegalStateException> {
                     runBlockingTest {
-                        subject.launch(this)
+                        subject.run()
                     }
                 }
             }
@@ -77,19 +80,21 @@ object ActionExecutorTest : Spek({
             )
         }
 
-        it("doesn't execute start actions before launch") {
+        it("doesn't execute start actions before run") {
             expectThat(stateFlow.value).isEqualTo(0)
         }
 
-        describe("that was launched") {
-            beforeEachTest { subject.launch(scope) }
+        describe("that was run") {
+            beforeEachTest {
+                scope.launch { subject.run() }
+            }
 
             it("executed start actions") {
                 expectThat(stateFlow.value).isEqualTo(3)
             }
         }
     }
-    describe("An ActionExecutor with 2 transformers that was launched") {
+    describe("An ActionExecutor with 2 transformers that was run") {
         val startAction = IncrementingAction(1)
         val transformer1 = { flow: Flow<Action<Int>> ->
             flow.flatMapConcat { action ->
@@ -107,7 +112,9 @@ object ActionExecutorTest : Spek({
                 stateFlow = stateFlow,
             )
         }
-        beforeEachTest { subject.launch(scope) }
+        beforeEachTest {
+            scope.launch { subject.run() }
+        }
 
         it("properly transforms actions") {
             runBlockingTest {
