@@ -7,6 +7,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
+// FIXME ReadNBytes and WriteNBytes requires > JDK11
 public class SimpleFileTape<State>(
     file: File,
     private val serializer: Serializer<State>,

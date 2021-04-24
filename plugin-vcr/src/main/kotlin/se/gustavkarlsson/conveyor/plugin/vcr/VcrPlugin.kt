@@ -12,7 +12,11 @@ import se.gustavkarlsson.conveyor.plugin.vcr.internal.RecordAction
 public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
     private val mode = MutableStateFlow<Mode<State>>(Mode.Idle) // FIXME Rename mode?
 
-    override fun addStartActions(): Iterable<Action<State>> = listOf(RecordAction(mode), PlaybackAction(mode))
+    override fun addStartActions(): Iterable<Action<State>> {
+        val recordAction = RecordAction(mode, System::currentTimeMillis)
+        val playbackAction = PlaybackAction(mode)
+        return listOf(recordAction, playbackAction)
+    }
 
     override fun transformActions(actions: Flow<Action<State>>): Flow<Action<State>> =
         combineTransform(actions, mode) { action, mode ->
