@@ -2,7 +2,7 @@ package se.gustavkarlsson.conveyor.plugin.vcr
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combineTransform
+import kotlinx.coroutines.flow.filter
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Plugin
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.Mode
@@ -18,12 +18,14 @@ public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
         return listOf(recordAction, playbackAction)
     }
 
+    // FIXME how to interrupt already running actions?
     override fun transformActions(actions: Flow<Action<State>>): Flow<Action<State>> =
-        combineTransform(actions, mode) { action, mode ->
-            when (mode) {
-                Mode.Idle, is Mode.Recording -> emit(action)
+        actions.filter { action ->
+            when (mode.value) {
+                Mode.Idle, is Mode.Recording -> true
                 is Mode.Playing -> when (action) {
-                    is PlaybackAction, is RecordAction -> emit(action)
+                    is PlaybackAction, is RecordAction -> true
+                    else -> false
                 }
             }
         }
