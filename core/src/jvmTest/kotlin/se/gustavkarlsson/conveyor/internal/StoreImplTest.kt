@@ -12,7 +12,7 @@ import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleAtomicStateFlow
-import se.gustavkarlsson.conveyor.testing.SuspendingLauncher
+import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
 import se.gustavkarlsson.conveyor.testing.hasIssued
@@ -32,7 +32,7 @@ object StoreImplTest : Spek({
     val actionIssuer by memoized { TrackingActionIssuer<Int>() }
 
     describe("A minimal store") {
-        val subject by memoized { StoreImpl(state, actionIssuer, listOf(SuspendingLauncher)) }
+        val subject by memoized { StoreImpl(state, actionIssuer, listOf(SuspendingProcess)) }
 
         it("state.value returns current state") {
             val result = subject.state.value

@@ -75,6 +75,6 @@ public fun <State> Store(
     return StoreImpl(
         stateFlow = stateManager.outgoingState,
         actionIssuer = actionIssuer,
-        launchers = listOf(stateManager, actionExecutor),
+        processes = listOf(stateManager, actionExecutor),
     )
 }

@@ -1,10 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.AtomicStateFlow
@@ -12,7 +9,7 @@ import se.gustavkarlsson.conveyor.AtomicStateFlow
 internal class StateManager<State> private constructor(
     private val incomingMutableState: StatefulMutableSharedFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
-) : StateFlow<State> by incomingMutableState, AtomicStateFlow<State>, Launcher {
+) : StateFlow<State> by incomingMutableState, AtomicStateFlow<State>, Process {
     constructor(
         initialValue: State,
         transformers: Iterable<Transformer<State>>,
@@ -21,7 +18,7 @@ internal class StateManager<State> private constructor(
     private val outgoingMutableState = StatefulMutableSharedFlow(incomingMutableState.value)
     val outgoingState: StateFlow<State> = outgoingMutableState
 
-    override fun launch(scope: CoroutineScope): Job = scope.launch {
+    override suspend fun run() {
         incomingMutableState
             .transform(transformers)
             .collect { outgoingMutableState.emit(it) }

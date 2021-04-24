@@ -1,9 +1,10 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
@@ -11,7 +12,7 @@ import se.gustavkarlsson.conveyor.Store
 internal class StoreImpl<State>(
     stateFlow: StateFlow<State>,
     private val actionIssuer: ActionIssuer<State>,
-    private val launchers: Iterable<Launcher>,
+    private val processes: Iterable<Process>,
 ) : Store<State> {
     override val state = stateFlow
 
@@ -22,10 +23,10 @@ internal class StoreImpl<State>(
 
     override fun start(scope: CoroutineScope): Job {
         stageManager.start()
-        val job = scope.launch {
-            launchers.map { launcher ->
-                launcher.launch(scope)
-            }.joinAll()
+        val job = Job(scope.coroutineContext[Job])
+        val context = Dispatchers.Unconfined + CoroutineName("Store") + job
+        for (process in processes) {
+            scope.launch(context) { process.run() }
         }
         this.job = job
         job.invokeOnCompletion(::stop)
