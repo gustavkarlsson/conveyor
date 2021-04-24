@@ -1,8 +1,8 @@
 package se.gustavkarlsson.conveyor.testing
 
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.UpdatableStateFlow
+import se.gustavkarlsson.conveyor.AtomicStateFlow
 
 class NullAction<T> : Action<T> {
-    override suspend fun execute(state: UpdatableStateFlow<T>) = Unit
+    override suspend fun execute(stateFlow: AtomicStateFlow<T>) = Unit
 }
