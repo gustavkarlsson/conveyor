@@ -1,3 +1,4 @@
+* Do all (?) launches in unconfined dispatcher?
 * BUG: Readme example prints initial twice
 * Add missing tests
 * Figure out how to make testing an action simple
