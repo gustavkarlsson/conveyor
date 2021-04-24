@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
@@ -11,6 +12,7 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import strikt.api.expect
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isNotNull
@@ -79,6 +81,16 @@ object StatefulMutableSharedFlowTest : Spek({
             runBlockingTest {
                 val job = launch { subject.collect() }
                 expectThat(subject.subscriptionCount.value).isEqualTo(1)
+                job.cancel()
+            }
+        }
+        it("does not emit non-distinct element") {
+            runBlockingTest {
+                val values = mutableListOf<Int>()
+                val job = launch { subject.toCollection(values) }
+                subject.emit(0)
+                subject.tryEmit(0)
+                expectThat(values).containsExactly(0)
                 job.cancel()
             }
         }

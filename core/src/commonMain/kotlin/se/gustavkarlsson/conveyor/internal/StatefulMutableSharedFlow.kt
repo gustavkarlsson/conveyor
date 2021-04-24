@@ -18,8 +18,6 @@ private constructor(
 
     private val writeMutex = Mutex()
 
-    // FIXME Write test to ensure distinct
-
     override suspend fun emit(value: T) {
         writeMutex.withLock {
             if (this.value != value) {
