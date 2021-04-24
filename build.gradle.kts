@@ -16,5 +16,5 @@ repositories {
 }
 
 apiValidation {
-    ignoredProjects.add("testing")
+    ignoredProjects.addAll(listOf("testing", "demo"))
 }
