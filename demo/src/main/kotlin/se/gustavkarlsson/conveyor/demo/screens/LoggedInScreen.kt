@@ -2,7 +2,7 @@
 
 package se.gustavkarlsson.conveyor.demo.screens
 
-import androidx.compose.animation.animate
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,10 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ProgressIndicatorConstants
+import androidx.compose.material.ProgressIndicatorDefaults
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -84,9 +85,9 @@ private fun OperationButton(enabled: Boolean, onClick: () -> Unit) {
 @Composable
 private fun OperationIndicator(isVisible: Boolean, progress: Float) {
     val opacity = if (isVisible) 1F else 0F
-    val animatedProgress = animate(
-        target = progress,
-        animSpec = ProgressIndicatorConstants.DefaultProgressAnimationSpec,
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
     )
     LinearProgressIndicator(
         modifier = Modifier.padding(4.dp).alpha(opacity),
