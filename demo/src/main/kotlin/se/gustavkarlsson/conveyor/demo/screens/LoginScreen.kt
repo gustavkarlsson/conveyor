@@ -40,7 +40,7 @@ fun LoginScreen(state: State.Login, events: LoginEvents) {
 private fun LoginTitle() {
     Text(
         modifier = Modifier.padding(16.dp),
-        text = "MySoft",
+        text = "nanoSoft",
         style = MaterialTheme.typography.h3.copy(color = MaterialTheme.colors.primary),
     )
 }
