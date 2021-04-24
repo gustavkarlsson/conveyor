@@ -15,7 +15,7 @@ fun main() {
     val store = Store(initialState = "initial")
     with(GlobalScope) {
         // Start processing actions
-        val job = start(store)
+        val job = store.start(this)
 
         // Print state changes
         launch {
@@ -25,8 +25,8 @@ fun main() {
         }
 
         // Issue a simple action that sets the state
-        store.issue { state ->
-            state.update { "updating" }
+        store.issue { stateFlow ->
+            stateFlow.update { "updating" }
         }
 
         // Issue a more complex action that repeatedly updates the state
@@ -43,10 +43,10 @@ fun main() {
 private class RepeatingAppenderAction(
     private val append: String,
 ) : Action<String> {
-    override suspend fun execute(state: UpdatableStateFlow<String>) {
+    override suspend fun execute(stateFlow: AtomicStateFlow<String>) {
         while (true) {
             delay(1000)
-            state.update { this + append }
+            stateFlow.update { this + append }
         }
     }
 }
@@ -80,6 +80,5 @@ Then add the following dependency to your gradle build file:
 ```kotlin
 dependencies {
     implementation("com.github.gustavkarlsson.conveyor:conveyor-core:master-SNAPSHOT") // Main library
-    // implementation("com.github.gustavkarlsson.conveyor:conveyor-rx2:master-SNAPSHOT") // RxJava 2 support
 }
 ```

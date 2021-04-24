@@ -9,7 +9,6 @@ pluginManagement {
 
 include(
     "core",
-    "rx2",
     "demo",
     "testing"
 )

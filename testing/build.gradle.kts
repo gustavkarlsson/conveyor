@@ -7,7 +7,11 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter()
+    jcenter {
+        content {
+            includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
+        }
+    }
 }
 
 dependencies {
