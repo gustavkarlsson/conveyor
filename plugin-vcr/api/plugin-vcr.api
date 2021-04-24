@@ -1,0 +1,100 @@
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/ReadableTape {
+	public abstract fun openForReading ()Lse/gustavkarlsson/conveyor/plugin/vcr/ReadableTape$Reading;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/ReadableTape$Reading : java/io/Closeable {
+	public abstract fun read (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class se/gustavkarlsson/conveyor/plugin/vcr/Sample {
+}
+
+public final class se/gustavkarlsson/conveyor/plugin/vcr/Sample$Delay : se/gustavkarlsson/conveyor/plugin/vcr/Sample {
+	public fun <init> (J)V
+	public final fun component1 ()J
+	public final fun copy (J)Lse/gustavkarlsson/conveyor/plugin/vcr/Sample$Delay;
+	public static synthetic fun copy$default (Lse/gustavkarlsson/conveyor/plugin/vcr/Sample$Delay;JILjava/lang/Object;)Lse/gustavkarlsson/conveyor/plugin/vcr/Sample$Delay;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDelayMillis ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class se/gustavkarlsson/conveyor/plugin/vcr/Sample$State : se/gustavkarlsson/conveyor/plugin/vcr/Sample {
+	public fun <init> (Ljava/lang/Object;)V
+	public final fun component1 ()Ljava/lang/Object;
+	public final fun copy (Ljava/lang/Object;)Lse/gustavkarlsson/conveyor/plugin/vcr/Sample$State;
+	public static synthetic fun copy$default (Lse/gustavkarlsson/conveyor/plugin/vcr/Sample$State;Ljava/lang/Object;ILjava/lang/Object;)Lse/gustavkarlsson/conveyor/plugin/vcr/Sample$State;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getState ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/Tape : se/gustavkarlsson/conveyor/plugin/vcr/ReadableTape, se/gustavkarlsson/conveyor/plugin/vcr/WriteableTape {
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/Vcr {
+	public static final field Companion Lse/gustavkarlsson/conveyor/plugin/vcr/Vcr$Companion;
+	public static final field DEFAULT_PLAY_BUFFER_SIZE I
+	public static final field DEFAULT_RECORD_BUFFER_SIZE I
+	public abstract fun play (Lse/gustavkarlsson/conveyor/plugin/vcr/ReadableTape;I)V
+	public abstract fun record (Lse/gustavkarlsson/conveyor/plugin/vcr/WriteableTape;I)V
+	public abstract fun stop ()V
+}
+
+public final class se/gustavkarlsson/conveyor/plugin/vcr/Vcr$Companion {
+	public static final field DEFAULT_PLAY_BUFFER_SIZE I
+	public static final field DEFAULT_RECORD_BUFFER_SIZE I
+}
+
+public final class se/gustavkarlsson/conveyor/plugin/vcr/Vcr$DefaultImpls {
+	public static synthetic fun play$default (Lse/gustavkarlsson/conveyor/plugin/vcr/Vcr;Lse/gustavkarlsson/conveyor/plugin/vcr/ReadableTape;IILjava/lang/Object;)V
+	public static synthetic fun record$default (Lse/gustavkarlsson/conveyor/plugin/vcr/Vcr;Lse/gustavkarlsson/conveyor/plugin/vcr/WriteableTape;IILjava/lang/Object;)V
+}
+
+public final class se/gustavkarlsson/conveyor/plugin/vcr/VcrPlugin : se/gustavkarlsson/conveyor/Plugin, se/gustavkarlsson/conveyor/plugin/vcr/Vcr {
+	public fun <init> ()V
+	public fun addStartActions ()Ljava/lang/Iterable;
+	public fun overrideInitialState (Ljava/lang/Object;)Ljava/lang/Object;
+	public fun play (Lse/gustavkarlsson/conveyor/plugin/vcr/ReadableTape;I)V
+	public fun record (Lse/gustavkarlsson/conveyor/plugin/vcr/WriteableTape;I)V
+	public fun stop ()V
+	public fun transformActions (Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+	public fun transformStates (Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/WriteableTape {
+	public abstract fun openForWriting ()Lse/gustavkarlsson/conveyor/plugin/vcr/WriteableTape$Writing;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/WriteableTape$Writing : java/io/Closeable {
+	public abstract fun write (Lse/gustavkarlsson/conveyor/plugin/vcr/Sample;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract class se/gustavkarlsson/conveyor/plugin/vcr/tapes/AbstractFileTape : se/gustavkarlsson/conveyor/plugin/vcr/ReadableTape, se/gustavkarlsson/conveyor/plugin/vcr/WriteableTape {
+	public fun <init> (Ljava/io/File;ILkotlinx/coroutines/CoroutineDispatcher;)V
+	public synthetic fun <init> (Ljava/io/File;ILkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun delete ()Z
+	public final fun openForReading ()Lse/gustavkarlsson/conveyor/plugin/vcr/ReadableTape$Reading;
+	public final fun openForWriting ()Lse/gustavkarlsson/conveyor/plugin/vcr/WriteableTape$Writing;
+	protected abstract fun readSample (Ljava/io/InputStream;)Lse/gustavkarlsson/conveyor/plugin/vcr/Sample;
+	protected abstract fun writeSample (Lse/gustavkarlsson/conveyor/plugin/vcr/Sample;Ljava/io/OutputStream;)V
+}
+
+public final class se/gustavkarlsson/conveyor/plugin/vcr/tapes/InMemoryTape : se/gustavkarlsson/conveyor/plugin/vcr/Tape {
+	public fun <init> ()V
+	public fun openForReading ()Lse/gustavkarlsson/conveyor/plugin/vcr/ReadableTape$Reading;
+	public fun openForWriting ()Lse/gustavkarlsson/conveyor/plugin/vcr/WriteableTape$Writing;
+}
+
+public final class se/gustavkarlsson/conveyor/plugin/vcr/tapes/SimpleFileTape : se/gustavkarlsson/conveyor/plugin/vcr/tapes/AbstractFileTape {
+	public fun <init> (Ljava/io/File;Lse/gustavkarlsson/conveyor/plugin/vcr/tapes/SimpleFileTape$Serializer;ILkotlinx/coroutines/CoroutineDispatcher;)V
+	public synthetic fun <init> (Ljava/io/File;Lse/gustavkarlsson/conveyor/plugin/vcr/tapes/SimpleFileTape$Serializer;ILkotlinx/coroutines/CoroutineDispatcher;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/tapes/SimpleFileTape$Serializer {
+	public abstract fun deserialize ([B)Ljava/lang/Object;
+	public abstract fun serialize (Ljava/lang/Object;)[B
+}
+
