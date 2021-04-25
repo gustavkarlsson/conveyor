@@ -49,15 +49,13 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":core"))
                 implementation(project.dependencies.platform("org.jetbrains.kotlin:kotlin-bom"))
                 api("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.kotlinxCoroutines}")
             }
         }
-        val jvmMain by getting {}
-        val jsMain by getting {}
         val jvmTest by getting {
             dependencies {
-                implementation(project(":test"))
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:${Versions.junit5}")
                 runtimeOnly("org.spekframework.spek2:spek-runner-junit5:${Versions.spek}")
                 runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}")
@@ -90,7 +88,7 @@ publishing {
 
 tasks.jacocoTestReport {
     dependsOn("jvmTest")
-    val sourceDirs = arrayOf("commonMain/src", "jvmMain/src")
+    val sourceDirs = arrayOf("commonMain/src")
     sourceDirectories.setFrom(sourceDirs)
     additionalSourceDirs.setFrom(sourceDirs)
     classDirectories.setFrom("${buildDir}/classes/kotlin/jvm/main/")

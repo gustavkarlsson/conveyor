@@ -5,12 +5,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-internal class StatefulMutableSharedFlow<T>
+// FIXME how to make this available to test module?
+public class StatefulMutableSharedFlow<T>
 private constructor(
     private val inner: MutableSharedFlow<T>,
     initialValue: T,
 ) : MutableSharedFlow<T> by inner, StateFlow<T> {
-    constructor(initialValue: T) : this(MutableSharedFlow(replay = 1), initialValue)
+    public constructor(initialValue: T) : this(MutableSharedFlow(replay = 1), initialValue)
 
     init {
         check(inner.tryEmit(initialValue)) { "Initial value rejected" }

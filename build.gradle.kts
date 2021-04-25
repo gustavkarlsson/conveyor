@@ -14,7 +14,3 @@ repositories {
         }
     }
 }
-
-apiValidation {
-    ignoredProjects.add("testing")
-}

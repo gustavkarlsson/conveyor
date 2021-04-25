@@ -1,4 +1,4 @@
-package se.gustavkarlsson.conveyor.testing
+package se.gustavkarlsson.conveyor.test
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -7,11 +7,10 @@ import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.AtomicStateFlow
 import se.gustavkarlsson.conveyor.internal.StatefulMutableSharedFlow
 
-// FIXME move to test module
-class TestAtomicStateFlow<State> private constructor(
+public class TestAtomicStateFlow<State> private constructor(
     private val inner: StatefulMutableSharedFlow<State>,
 ) : StateFlow<State> by inner, AtomicStateFlow<State> {
-    constructor(initialValue: State) : this(StatefulMutableSharedFlow(initialValue))
+    public constructor(initialValue: State) : this(StatefulMutableSharedFlow(initialValue))
 
     private val writeMutex = Mutex()
 
@@ -38,5 +37,5 @@ class TestAtomicStateFlow<State> private constructor(
 
     override val subscriptionCount: StateFlow<Int> by inner::subscriptionCount
 
-    override val storeSubscriberCount = MutableStateFlow(0)
+    override val storeSubscriberCount: MutableStateFlow<Int> = MutableStateFlow(0)
 }

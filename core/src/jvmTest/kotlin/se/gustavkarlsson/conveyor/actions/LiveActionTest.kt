@@ -4,7 +4,7 @@ import org.junit.jupiter.api.fail
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.AtomicStateFlow
-import se.gustavkarlsson.conveyor.testing.TestAtomicStateFlow
+import se.gustavkarlsson.conveyor.test.TestAtomicStateFlow
 
 object LiveActionTest : Spek({
     val flow by memoized { TestAtomicStateFlow(0) }

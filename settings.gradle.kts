@@ -2,5 +2,5 @@ rootProject.name = "conveyor"
 
 include(
     "core",
-    "testing"
+    "test"
 )
