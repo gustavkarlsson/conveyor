@@ -1,8 +1,8 @@
 package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.AtomicStateFlow
 
@@ -11,16 +11,14 @@ public abstract class LiveAction<State> : Action<State> {
 
     final override suspend fun execute(stateFlow: AtomicStateFlow<State>) {
         stateFlow.storeSubscriberCount
-            .distinctUntilChangedBy { count ->
-                count > 0
-            }
-            .filter { count ->
-                count > 0
-            }
-            .collectLatest {
-                onLive(stateFlow)
+            .map { count -> count > 0 }
+            .distinctUntilChanged()
+            .collectLatest { live ->
+                if (live) {
+                    onLive(stateFlow)
+                }
             }
     }
 
-    public abstract suspend fun onLive(stateFlow: AtomicStateFlow<State>)
+    protected abstract suspend fun onLive(stateFlow: AtomicStateFlow<State>)
 }

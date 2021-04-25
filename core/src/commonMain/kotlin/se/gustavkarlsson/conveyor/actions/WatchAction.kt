@@ -13,5 +13,5 @@ public abstract class WatchAction<State> : Action<State> {
         }
     }
 
-    public abstract fun onState(state: State)
+    protected abstract fun onState(state: State)
 }
