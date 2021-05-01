@@ -1,9 +1,7 @@
-// FIXME split?
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.kotlinx.binary-compatibility-validator")
     id("org.jetbrains.dokka")
-    id("io.gitlab.arturbosch.detekt")
     // java is required for jacoco according to
     // https://nwillc.medium.com/kotlin-multiplatform-first-contact-bintray-jacoco-part-3-dbd496bf168a
     java
@@ -18,10 +16,6 @@ repositories {
             includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm")
         }
     }
-}
-
-dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
 }
 
 kotlin {
@@ -83,8 +77,4 @@ tasks.jacocoTestReport {
 
 jacoco {
     toolVersion = Versions.jacoco
-}
-
-detekt {
-    input = files(fileTree("src").include("*/kotlin/"))
 }

@@ -1,4 +1,5 @@
 plugins {
+    common
     published
 }
 
