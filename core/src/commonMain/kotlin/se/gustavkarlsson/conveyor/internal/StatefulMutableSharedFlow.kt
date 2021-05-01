@@ -4,8 +4,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import se.gustavkarlsson.conveyor.InternalConveyorApi
 
-// FIXME Should no be public. How to make it available to test module?
+@InternalConveyorApi
 public class StatefulMutableSharedFlow<T>
 private constructor(
     private val inner: MutableSharedFlow<T>,

@@ -20,11 +20,13 @@ repositories {
 
 kotlin {
     explicitApi()
-    targets.all {
-        compilations.all {
+    sourceSets {
+        all {
+            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageSettings.useExperimentalAnnotation("se.gustavkarlsson.conveyor.InternalConveyorApi")
             if (name.contains("test", ignoreCase = true)) {
-                kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.FlowPreview"
-                kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
+                languageSettings.useExperimentalAnnotation("kotlinx.coroutines.FlowPreview")
+                languageSettings.useExperimentalAnnotation("kotlinx.coroutines.ExperimentalCoroutinesApi")
             }
         }
     }
@@ -77,4 +79,8 @@ tasks.jacocoTestReport {
 
 jacoco {
     toolVersion = Versions.jacoco
+}
+
+apiValidation {
+    nonPublicMarkers.add("se.gustavkarlsson.conveyor.InternalConveyorApi")
 }
