@@ -1,3 +1,4 @@
+// FIXME Duplicated versions in buildSrc/build.gradle.kts
 object Versions {
     // Config
     const val java = "1.8"

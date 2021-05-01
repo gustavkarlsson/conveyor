@@ -12,7 +12,7 @@ repositories {
     }
 }
 
-// FIXME duplicated versions
+// FIXME duplicated versions in buildSrc/src/main/kotlin/Versions.kt
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32")
     implementation("org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin:0.5.0")
