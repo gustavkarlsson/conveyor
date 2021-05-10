@@ -65,12 +65,12 @@ public final class se/gustavkarlsson/conveyor/StoreStoppedException : java/lang/
 public abstract class se/gustavkarlsson/conveyor/actions/LiveAction : se/gustavkarlsson/conveyor/Action {
 	public fun <init> ()V
 	public final fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun onLive (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected abstract fun onLive (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class se/gustavkarlsson/conveyor/actions/WatchAction : se/gustavkarlsson/conveyor/Action {
 	public fun <init> ()V
 	public final fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun onState (Ljava/lang/Object;)V
+	protected abstract fun onState (Ljava/lang/Object;)V
 }
 
