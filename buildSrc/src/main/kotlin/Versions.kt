@@ -4,7 +4,7 @@ object Versions {
     const val kotlin = "1.5.0"
     const val detekt = "1.17.0-RC3"
     const val dokka = "1.4.30"
-    const val jacoco = "0.8.6"
+    const val jacoco = "0.8.7"
     const val binaryCompatibilityValidator = "0.5.0"
 
     // Dependencies
