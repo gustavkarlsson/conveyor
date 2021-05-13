@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.map
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.AtomicStateFlow
 
-// FIXME add tests
 public abstract class LiveAction<State> : Action<State> {
 
     final override suspend fun execute(stateFlow: AtomicStateFlow<State>) {

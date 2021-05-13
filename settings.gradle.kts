@@ -9,6 +9,6 @@ pluginManagement {
 
 include(
     "core",
-    "demo",
-    "testing"
+    "test",
+    "demo"
 )

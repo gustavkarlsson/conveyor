@@ -1,14 +1,14 @@
+// FIXME Duplicated versions in buildSrc/build.gradle.kts
 object Versions {
     // Config
-    const val java = "1.8"
     const val kotlin = "1.5.0"
-    const val detekt = "1.15.0"
+    const val detekt = "1.17.0-RC3"
     const val dokka = "1.4.30"
-    const val jacoco = "0.8.6"
+    const val jacoco = "0.8.7"
     const val binaryCompatibilityValidator = "0.5.0"
 
     // Dependencies
-    const val kotlinxCoroutines = "1.4.3"
+    const val kotlinxCoroutines = "1.5.0-RC"
     const val compose = "0.4.0-build184"
 
     // Test

@@ -13,7 +13,8 @@ class TrackingActionIssuer<State> : ActionIssuer<State> {
 
     override fun issue(action: Action<State>) {
         _issuedActions.add(action)
-        require(actionsChannel.offer(action)) { "Offer failed" }
+        val sendResult = actionsChannel.trySend(action)
+        sendResult.getOrThrow()
     }
 
     private val _cancellations = mutableListOf<Throwable?>()
