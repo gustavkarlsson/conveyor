@@ -5,7 +5,3 @@ plugins {
 repositories {
     mavenCentral()
 }
-
-apiValidation {
-    ignoredProjects.addAll(listOf("plugin-vcr"))
-}
