@@ -11,11 +11,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    jcenter {
-        content {
-            includeModule("org.jetbrains.kotlinx", "kotlinx-html-jvm") // Remove after upgrading detekt to 1.17
-        }
-    }
 }
 
 kotlin {
