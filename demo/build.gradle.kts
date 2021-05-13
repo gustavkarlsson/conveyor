@@ -1,6 +1,7 @@
 import org.jetbrains.compose.compose
 
 plugins {
+    common
     kotlin("jvm")
     id("org.jetbrains.compose") version Versions.compose
 }
