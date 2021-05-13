@@ -9,7 +9,7 @@ object Versions {
 
     // Dependencies
     const val kotlinxCoroutines = "1.5.0-RC"
-    const val compose = "0.4.0-build184"
+    const val compose = "0.4.0-build190"
 
     // Test
     const val junit5 = "5.7.1"
