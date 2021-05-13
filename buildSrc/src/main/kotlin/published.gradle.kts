@@ -31,9 +31,6 @@ kotlin {
         }
     }
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = Versions.java
-        }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform {
                 includeEngines("spek2")
