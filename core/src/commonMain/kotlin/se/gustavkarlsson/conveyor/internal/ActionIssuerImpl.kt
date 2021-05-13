@@ -9,7 +9,8 @@ internal class ActionIssuerImpl<State> : ActionIssuer<State> {
     private val actionChannel = Channel<Action<State>>(Channel.UNLIMITED)
     val issuedActions = actionChannel.consumeAsFlow()
     override fun issue(action: Action<State>) {
-        actionChannel.offer(action)
+        val sendResult = actionChannel.trySend(action)
+        sendResult.getOrThrow()
     }
 
     override fun cancel(cause: Throwable?) = actionChannel.cancel(cause as? CancellationException)
