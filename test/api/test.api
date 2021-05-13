@@ -1,0 +1,14 @@
+public final class se/gustavkarlsson/conveyor/test/TestAtomicStateFlow : kotlinx/coroutines/flow/StateFlow, se/gustavkarlsson/conveyor/AtomicStateFlow {
+	public fun <init> (Ljava/lang/Object;)V
+	public fun collect (Lkotlinx/coroutines/flow/FlowCollector;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun emit (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getReplayCache ()Ljava/util/List;
+	public fun getStoreSubscriberCount ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public synthetic fun getStoreSubscriberCount ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getSubscriptionCount ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getValue ()Ljava/lang/Object;
+	public synthetic fun resetReplayCache ()V
+	public fun tryEmit (Ljava/lang/Object;)Z
+	public fun update (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

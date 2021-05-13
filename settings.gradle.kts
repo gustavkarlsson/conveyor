@@ -2,6 +2,6 @@ rootProject.name = "conveyor"
 
 include(
     "core",
-    "plugin-vcr",
-    "testing"
+    "test",
+    "plugin-vcr"
 )

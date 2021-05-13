@@ -24,6 +24,9 @@ public final class se/gustavkarlsson/conveyor/AtomicStateFlow$DefaultImpls {
 	public static synthetic fun resetReplayCache (Lse/gustavkarlsson/conveyor/AtomicStateFlow;)V
 }
 
+public abstract interface annotation class se/gustavkarlsson/conveyor/InternalConveyorApi : java/lang/annotation/Annotation {
+}
+
 public abstract interface class se/gustavkarlsson/conveyor/Plugin {
 	public abstract fun addStartActions ()Ljava/lang/Iterable;
 	public abstract fun overrideInitialState (Ljava/lang/Object;)Ljava/lang/Object;
