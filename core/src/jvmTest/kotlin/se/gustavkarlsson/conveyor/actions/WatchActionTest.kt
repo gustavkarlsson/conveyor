@@ -1,18 +1,40 @@
 package se.gustavkarlsson.conveyor.actions
 
-import org.junit.jupiter.api.fail
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.TestAtomicStateFlow
+import strikt.api.expectThat
+import strikt.assertions.containsExactly
 
 object WatchActionTest : Spek({
-    val flow by memoized { TestAtomicStateFlow(0) }
+    val initialValue = 0
+    val flow by memoized { TestAtomicStateFlow(initialValue) }
 
     describe("A test action") {
         val subject by memoized { TestWatchAction() }
 
-        it("FIXME: Not yet implemented") {
-            fail("Not yet implemented")
+        it("initially gets current value") {
+            runBlockingTest {
+                val launchJob = launch {
+                    subject.execute(flow)
+                }
+                launchJob.cancel()
+            }
+            expectThat(subject.watched).containsExactly(initialValue)
+        }
+
+        it("watches new state changes") {
+            runBlockingTest {
+                val launchJob = launch {
+                    subject.execute(flow)
+                }
+                flow.emit(1)
+                flow.emit(2)
+                launchJob.cancel()
+            }
+            expectThat(subject.watched).containsExactly(initialValue, 1, 2)
         }
     }
 })
