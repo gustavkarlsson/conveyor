@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.demo.actions
 
+import java.util.Locale
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.AtomicStateFlow
 import se.gustavkarlsson.conveyor.demo.State
@@ -9,7 +10,7 @@ class ChangeEmailAction(private val text: String) : Action<State> {
         stateFlow.update {
             require(this is State.Login)
             if (!isLoggingIn) {
-                val sanitizedText = text.trim().toLowerCase()
+                val sanitizedText = text.trim().lowercase(Locale.getDefault())
                 copy(emailText = sanitizedText, showInvalidLogin = false)
             } else this
         }

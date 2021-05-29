@@ -14,6 +14,7 @@ fun main() {
     runUi(ViewModel(Api, initialState))
 }
 
+@Suppress("MagicNumber")
 private fun runUi(viewModel: ViewModel) = Window(
     title = "Conveyor Demo",
     size = IntSize(400, 400),

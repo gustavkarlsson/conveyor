@@ -1,12 +1,14 @@
 package se.gustavkarlsson.conveyor.demo
 
+import java.util.Locale
+import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlin.random.Random
 
 private val DELIMITERS = Regex("[._-]+")
 
+@Suppress("MagicNumber")
 object Api {
     suspend fun login(email: String, password: String): String? {
         delay(Random.nextLong(500, 2000))
@@ -27,4 +29,13 @@ object Api {
 }
 
 private fun String.capitalizeWords(): String =
-    split(" ").joinToString(" ") { it.capitalize() }
+    split(" ")
+        .joinToString(" ") { word ->
+            word.capitalize()
+        }
+
+private fun String.capitalize(): String = replaceFirstChar { char ->
+    if (char.isLowerCase()) {
+        char.titlecase(Locale.getDefault())
+    } else char.toString()
+}
