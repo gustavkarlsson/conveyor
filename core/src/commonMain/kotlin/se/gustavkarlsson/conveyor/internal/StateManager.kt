@@ -6,17 +6,17 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import se.gustavkarlsson.conveyor.AtomicStateFlow
-import se.gustavkarlsson.conveyor.DeadlockHandler
+import se.gustavkarlsson.conveyor.LockHandler
 
 internal class StateManager<State> private constructor(
     private val incomingMutableState: StatefulMutableSharedFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
-    private val deadlockHandler: DeadlockHandler,
+    private val lockHandler: LockHandler,
 ) : StateFlow<State> by incomingMutableState, AtomicStateFlow<State>, Process {
     constructor(
         initialValue: State,
         transformers: Iterable<Transformer<State>>,
-    ) : this(StatefulMutableSharedFlow(initialValue), transformers, SimpleDeadlockHandler)
+    ) : this(StatefulMutableSharedFlow(initialValue), transformers, SimpleLockHandler)
 
     private val outgoingMutableState = StatefulMutableSharedFlow(incomingMutableState.value)
     val outgoingState: StateFlow<State> = outgoingMutableState
@@ -32,7 +32,7 @@ internal class StateManager<State> private constructor(
     private val writeMutex = Mutex()
 
     override suspend fun update(block: State.() -> State): State {
-        return mutateWithDeadlockCheck {
+        return mutateWithLockCheck {
             val newState = value.block()
             incomingMutableState.emit(newState)
             newState
@@ -40,28 +40,29 @@ internal class StateManager<State> private constructor(
     }
 
     override suspend fun emit(value: State) {
-        mutateWithDeadlockCheck {
+        mutateWithLockCheck {
             incomingMutableState.emit(value)
             value
         }
     }
 
-    private suspend fun mutateWithDeadlockCheck(block: suspend () -> State): State {
+    private suspend fun mutateWithLockCheck(block: suspend () -> State): State {
         writeMutex.withLock {
-            var count = 0
-            var timeoutMillis = deadlockHandler.initialTimeoutMillis
+            var retries = 0
+            var timeoutMillis = lockHandler.initialTimeoutMillis
             while (true) {
-                val result = withTimeoutOrNull(timeoutMillis) { block() }
+                val result = withTimeoutOrNull(timeoutMillis) {
+                    block()
+                }
                 if (result != null) {
                     return result
-                } else {
-                    when (val resolution = deadlockHandler.onDeadlock(++count)) {
-                        is DeadlockHandler.Resolution.Retry -> {
-                            timeoutMillis = resolution.timeoutMillis
-                        }
-                        is DeadlockHandler.Resolution.Throw -> {
-                            throw resolution.exception
-                        }
+                }
+                when (val resolution = lockHandler.onLock(retries++)) {
+                    is LockHandler.Resolution.Retry -> {
+                        timeoutMillis = resolution.timeoutMillis
+                    }
+                    is LockHandler.Resolution.Throw -> {
+                        throw resolution.exception
                     }
                 }
             }
@@ -82,15 +83,16 @@ internal class StateManager<State> private constructor(
 
 // FIXME remove
 
-private object SimpleDeadlockHandler : DeadlockHandler {
+private object SimpleLockHandler : LockHandler {
     override val initialTimeoutMillis: Long = 1000
 
-    override fun onDeadlock(count: Int): DeadlockHandler.Resolution {
-        return if (count > 3) {
-            DeadlockHandler.Resolution.Throw(Exception("Deadlock: Gave up!"))
+    override fun onLock(retries: Int): LockHandler.Resolution {
+        return if (retries > 3) {
+            LockHandler.Resolution.Throw(Exception("Locked: Giving up!"))
         } else {
-            println("Deadlock: Retrying...")
-            DeadlockHandler.Resolution.Retry(initialTimeoutMillis * count)
+            val retryInMillis = (retries + 1) * initialTimeoutMillis
+            println("Locked ($retries): Retrying for ${retryInMillis}ms")
+            LockHandler.Resolution.Retry(retryInMillis)
         }
     }
 }
