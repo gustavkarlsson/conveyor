@@ -16,7 +16,8 @@ internal class StateManager<State> private constructor(
     constructor(
         initialValue: State,
         transformers: Iterable<Transformer<State>>,
-    ) : this(StatefulMutableSharedFlow(initialValue), transformers, SimpleLockHandler)
+        lockHandler: LockHandler,
+    ) : this(StatefulMutableSharedFlow(initialValue), transformers, lockHandler)
 
     private val outgoingMutableState = StatefulMutableSharedFlow(incomingMutableState.value)
     val outgoingState: StateFlow<State> = outgoingMutableState
@@ -79,20 +80,4 @@ internal class StateManager<State> private constructor(
     override val subscriptionCount: StateFlow<Int> by incomingMutableState::subscriptionCount
 
     override val storeSubscriberCount: StateFlow<Int> by outgoingMutableState::subscriptionCount
-}
-
-// FIXME remove
-
-private object SimpleLockHandler : LockHandler {
-    override val initialTimeoutMillis: Long = 1000
-
-    override fun onLock(retries: Int): LockHandler.Resolution {
-        return if (retries > 3) {
-            LockHandler.Resolution.Throw(Exception("Locked: Giving up!"))
-        } else {
-            val retryInMillis = (retries + 1) * initialTimeoutMillis
-            println("Locked ($retries): Retrying for ${retryInMillis}ms")
-            LockHandler.Resolution.Retry(retryInMillis)
-        }
-    }
 }

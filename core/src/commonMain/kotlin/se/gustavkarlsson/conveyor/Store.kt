@@ -49,6 +49,7 @@ public interface Store<State> : ActionIssuer<State> {
 public fun <State> Store(
     initialState: State,
     startActions: Iterable<Action<State>> = emptyList(),
+    lockHandler: LockHandler = LockHandler.Ignore,
     plugins: Iterable<Plugin<State>> = emptyList(),
 ): Store<State> {
     val actualInitialState = plugins.fold(initialState) { state, plugin ->
@@ -65,7 +66,7 @@ public fun <State> Store(
     }
 
     val actionIssuer = ActionIssuerImpl<State>()
-    val stateManager = StateManager(actualInitialState, stateTransformers)
+    val stateManager = StateManager(actualInitialState, stateTransformers, lockHandler)
     val actionExecutor = ActionExecutor(
         startActions = actualStartActions,
         actions = actionIssuer.issuedActions,
