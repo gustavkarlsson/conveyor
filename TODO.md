@@ -1,4 +1,3 @@
-* Consolidate AtomicStateFlow and StatefulMutableSharedFlow in respect to the new MutableStateFlow which supports atomic updates
 * Fix website with links to api
 * Mention api docs on readme
 * Finish demo
