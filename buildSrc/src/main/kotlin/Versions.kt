@@ -8,7 +8,7 @@ object Versions {
     const val binaryCompatibilityValidator = "0.5.0"
 
     // Dependencies
-    const val kotlinxCoroutines = "1.5.0"
+    const val kotlinxCoroutines = "1.5.1"
 
     // Test
     const val junit5 = "5.7.2"
