@@ -31,12 +31,19 @@ public final class se/gustavkarlsson/conveyor/Plugin$DefaultImpls {
 	public static fun transformStates (Lse/gustavkarlsson/conveyor/Plugin;Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
 }
 
+public final class se/gustavkarlsson/conveyor/StateUpdateException : java/lang/IllegalStateException {
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getState ()Ljava/lang/Object;
+}
+
 public abstract interface class se/gustavkarlsson/conveyor/Store : se/gustavkarlsson/conveyor/ActionIssuer {
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract fun run (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class se/gustavkarlsson/conveyor/StoreAlreadyStartedException : java/lang/IllegalStateException {
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public abstract interface class se/gustavkarlsson/conveyor/StoreFlow : kotlinx/coroutines/flow/MutableSharedFlow, kotlinx/coroutines/flow/StateFlow {
@@ -57,10 +64,12 @@ public final class se/gustavkarlsson/conveyor/StoreKt {
 }
 
 public final class se/gustavkarlsson/conveyor/StoreNotYetStartedException : java/lang/IllegalStateException {
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public final class se/gustavkarlsson/conveyor/StoreStoppedException : java/lang/IllegalStateException {
 	public final fun getCancellationReason ()Ljava/lang/Throwable;
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public abstract class se/gustavkarlsson/conveyor/actions/LiveAction : se/gustavkarlsson/conveyor/Action {
