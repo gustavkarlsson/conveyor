@@ -10,30 +10,30 @@ import kotlinx.coroutines.flow.StateFlow
 public interface AtomicStateFlow<State> : StateFlow<State>, MutableSharedFlow<State> { // FIXME Rename?
     /**
      * Updates the state using the given block.
-     * The receiver argument of the block is the current state at the time the block runs.
+     * The argument of the block is the current state at the time the block runs.
      *
-     * Updates run sequentially, which guarantees that the state does not change while an update block runs.
-     * This function will suspend if another update is in progress, or due to back pressure.
+     * Updates run in sequence, which guarantees that the state does not change while the update runs.
+     * This function will suspend if another update is running, or due to back pressure.
      */
-    public suspend fun update(block: State.() -> State)
+    public suspend fun update(block: (State) -> State)
 
     /**
      * Updates the state using the given block, returning the new state.
-     * The receiver argument of the block is the current state at the time the block runs.
+     * The argument of the block is the current state at the time the block runs.
      *
-     * Updates run sequentially, which guarantees that the state does not change while an update block runs.
-     * This function will suspend if another update is in progress, or due to back pressure.
+     * Updates run in sequence, which guarantees that the state does not change while the update runs.
+     * This function will suspend if another update is running, or due to back pressure.
      */
-    public suspend fun updateAndGet(block: State.() -> State): State
+    public suspend fun updateAndGet(block: (State) -> State): State
 
     /**
      * Updates the state using the given block, returning the previous state.
-     * The receiver argument of the block is the current state at the time the block runs.
+     * The argument of the block is the current state at the time the block runs.
      *
-     * Updates run sequentially, which guarantees that the state does not change while an update block runs.
-     * This function will suspend if another update is in progress, or due to back pressure.
+     * Updates run in sequence, which guarantees that the state does not change while the update runs.
+     * This function will suspend if another update is running, or due to back pressure.
      */
-    public suspend fun getAndUpdate(block: State.() -> State): State
+    public suspend fun getAndUpdate(block: (State) -> State): State
 
     /**
      * The number of subscriber of the **store**

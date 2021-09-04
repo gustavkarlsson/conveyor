@@ -10,6 +10,6 @@ class IncrementingAction(
 ) : Action<Int> {
     override suspend fun execute(stateFlow: AtomicStateFlow<Int>) {
         delay(delayMillis)
-        stateFlow.update { this + increment }
+        stateFlow.update { it + increment }
     }
 }
