@@ -14,11 +14,27 @@ public class TestAtomicStateFlow<State> private constructor(
 
     private val writeMutex = Mutex()
 
-    override suspend fun update(block: State.() -> State): State {
+    override suspend fun update(block: State.() -> State) {
+        return writeMutex.withLock {
+            val newState = value.block()
+            inner.emit(newState)
+        }
+    }
+
+    override suspend fun updateAndGet(block: State.() -> State): State {
         return writeMutex.withLock {
             val newState = value.block()
             inner.emit(newState)
             newState
+        }
+    }
+
+    override suspend fun getAndUpdate(block: State.() -> State): State {
+        return writeMutex.withLock {
+            val oldState = value
+            val newState = oldState.block()
+            inner.emit(newState)
+            oldState
         }
     }
 

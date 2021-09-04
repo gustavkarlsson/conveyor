@@ -26,11 +26,29 @@ internal class StateManager<State> private constructor(
 
     private val writeMutex = Mutex()
 
-    override suspend fun update(block: State.() -> State): State {
+    override suspend fun update(block: State.() -> State) {
+        return writeMutex.withLock {
+            val newState = value.block()
+            incomingMutableState.emit(newState)
+        }
+    }
+
+    // FIXME Test
+    override suspend fun updateAndGet(block: State.() -> State): State {
         return writeMutex.withLock {
             val newState = value.block()
             incomingMutableState.emit(newState)
             newState
+        }
+    }
+
+    // FIXME Test
+    override suspend fun getAndUpdate(block: State.() -> State): State {
+        return writeMutex.withLock {
+            val oldState = value
+            val newState = oldState.block()
+            incomingMutableState.emit(newState)
+            oldState
         }
     }
 
