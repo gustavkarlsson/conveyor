@@ -6,6 +6,7 @@ kotlinCoroutines = "1.5.2"
 junit5 = "5.7.2"
 spek = "2.0.17"
 strikt = "0.31.0"
+ktlint = "10.1.0"
 
 [libraries]
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
@@ -20,6 +21,7 @@ strikt-core = { module = "io.strikt:strikt-core", version.ref = "strikt" }
 
 kotlinGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 dokkaGradle = { module = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin", version.ref = "dokka" }
+ktlintGradle = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint" }
 kotlinBinaryCompatibilityValidatorGradle = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "kotlinBinaryCompatibilityValidator" }
 
 [bundles]
