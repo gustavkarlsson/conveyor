@@ -16,11 +16,8 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(project(":test"))
-                runtimeOnly(libs.bundles.spekRuntime)
-                runtimeOnly(libs.kotlin.reflect)
-                implementation(libs.bundles.spekImplementation)
-                implementation(libs.kotlinCoroutines.test)
-                implementation(libs.strikt.core)
+                runtimeOnly(libs.bundles.testRuntime)
+                implementation(libs.bundles.testImplementation)
             }
         }
     }

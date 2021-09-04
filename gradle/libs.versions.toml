@@ -23,5 +23,5 @@ dokkaGradlePlugin = { module = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.p
 kotlinBinaryCompatibilityValidatorGradlePlugin = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "kotlinBinaryCompatibilityValidator" }
 
 [bundles]
-spekRuntime = ["junit-jupiter-engine", "spek-runner-junit5"]
-spekImplementation = ["junit-jupiter-api", "spek-dsl-jvm"]
+testRuntime = ["junit-jupiter-engine", "spek-runner-junit5", "kotlin-reflect"]
+testImplementation = ["junit-jupiter-api", "spek-dsl-jvm", "kotlinCoroutines-test", "strikt-core"]
