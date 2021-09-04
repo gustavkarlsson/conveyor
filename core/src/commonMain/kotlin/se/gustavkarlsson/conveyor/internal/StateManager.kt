@@ -33,7 +33,6 @@ internal class StateManager<State> private constructor(
         }
     }
 
-    // FIXME Test
     override suspend fun updateAndGet(block: State.() -> State): State {
         return writeMutex.withLock {
             val newState = value.block()
@@ -42,7 +41,6 @@ internal class StateManager<State> private constructor(
         }
     }
 
-    // FIXME Test
     override suspend fun getAndUpdate(block: State.() -> State): State {
         return writeMutex.withLock {
             val oldState = value
