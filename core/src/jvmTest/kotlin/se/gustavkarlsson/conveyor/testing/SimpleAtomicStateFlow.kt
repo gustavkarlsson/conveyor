@@ -22,6 +22,6 @@ class SimpleAtomicStateFlow<State> private constructor(
     @ExperimentalCoroutinesApi
     @Deprecated("Not supported", level = DeprecationLevel.HIDDEN)
     override fun resetReplayCache() {
-        throw UnsupportedOperationException("UpdatableStateFlow.resetReplayCache is not supported")
+        throw UnsupportedOperationException("${this::class.simpleName}.resetReplayCache is not supported")
     }
 }

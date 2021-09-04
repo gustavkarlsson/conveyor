@@ -26,6 +26,6 @@ public interface AtomicStateFlow<State> : StateFlow<State>, MutableSharedFlow<St
     @ExperimentalCoroutinesApi
     @Deprecated("Not supported", level = DeprecationLevel.HIDDEN)
     override fun resetReplayCache() {
-        throw UnsupportedOperationException("UpdatableStateFlow.resetReplayCache is not supported")
+        throw UnsupportedOperationException("${this::class.simpleName}.resetReplayCache is not supported")
     }
 }
