@@ -11,6 +11,7 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
 ## Example
 ```kotlin
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
@@ -25,7 +26,9 @@ public fun main() {
     val store = Store(initialState = 0)
     with(GlobalScope) {
         // Start processing actions
-        val job = store.start(this)
+        val job = launch(Dispatchers.Unconfined) {
+            store.run()
+        }
 
         // Print state changes
         launch {
