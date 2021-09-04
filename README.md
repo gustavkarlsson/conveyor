@@ -11,8 +11,18 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
 ## Example
 ```kotlin
-fun main() {
-    val store = Store(initialState = "initial")
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.StoreFlow
+import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.issue
+
+public fun main() {
+    val store = Store(initialState = 0)
     with(GlobalScope) {
         // Start processing actions
         val job = store.start(this)
@@ -25,12 +35,12 @@ fun main() {
         }
 
         // Issue a simple action that sets the state
-        store.issue { stateFlow ->
-            stateFlow.update { "updating" }
+        store.issue { storeFlow ->
+            storeFlow.update { 100 }
         }
 
         // Issue a more complex action that repeatedly updates the state
-        store.issue(RepeatingAppenderAction(append = "."))
+        store.issue(RepeatingIncrementAction(increment = 1))
 
         // Run for a while
         runBlocking { delay(5000) }
@@ -40,13 +50,15 @@ fun main() {
     }
 }
 
-private class RepeatingAppenderAction(
-    private val append: String,
-) : Action<String> {
-    override suspend fun execute(stateFlow: AtomicStateFlow<String>) {
+private class RepeatingIncrementAction(
+    private val increment: Int,
+) : Action<Int> {
+    override suspend fun execute(storeFlow: StoreFlow<Int>) {
         while (true) {
             delay(1000)
-            stateFlow.update { this + append }
+            storeFlow.update { state ->
+                state + increment
+            }
         }
     }
 }

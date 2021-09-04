@@ -11,7 +11,7 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
-import se.gustavkarlsson.conveyor.testing.SimpleAtomicStateFlow
+import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
@@ -28,7 +28,7 @@ import strikt.assertions.isTrue
 object StoreImplTest : Spek({
     val initialState = 0
     val action = IncrementingAction(1)
-    val state by memoized { SimpleAtomicStateFlow(initialState) }
+    val state by memoized { SimpleStoreFlow(initialState) }
     val actionIssuer by memoized { TrackingActionIssuer<Int>() }
 
     describe("A minimal store") {

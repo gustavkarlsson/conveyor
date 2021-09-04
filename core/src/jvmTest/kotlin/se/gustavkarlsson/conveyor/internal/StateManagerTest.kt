@@ -53,11 +53,29 @@ object StateManagerTest : Spek({
             }
             expectThat(subject.value).isEqualTo(initialState + state1)
         }
-        it("update returns new state after updating it") {
+        it("updateAndGet sets new state after updating it") {
+            runBlockingTest {
+                subject.updateAndGet { this + state1 }
+            }
+            expectThat(subject.value).isEqualTo(initialState + state1)
+        }
+        it("getAndUpdate sets new state after updating it") {
+            runBlockingTest {
+                subject.getAndUpdate { this + state1 }
+            }
+            expectThat(subject.value).isEqualTo(initialState + state1)
+        }
+        it("updateAndGet returns new state after updating it") {
             val result = runBlockingTest {
-                subject.update { this + state1 }
+                subject.updateAndGet { this + state1 }
             }
             expectThat(result).isEqualTo(initialState + state1)
+        }
+        it("updateAndGet returns old state after updating it") {
+            val result = runBlockingTest {
+                subject.getAndUpdate { this + state1 }
+            }
+            expectThat(result).isEqualTo(initialState)
         }
         it("emit sets new state") {
             runBlockingTest {

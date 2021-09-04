@@ -36,12 +36,20 @@ object PluginTest : Spek({
     describe("A store with added start actions") {
         val plugin1 = object : Plugin<Int> {
             override fun addStartActions(): Iterable<Action<Int>> {
-                return listOf(Action { it.update { this + 2 } })
+                return listOf(
+                    Action { storeFlow ->
+                        storeFlow.update { it + 2 }
+                    }
+                )
             }
         }
         val plugin2 = object : Plugin<Int> {
             override fun addStartActions(): Iterable<Action<Int>> {
-                return listOf(Action { it.update { this * 2 } })
+                return listOf(
+                    Action { storeFlow ->
+                        storeFlow.update { it * 2 }
+                    }
+                )
             }
         }
         val store by memoized {
@@ -71,11 +79,11 @@ object PluginTest : Spek({
 
         it("has expected state after issuing actions") {
             store.start(scope)
-            store.issue {
-                it.update { this + 2 }
+            store.issue { storeFlow ->
+                storeFlow.update { it + 2 }
             }
-            store.issue {
-                it.update { this * 2 }
+            store.issue { storeFlow ->
+                storeFlow.update { it * 2 }
             }
             val result = store.state.value
             expectThat(result).isEqualTo(12)
@@ -99,8 +107,8 @@ object PluginTest : Spek({
         it("has expected state after issuing actions") {
             store.start(scope)
             val initialState = store.state.value
-            store.issue {
-                it.update { this + 2 }
+            store.issue { storeFlow ->
+                storeFlow.update { it + 2 }
             }
             val updatedState = store.state.value
             expect {

@@ -4,12 +4,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import se.gustavkarlsson.conveyor.AtomicStateFlow
+import se.gustavkarlsson.conveyor.StoreFlow
 
 internal class StateManager<State> private constructor(
     private val incomingMutableState: StatefulMutableSharedFlow<State>,
     private val transformers: Iterable<Transformer<State>>,
-) : StateFlow<State> by incomingMutableState, AtomicStateFlow<State>, Process {
+) : StateFlow<State> by incomingMutableState, StoreFlow<State>, Process {
     constructor(
         initialValue: State,
         transformers: Iterable<Transformer<State>>,
@@ -26,11 +26,27 @@ internal class StateManager<State> private constructor(
 
     private val writeMutex = Mutex()
 
-    override suspend fun update(block: State.() -> State): State {
+    override suspend fun update(block: State.() -> State) {
+        return writeMutex.withLock {
+            val newState = value.block()
+            incomingMutableState.emit(newState)
+        }
+    }
+
+    override suspend fun updateAndGet(block: State.() -> State): State {
         return writeMutex.withLock {
             val newState = value.block()
             incomingMutableState.emit(newState)
             newState
+        }
+    }
+
+    override suspend fun getAndUpdate(block: State.() -> State): State {
+        return writeMutex.withLock {
+            val oldState = value
+            val newState = oldState.block()
+            incomingMutableState.emit(newState)
+            oldState
         }
     }
 

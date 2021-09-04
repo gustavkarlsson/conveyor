@@ -17,8 +17,8 @@ object IssueTest : Spek({
 
         it("issue extension function executes body as expected") {
             runBlockingTest {
-                store.issue { state ->
-                    state.update { this + 1 }
+                store.issue { storeFlow ->
+                    storeFlow.update { it + 1 }
                 }
             }
             expectThat(store.state.value).isEqualTo(1)
