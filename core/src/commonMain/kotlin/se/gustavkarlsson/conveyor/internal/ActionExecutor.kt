@@ -13,7 +13,7 @@ internal class ActionExecutor<State>(
     startActions: Iterable<Action<State>>,
     private val actions: Flow<Action<State>>,
     private val transformers: Iterable<Transformer<Action<State>>>,
-    private val storeFlow: StoreFlow<State>,
+    private val storeFlow:   StoreFlow<State>,
 ) : Process {
     private var startActions: List<Action<State>>? = startActions.toList()
 
