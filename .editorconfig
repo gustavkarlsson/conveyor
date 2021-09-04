@@ -14,4 +14,4 @@ kotlin_imports_layout = idea
 indent_size = 2
 
 [*.bat]
-end_of_line = cr
+end_of_line = crlf
