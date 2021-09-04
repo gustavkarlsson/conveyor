@@ -15,9 +15,11 @@ public final class se/gustavkarlsson/conveyor/ActionKt {
 }
 
 public abstract interface class se/gustavkarlsson/conveyor/AtomicStateFlow : kotlinx/coroutines/flow/MutableSharedFlow, kotlinx/coroutines/flow/StateFlow {
+	public abstract fun getAndUpdate (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getStoreSubscriberCount ()Lkotlinx/coroutines/flow/StateFlow;
 	public abstract synthetic fun resetReplayCache ()V
 	public abstract fun update (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateAndGet (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class se/gustavkarlsson/conveyor/AtomicStateFlow$DefaultImpls {
