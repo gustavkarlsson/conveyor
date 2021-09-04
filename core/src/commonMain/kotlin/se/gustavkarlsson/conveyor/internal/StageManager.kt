@@ -1,10 +1,12 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlin.jvm.Volatile
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 
 internal class StageManager {
+    @Volatile
     private var stage: Stage = Stage.NotYetStarted
 
     fun start() {
@@ -17,7 +19,7 @@ internal class StageManager {
         }
     }
 
-    fun stop(cancellationReason: Throwable?) {
+    fun stop(cancellationReason: Throwable) {
         synchronized(this) {
             stage = when (val stage = stage) {
                 Stage.NotYetStarted -> throw StoreNotYetStartedException()
@@ -37,6 +39,6 @@ internal class StageManager {
     private sealed class Stage {
         object NotYetStarted : Stage()
         object Started : Stage()
-        data class Stopped(val cancellationReason: Throwable?) : Stage()
+        data class Stopped(val cancellationReason: Throwable) : Stage()
     }
 }

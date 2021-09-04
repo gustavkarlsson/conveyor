@@ -54,5 +54,4 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git commit -m "Update API documentation from $SHA"
-          git push origin gh-pages
+          git diff-index --quiet HEAD || git commit -m "Update API documentation from $SHA" | git push origin gh-pages

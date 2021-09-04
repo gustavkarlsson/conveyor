@@ -11,11 +11,24 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
 ## Example
 ```kotlin
-fun main() {
-    val store = Store(initialState = "initial")
-    with(GlobalScope) {
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import se.gustavkarlsson.conveyor.Action
+import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.StoreFlow
+import se.gustavkarlsson.conveyor.issue
+
+public suspend fun main() {
+    val store = Store(initialState = 0)
+    coroutineScope {
         // Start processing actions
-        val job = store.start(this)
+        launch(Dispatchers.Unconfined) {
+            store.run()
+        }
 
         // Print state changes
         launch {
@@ -25,28 +38,30 @@ fun main() {
         }
 
         // Issue a simple action that sets the state
-        store.issue { stateFlow ->
-            stateFlow.update { "updating" }
+        store.issue { storeFlow ->
+            storeFlow.update { 100 }
         }
 
         // Issue a more complex action that repeatedly updates the state
-        store.issue(RepeatingAppenderAction(append = "."))
+        store.issue(RepeatingIncrementAction(increment = 1))
 
         // Run for a while
-        runBlocking { delay(5000) }
+        delay(5000)
 
-        // Stop processing actions
-        job.cancel()
+        // Cancel the scope, and the store with it
+        cancel()
     }
 }
 
-private class RepeatingAppenderAction(
-    private val append: String,
-) : Action<String> {
-    override suspend fun execute(stateFlow: AtomicStateFlow<String>) {
+private class RepeatingIncrementAction(
+    private val increment: Int,
+) : Action<Int> {
+    override suspend fun execute(storeFlow: StoreFlow<Int>) {
         while (true) {
             delay(1000)
-            stateFlow.update { this + append }
+            storeFlow.update { state ->
+                state + increment
+            }
         }
     }
 }
@@ -55,12 +70,12 @@ private class RepeatingAppenderAction(
 Outputs:
 
 ```
-State: initial
-State: updating
-State: updating.
-State: updating..
-State: updating...
-State: updating....
+State: 0
+State: 100
+State: 101
+State: 102
+State: 103
+State: 104
 ```
 
 ## Downloading

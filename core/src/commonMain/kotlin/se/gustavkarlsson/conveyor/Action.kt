@@ -9,7 +9,7 @@ public interface Action<State> {
     /**
      * The function that runs the action. The state can be accessed through the state argument.
      */
-    public suspend fun execute(stateFlow: AtomicStateFlow<State>)
+    public suspend fun execute(storeFlow: StoreFlow<State>)
 }
 
 /**
@@ -17,11 +17,11 @@ public interface Action<State> {
  */
 @Suppress("FunctionName")
 public fun <State> Action(
-    block: suspend (stateFlow: AtomicStateFlow<State>) -> Unit,
+    block: suspend (storeFlow: StoreFlow<State>) -> Unit,
 ): Action<State> = ConstructorAction(block)
 
 private class ConstructorAction<State>(
-    private val block: suspend (stateFlow: AtomicStateFlow<State>) -> Unit,
+    private val block: suspend (storeFlow: StoreFlow<State>) -> Unit,
 ) : Action<State> {
-    override suspend fun execute(stateFlow: AtomicStateFlow<State>) = block(stateFlow)
+    override suspend fun execute(storeFlow: StoreFlow<State>) = block(storeFlow)
 }

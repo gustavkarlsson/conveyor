@@ -15,17 +15,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
+import se.gustavkarlsson.conveyor.StateUpdateException
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.cause
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
 object StateManagerTest : Spek({
+    val errorMessage = "failed"
     val scope by memoizedTestCoroutineScope()
     val initialState = "initial"
     val state1 = "state1"
@@ -53,11 +56,29 @@ object StateManagerTest : Spek({
             }
             expectThat(subject.value).isEqualTo(initialState + state1)
         }
-        it("update returns new state after updating it") {
+        it("updateAndGet sets new state after updating it") {
+            runBlockingTest {
+                subject.updateAndGet { this + state1 }
+            }
+            expectThat(subject.value).isEqualTo(initialState + state1)
+        }
+        it("getAndUpdate sets new state after updating it") {
+            runBlockingTest {
+                subject.getAndUpdate { this + state1 }
+            }
+            expectThat(subject.value).isEqualTo(initialState + state1)
+        }
+        it("updateAndGet returns new state after updating it") {
             val result = runBlockingTest {
-                subject.update { this + state1 }
+                subject.updateAndGet { this + state1 }
             }
             expectThat(result).isEqualTo(initialState + state1)
+        }
+        it("updateAndGet returns old state after updating it") {
+            val result = runBlockingTest {
+                subject.getAndUpdate { this + state1 }
+            }
+            expectThat(result).isEqualTo(initialState)
         }
         it("emit sets new state") {
             runBlockingTest {
@@ -154,6 +175,45 @@ object StateManagerTest : Spek({
                 job.cancel()
             }
             expectThat(collected).containsExactly("initial", "first", "second")
+        }
+        it("throws exception containing state when update fails") {
+            expectThrows<StateUpdateException> {
+                subject.update {
+                    error(errorMessage)
+                }
+            }.and {
+                get { state }.describedAs("state")
+                    .isEqualTo(initialState)
+                cause
+                    .get { this?.message }.describedAs("message")
+                    .isEqualTo(errorMessage)
+            }
+        }
+        it("throws exception containing state when updateAndGet fails") {
+            expectThrows<StateUpdateException> {
+                subject.updateAndGet {
+                    error(errorMessage)
+                }
+            }.and {
+                get { state }.describedAs("state")
+                    .isEqualTo(initialState)
+                cause
+                    .get { this?.message }.describedAs("message")
+                    .isEqualTo(errorMessage)
+            }
+        }
+        it("throws exception containing state when getAndUpdate fails") {
+            expectThrows<StateUpdateException> {
+                subject.getAndUpdate {
+                    error(errorMessage)
+                }
+            }.and {
+                get { state }.describedAs("state")
+                    .isEqualTo(initialState)
+                cause
+                    .get { this?.message }.describedAs("message")
+                    .isEqualTo(errorMessage)
+            }
         }
     }
     describe("A StateManager with transformers") {

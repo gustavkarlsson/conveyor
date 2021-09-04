@@ -59,7 +59,7 @@ object ActionIssuerImplTest : Spek({
                 }.message.isEqualTo(cancellationMessage)
             }
             it("can be cancelled again") {
-                subject.cancel(null)
+                subject.cancel(Throwable())
             }
         }
     }

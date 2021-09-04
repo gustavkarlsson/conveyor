@@ -5,15 +5,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.AtomicStateFlow
-import se.gustavkarlsson.conveyor.test.TestAtomicStateFlow
+import se.gustavkarlsson.conveyor.StoreFlow
+import se.gustavkarlsson.conveyor.test.TestStoreFlow
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
 object LiveActionTest : Spek({
     val initialValue = 0
-    val flow by memoized { TestAtomicStateFlow(initialValue) }
+    val flow by memoized { TestStoreFlow(initialValue) }
 
     describe("A test action") {
         val subject by memoized { TestLiveAction() }
@@ -84,8 +84,8 @@ private class TestLiveAction : LiveAction<Int>() {
     private val _collected = mutableListOf<Int>()
     val collected: List<Int> = _collected
 
-    override suspend fun onLive(stateFlow: AtomicStateFlow<Int>) {
-        stateFlow.collect { state ->
+    override suspend fun onLive(storeFlow: StoreFlow<Int>) {
+        storeFlow.collect { state ->
             _collected += state
         }
     }

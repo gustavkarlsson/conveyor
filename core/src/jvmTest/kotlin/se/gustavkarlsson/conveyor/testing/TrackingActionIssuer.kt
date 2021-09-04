@@ -17,10 +17,10 @@ class TrackingActionIssuer<State> : ActionIssuer<State> {
         sendResult.getOrThrow()
     }
 
-    private val _cancellations = mutableListOf<Throwable?>()
-    val cancellations: List<Throwable?> = _cancellations
+    private val _cancellations = mutableListOf<Throwable>()
+    val cancellations: List<Throwable> = _cancellations
 
-    override fun cancel(cause: Throwable?) {
+    override fun cancel(cause: Throwable) {
         _cancellations += cause
     }
 
@@ -31,13 +31,6 @@ fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasIssued(
     vararg expected: Action<State>,
 ): Assertion.Builder<TrackingActionIssuer<State>> =
     with("issuedActions", { issuedActions }) {
-        containsExactly(*expected)
-    }
-
-fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasBeenCancelledWith(
-    vararg expected: Throwable?,
-): Assertion.Builder<TrackingActionIssuer<State>> =
-    with("cancellations", { cancellations }) {
         containsExactly(*expected)
     }
 
