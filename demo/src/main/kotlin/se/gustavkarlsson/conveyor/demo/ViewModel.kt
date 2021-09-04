@@ -21,8 +21,8 @@ interface LoggedInEvents {
     fun onLogoutButtonClicked()
 }
 
-class ViewModel(api: Api, initialState: State) : LoginEvents, LoggedInEvents {
-    private val store = Store(initialState)
+class ViewModel(api: Api) : LoginEvents, LoggedInEvents {
+    private val store = Store<State>(initialState = State.Login())
     val state: StateFlow<State> = store.state
     private val loginAction = LoginAction(api)
     private val operationAction = OperationAction(api)

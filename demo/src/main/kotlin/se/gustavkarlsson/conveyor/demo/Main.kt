@@ -14,10 +14,10 @@ import se.gustavkarlsson.conveyor.demo.screens.LoggedInScreen
 import se.gustavkarlsson.conveyor.demo.screens.LoginScreen
 
 fun main() {
-    val initialState = State.Login()
-    val viewModel = ViewModel(Api, initialState)
+    val viewModel = ViewModel(Api)
     singleWindowApplication(
         title = "Conveyor Demo",
+        resizable = false,
         state = WindowState(size = WindowSize(400.dp, 400.dp)),
     ) {
         val scope = rememberCoroutineScope()
