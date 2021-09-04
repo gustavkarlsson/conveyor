@@ -1,7 +1,5 @@
 package se.gustavkarlsson.conveyor
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.internal.ActionExecutor
 import se.gustavkarlsson.conveyor.internal.ActionIssuerImpl
@@ -14,9 +12,9 @@ import se.gustavkarlsson.conveyor.internal.Transformer
  * and updated by issuing actions with [issue].
  *
  * The lifecycle of a store is simple. Initially the store is idle and will have it's initial state.
- * To make anything happen, the store must be started with [start].
+ * To make anything happen, the store must be started with [run].
  * This will run any "start actions" provided and also allows new actions to be issued.
- * The store is stopped when it's scope or job is cancelled. This cancels any running actions.
+ * The store is stopped when it's job completes. This cancels any running actions.
  */
 public interface Store<State> : ActionIssuer<State> {
     /**
@@ -25,19 +23,12 @@ public interface Store<State> : ActionIssuer<State> {
     public val state: StateFlow<State>
 
     /**
-     * The job of this store, if it has been started. Cancelling it will stop the store.
-     */
-    public val job: Job?
-
-    /**
-     * Starts the store in the provided scope.
+     * Runs the store.
      * This will run any "start actions" provided and also allows new actions to be issued.
      *
-     * A store can only be started once.
-     *
-     * The store will be stopped when its scope or the returned [Job] is cancelled.
+     * A store can only be run once and will run until cancelled.
      */
-    public fun start(scope: CoroutineScope): Job
+    public suspend fun run(): Nothing
 }
 
 /**

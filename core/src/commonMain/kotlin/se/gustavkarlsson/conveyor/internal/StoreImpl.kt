@@ -1,9 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
@@ -18,22 +16,23 @@ internal class StoreImpl<State>(
 
     private val stageManager = StageManager()
 
-    override var job: Job? = null
-        private set
-
-    override fun start(scope: CoroutineScope): Job {
+    @Suppress("TooGenericExceptionCaught")
+    override suspend fun run(): Nothing {
         stageManager.start()
-        val job = Job(scope.coroutineContext[Job])
-        val context = Dispatchers.Unconfined + CoroutineName("Store") + job
-        for (process in processes) {
-            scope.launch(context) { process.run() }
+        try {
+            coroutineScope {
+                for (process in processes) {
+                    launch { process.run() }
+                }
+                awaitCancellation()
+            }
+        } catch (t: Throwable) {
+            stop(t)
+            throw t
         }
-        this.job = job
-        job.invokeOnCompletion(::stop)
-        return job
     }
 
-    private fun stop(throwable: Throwable?) {
+    private fun stop(throwable: Throwable) {
         stageManager.stop(throwable)
         actionIssuer.cancel(throwable)
     }

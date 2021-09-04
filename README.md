@@ -11,21 +11,24 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
 ## Example
 ```kotlin
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.Store
+import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.issue
 
-public fun main() {
+public suspend fun main() {
     val store = Store(initialState = 0)
-    with(GlobalScope) {
+    coroutineScope {
         // Start processing actions
-        val job = store.start(this)
+        launch(Dispatchers.Unconfined) {
+            store.run()
+        }
 
         // Print state changes
         launch {
@@ -43,10 +46,10 @@ public fun main() {
         store.issue(RepeatingIncrementAction(increment = 1))
 
         // Run for a while
-        runBlocking { delay(5000) }
+        delay(5000)
 
-        // Stop processing actions
-        job.cancel()
+        // Cancel the scope, and the store with it
+        cancel()
     }
 }
 
@@ -67,12 +70,12 @@ private class RepeatingIncrementAction(
 Outputs:
 
 ```
-State: initial
-State: updating
-State: updating.
-State: updating..
-State: updating...
-State: updating....
+State: 0
+State: 100
+State: 101
+State: 102
+State: 103
+State: 104
 ```
 
 ## Downloading

@@ -4,5 +4,5 @@ import se.gustavkarlsson.conveyor.Action
 
 internal interface ActionIssuer<State> {
     fun issue(action: Action<State>)
-    fun cancel(cause: Throwable?)
+    fun cancel(cause: Throwable)
 }

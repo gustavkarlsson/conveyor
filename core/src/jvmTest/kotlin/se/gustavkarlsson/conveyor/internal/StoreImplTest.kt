@@ -3,7 +3,7 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -14,15 +14,15 @@ import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWith
 import se.gustavkarlsson.conveyor.testing.hasIssued
 import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.first
+import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
-import strikt.assertions.isNotNull
-import strikt.assertions.isNull
 import strikt.assertions.isTrue
 
 object StoreImplTest : Spek({
@@ -38,9 +38,9 @@ object StoreImplTest : Spek({
             val result = subject.state.value
             expectThat(result).isEqualTo(initialState)
         }
-        it("state returns current state") {
+        it("state.first() returns current state") {
             val result = runBlockingTest {
-                subject.state.first()
+                subject.state.value
             }
             expectThat(result).isEqualTo(initialState)
         }
@@ -49,15 +49,12 @@ object StoreImplTest : Spek({
                 subject.issue(action)
             }
         }
-        it("job is null") {
-            expectThat(subject.job).isNull()
-        }
 
         describe("that was started") {
             val startScope by memoized { TestCoroutineScope() }
             lateinit var job: Job
             beforeEachTest {
-                job = subject.start(startScope)
+                job = startScope.launch { subject.run() }
             }
             afterEachTest {
                 job.cancel("Test ended")
@@ -65,7 +62,7 @@ object StoreImplTest : Spek({
 
             it("starting again throws exception") {
                 expectThrows<StoreAlreadyStartedException> {
-                    subject.start(startScope)
+                    subject.run()
                 }
             }
             it("issue issues action") {
@@ -79,12 +76,8 @@ object StoreImplTest : Spek({
                 subject.issue(action)
                 expectThat(actionIssuer).hasIssued(action)
             }
-            it("job is equal to job returned by start") {
-                expectThat(subject.job).isEqualTo(job)
-            }
             it("job is active") {
-                expectThat(subject.job).describedAs("job")
-                    .isNotNull()
+                expectThat(job).describedAs("job")
                     .get { isActive }.isTrue()
             }
 
@@ -97,22 +90,35 @@ object StoreImplTest : Spek({
                 }
                 it("start again throws with cancellationException as reason") {
                     expectThrows<StoreStoppedException> {
-                        runBlockingTest {
-                            subject.start(this)
+                        subject.run()
+                    }.get { cancellationReason }.describedAs("cancellation reason")
+                        .and {
+                            isA<CancellationException>()
+                            get { message }.describedAs("message")
+                                .isEqualTo(cancellationException.message)
                         }
-                    }.get { cancellationReason }.isEqualTo(cancellationException)
                 }
                 it("issuing action throws with cancellationException as reason") {
                     expectThrows<StoreStoppedException> {
                         subject.issue(action)
-                    }.get { cancellationReason }.isEqualTo(cancellationException)
+                    }.get { cancellationReason }.describedAs("cancellation reason")
+                        .and {
+                            isA<CancellationException>()
+                            get { message }.describedAs("message")
+                                .isEqualTo(cancellationException.message)
+                        }
                 }
                 it("actionIssuer has been cancelled by exception") {
-                    expectThat(actionIssuer).hasBeenCancelledWith(cancellationException)
+                    expectThat(actionIssuer.cancellations).describedAs("cancellations")
+                        .hasSize(1)
+                        .first().and {
+                            isA<CancellationException>()
+                            get { message }.describedAs("message")
+                                .isEqualTo(cancellationException.message)
+                        }
                 }
                 it("job is cancelled") {
-                    expectThat(subject.job).describedAs("job")
-                        .isNotNull()
+                    expectThat(job).describedAs("job")
                         .get { isCancelled }.isTrue()
                 }
             }

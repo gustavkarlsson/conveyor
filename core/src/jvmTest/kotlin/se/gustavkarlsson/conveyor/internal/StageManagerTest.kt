@@ -6,17 +6,15 @@ import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 import strikt.api.expectThrows
-import strikt.assertions.isNull
 import strikt.assertions.isSameInstanceAs
 
 object StageManagerTest : Spek({
     describe("A StageManager") {
-        val cancellationReason = Exception()
         val subject by memoized { StageManager() }
 
         it("stop throws exception") {
             expectThrows<StoreNotYetStartedException> {
-                subject.stop(null)
+                subject.stop(Throwable())
             }
         }
         it("requireStarted throws exception") {
@@ -37,46 +35,27 @@ object StageManagerTest : Spek({
                 subject.requireStarted()
             }
             it("stop succeeds") {
-                subject.stop(null)
+                subject.stop(Throwable())
             }
 
-            describe("that was stopped with a reason") {
-                beforeEachTest { subject.stop(cancellationReason) }
+            describe("that was stopped") {
+                val reason = Exception()
+                beforeEachTest { subject.stop(reason) }
 
                 it("start throws exception") {
                     expectThrows<StoreStoppedException> {
                         subject.start()
-                    }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
+                    }.get { cancellationReason }.isSameInstanceAs(reason)
                 }
                 it("requireStarted throws exception") {
                     expectThrows<StoreStoppedException> {
                         subject.requireStarted()
-                    }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
+                    }.get { cancellationReason }.isSameInstanceAs(reason)
                 }
                 it("stop throws exception") {
                     expectThrows<StoreStoppedException> {
-                        subject.stop(null)
-                    }.get { this.cancellationReason }.isSameInstanceAs(cancellationReason)
-                }
-            }
-
-            describe("that was stopped without a reason") {
-                beforeEachTest { subject.stop(null) }
-
-                it("start throws exception") {
-                    expectThrows<StoreStoppedException> {
-                        subject.start()
-                    }.get { this.cancellationReason }.isNull()
-                }
-                it("requireStarted throws exception") {
-                    expectThrows<StoreStoppedException> {
-                        subject.requireStarted()
-                    }.get { this.cancellationReason }.isNull()
-                }
-                it("stop throws exception") {
-                    expectThrows<StoreStoppedException> {
-                        subject.stop(cancellationReason)
-                    }.get { this.cancellationReason }.isNull()
+                        subject.stop(Throwable())
+                    }.get { cancellationReason }.isSameInstanceAs(reason)
                 }
             }
         }

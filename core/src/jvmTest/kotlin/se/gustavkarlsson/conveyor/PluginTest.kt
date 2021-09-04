@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
@@ -57,7 +58,7 @@ object PluginTest : Spek({
         }
 
         it("has expected state after starting") {
-            store.start(scope)
+            scope.launch { store.run() }
             val result = store.state.value
             expectThat(result).isEqualTo(6)
         }
@@ -78,7 +79,7 @@ object PluginTest : Spek({
         }
 
         it("has expected state after issuing actions") {
-            store.start(scope)
+            scope.launch { store.run() }
             store.issue { storeFlow ->
                 storeFlow.update { it + 2 }
             }
@@ -105,7 +106,7 @@ object PluginTest : Spek({
         }
 
         it("has expected state after issuing actions") {
-            store.start(scope)
+            scope.launch { store.run() }
             val initialState = store.state.value
             store.issue { storeFlow ->
                 storeFlow.update { it + 2 }

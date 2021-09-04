@@ -3,6 +3,7 @@ package se.gustavkarlsson.conveyor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.NullAction
@@ -13,6 +14,7 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
+import strikt.assertions.message
 
 object StoreIntegrationTest : Spek({
     val initialState = "initial"
@@ -45,7 +47,7 @@ object StoreIntegrationTest : Spek({
         describe("that was started") {
             lateinit var job: Job
             beforeEachTest {
-                job = subject.start(scope)
+                job = scope.launch { subject.run() }
             }
 
             it("has an active job") {
@@ -53,7 +55,7 @@ object StoreIntegrationTest : Spek({
             }
             it("throws exception when started") {
                 expectThrows<StoreAlreadyStartedException> {
-                    subject.start(scope)
+                    subject.run()
                 }
             }
             it("has its job cancelled after its scope was cancelled") {
@@ -74,7 +76,7 @@ object StoreIntegrationTest : Spek({
 
                 it("throws exception when started") {
                     expectThrows<StoreStoppedException> {
-                        subject.start(scope)
+                        subject.run()
                     }
                 }
                 it("throws exception when an action is issued") {
@@ -93,6 +95,34 @@ object StoreIntegrationTest : Spek({
                     expectThat(result).isEqualTo(initialState)
                 }
             }
+        }
+    }
+    describe("A store with a starting action that fails when executed") {
+        val errorMessage = "failed"
+        val failingAction = Action<String> { error(errorMessage) }
+        val subject by memoized {
+            Store(initialState, startActions = listOf(failingAction))
+        }
+
+        it("cancels when started") {
+            expectThrows<IllegalStateException> {
+                subject.run()
+            }.message.isEqualTo(errorMessage)
+        }
+    }
+    describe("A store with a starting action that fails when updating") {
+        val errorMessage = "failed"
+        val failingAction = Action<String> { storeFlow ->
+            storeFlow.update { error(errorMessage) }
+        }
+        val subject by memoized {
+            Store(initialState, startActions = listOf(failingAction))
+        }
+
+        it("cancels when started") {
+            expectThrows<IllegalStateException> {
+                subject.run()
+            }.message.isEqualTo(errorMessage)
         }
     }
 })
