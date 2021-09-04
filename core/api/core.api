@@ -32,13 +32,11 @@ public final class se/gustavkarlsson/conveyor/Plugin$DefaultImpls {
 }
 
 public abstract interface class se/gustavkarlsson/conveyor/Store : se/gustavkarlsson/conveyor/ActionIssuer {
-	public abstract fun getJob ()Lkotlinx/coroutines/Job;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun start (Lkotlinx/coroutines/CoroutineScope;)Lkotlinx/coroutines/Job;
+	public abstract fun run (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class se/gustavkarlsson/conveyor/StoreAlreadyStartedException : java/lang/IllegalStateException {
-	public fun <init> ()V
 }
 
 public abstract interface class se/gustavkarlsson/conveyor/StoreFlow : kotlinx/coroutines/flow/MutableSharedFlow, kotlinx/coroutines/flow/StateFlow {
@@ -59,11 +57,9 @@ public final class se/gustavkarlsson/conveyor/StoreKt {
 }
 
 public final class se/gustavkarlsson/conveyor/StoreNotYetStartedException : java/lang/IllegalStateException {
-	public fun <init> ()V
 }
 
 public final class se/gustavkarlsson/conveyor/StoreStoppedException : java/lang/IllegalStateException {
-	public fun <init> (Ljava/lang/Throwable;)V
 	public final fun getCancellationReason ()Ljava/lang/Throwable;
 }
 

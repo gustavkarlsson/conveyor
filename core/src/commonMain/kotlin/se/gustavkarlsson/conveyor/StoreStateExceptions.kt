@@ -16,12 +16,5 @@ public class StoreAlreadyStartedException internal constructor() :
  * Indicates that a store has been stopped when it is required not to be.
  */
 public class StoreStoppedException internal constructor(
-    public val cancellationReason: Throwable?,
-) : IllegalStateException(createMessage(cancellationReason))
-
-private fun createMessage(reason: Throwable?) =
-    if (reason == null) {
-        "Store has been stopped"
-    } else {
-        "Store has been stopped due to cancellation"
-    }
+    public val cancellationReason: Throwable,
+) : IllegalStateException("Store has been stopped due to cancellation")

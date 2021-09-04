@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
@@ -12,7 +13,9 @@ object IssueTest : Spek({
 
     describe("A store that was started") {
         val store by memoized {
-            Store(0).apply { start(scope) }
+            Store(0).also { store ->
+                scope.launch { store.run() }
+            }
         }
 
         it("issue extension function executes body as expected") {
