@@ -18,9 +18,9 @@ spek-runner-junit5 = { module = "org.spekframework.spek2:spek-runner-junit5", ve
 spek-dsl-jvm = { module = "org.spekframework.spek2:spek-dsl-jvm", version.ref = "spek" }
 strikt-core = { module = "io.strikt:strikt-core", version.ref = "strikt" }
 
-kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-dokkaGradlePlugin = { module = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin", version.ref = "dokka" }
-kotlinBinaryCompatibilityValidatorGradlePlugin = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "kotlinBinaryCompatibilityValidator" }
+kotlinGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+dokkaGradle = { module = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin", version.ref = "dokka" }
+kotlinBinaryCompatibilityValidatorGradle = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "kotlinBinaryCompatibilityValidator" }
 
 [bundles]
 testRuntime = ["junit-jupiter-engine", "spek-runner-junit5", "kotlin-reflect"]

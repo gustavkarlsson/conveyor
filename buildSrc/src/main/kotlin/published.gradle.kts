@@ -64,13 +64,9 @@ tasks.jacocoTestReport {
     classDirectories.setFrom("${buildDir}/classes/kotlin/jvm/main/")
     executionData.setFrom("${buildDir}/jacoco/jvmTest.exec")
     reports {
-        xml.isEnabled = true
-        html.isEnabled = true
+        xml.required.set(true)
+        html.required.set(true)
     }
-}
-
-jacoco {
-    toolVersion = Versions.jacoco
 }
 
 apiValidation {

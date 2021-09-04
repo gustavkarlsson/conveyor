@@ -8,9 +8,9 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.kotlinGradlePlugin)
-    implementation(libs.kotlinBinaryCompatibilityValidatorGradlePlugin)
-    implementation(libs.dokkaGradlePlugin)
+    implementation(libs.kotlinGradle)
+    implementation(libs.kotlinBinaryCompatibilityValidatorGradle)
+    implementation(libs.dokkaGradle)
     // FIXME duplicated versions in buildSrc/src/main/kotlin/Versions.kt
     implementation("io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.18.1")
 }
