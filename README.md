@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.AtomicStateFlow
+import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.issue
 
@@ -35,8 +35,8 @@ public fun main() {
         }
 
         // Issue a simple action that sets the state
-        store.issue { stateFlow ->
-            stateFlow.update { 100 }
+        store.issue { storeFlow ->
+            storeFlow.update { 100 }
         }
 
         // Issue a more complex action that repeatedly updates the state
@@ -53,10 +53,10 @@ public fun main() {
 private class RepeatingIncrementAction(
     private val increment: Int,
 ) : Action<Int> {
-    override suspend fun execute(stateFlow: AtomicStateFlow<Int>) {
+    override suspend fun execute(storeFlow: StoreFlow<Int>) {
         while (true) {
             delay(1000)
-            stateFlow.update { state ->
+            storeFlow.update { state ->
                 state + increment
             }
         }

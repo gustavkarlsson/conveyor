@@ -10,7 +10,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
-import se.gustavkarlsson.conveyor.testing.SimpleAtomicStateFlow
+import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
@@ -21,7 +21,7 @@ object ActionExecutorTest : Spek({
     val initialState = 0
     val scope by memoizedTestCoroutineScope()
     val actions by memoized { MutableSharedFlow<Action<Int>>() }
-    val stateFlow by memoized { SimpleAtomicStateFlow(initialState) }
+    val storeFlow by memoized { SimpleStoreFlow(initialState) }
 
     describe("A minimal ActionExecutor") {
         val subject by memoized {
@@ -29,7 +29,7 @@ object ActionExecutorTest : Spek({
                 startActions = emptyList(),
                 actions = actions,
                 transformers = emptyList(),
-                stateFlow = stateFlow,
+                storeFlow = storeFlow,
             )
         }
 
@@ -37,7 +37,7 @@ object ActionExecutorTest : Spek({
             runBlockingTest {
                 actions.emit(IncrementingAction(1))
             }
-            expectThat(stateFlow.value).isEqualTo(0)
+            expectThat(storeFlow.value).isEqualTo(0)
         }
 
         describe("that was run") {
@@ -49,7 +49,7 @@ object ActionExecutorTest : Spek({
                 runBlockingTest {
                     actions.emit(IncrementingAction(1))
                 }
-                expectThat(stateFlow.value).isEqualTo(1)
+                expectThat(storeFlow.value).isEqualTo(1)
             }
             it("executes actions in parallel") {
                 runBlockingTest {
@@ -57,7 +57,7 @@ object ActionExecutorTest : Spek({
                     actions.emit(IncrementingAction(1, 100))
                     scope.advanceTimeBy(100)
                 }
-                expectThat(stateFlow.value).isEqualTo(2)
+                expectThat(storeFlow.value).isEqualTo(2)
             }
             it("throws if run again") {
                 expectThrows<IllegalStateException> {
@@ -76,12 +76,12 @@ object ActionExecutorTest : Spek({
                 startActions = listOf(startAction1, startAction2),
                 actions = actions,
                 transformers = emptyList(),
-                stateFlow = stateFlow,
+                storeFlow = storeFlow,
             )
         }
 
         it("doesn't execute start actions before run") {
-            expectThat(stateFlow.value).isEqualTo(0)
+            expectThat(storeFlow.value).isEqualTo(0)
         }
 
         describe("that was run") {
@@ -90,7 +90,7 @@ object ActionExecutorTest : Spek({
             }
 
             it("executed start actions") {
-                expectThat(stateFlow.value).isEqualTo(3)
+                expectThat(storeFlow.value).isEqualTo(3)
             }
         }
     }
@@ -109,7 +109,7 @@ object ActionExecutorTest : Spek({
                 startActions = listOf(startAction),
                 actions = actions,
                 transformers = listOf(transformer1, transformer2),
-                stateFlow = stateFlow,
+                storeFlow = storeFlow,
             )
         }
         beforeEachTest {
@@ -120,7 +120,7 @@ object ActionExecutorTest : Spek({
             runBlockingTest {
                 actions.emit(IncrementingAction(2))
             }
-            expectThat(stateFlow.value).isEqualTo(5)
+            expectThat(storeFlow.value).isEqualTo(5)
         }
     }
 })

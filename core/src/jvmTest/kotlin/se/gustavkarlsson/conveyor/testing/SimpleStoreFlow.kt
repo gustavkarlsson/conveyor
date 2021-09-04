@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import se.gustavkarlsson.conveyor.AtomicStateFlow
+import se.gustavkarlsson.conveyor.StoreFlow
 
-class SimpleAtomicStateFlow<State> private constructor(
+class SimpleStoreFlow<State> private constructor(
     private val mutableFlow: MutableStateFlow<State>,
-) : MutableSharedFlow<State> by mutableFlow, AtomicStateFlow<State> {
+) : MutableSharedFlow<State> by mutableFlow, StoreFlow<State> {
     constructor(initialState: State) : this(MutableStateFlow(initialState))
 
     override val value by mutableFlow::value

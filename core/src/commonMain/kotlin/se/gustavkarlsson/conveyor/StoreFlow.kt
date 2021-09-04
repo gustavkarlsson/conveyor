@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * A [StateFlow] that can be updated atomically, guaranteeing predictable state changes.
  */
-public interface AtomicStateFlow<State> : StateFlow<State>, MutableSharedFlow<State> { // FIXME Rename?
+public interface StoreFlow<State> : StateFlow<State>, MutableSharedFlow<State> {
     /**
      * Updates the state using the given block.
      * The argument of the block is the current state at the time the block runs.

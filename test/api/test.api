@@ -1,4 +1,4 @@
-public final class se/gustavkarlsson/conveyor/test/TestAtomicStateFlow : kotlinx/coroutines/flow/StateFlow, se/gustavkarlsson/conveyor/AtomicStateFlow {
+public final class se/gustavkarlsson/conveyor/test/TestStoreFlow : kotlinx/coroutines/flow/StateFlow, se/gustavkarlsson/conveyor/StoreFlow {
 	public fun <init> (Ljava/lang/Object;)V
 	public fun collect (Lkotlinx/coroutines/flow/FlowCollector;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun emit (Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
