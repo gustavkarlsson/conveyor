@@ -25,7 +25,6 @@ import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
-// FIXME Add test where a started store is cancelled by a failing action, and assert the cancellation reason
 object StoreImplTest : Spek({
     val initialState = 0
     val action = IncrementingAction(1)
