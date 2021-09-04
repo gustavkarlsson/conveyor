@@ -28,16 +28,27 @@ fun LoggedInScreen(state: State.LoggedIn, events: LoggedInEvents) {
         modifier = Modifier.padding(8.dp),
         horizontalAlignment = Alignment.End,
     ) {
-        LogoutButton(state.isLogoutButtonEnabled, events::onLogoutButtonClicked)
+        LogoutButton(
+            enabled = state.isLogoutButtonEnabled,
+            onClick = events::onLogoutButtonClicked
+        )
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             LoggedInTitle()
-            LoggedInNameText(state.name)
-            OperationButton(state.isOperationButtonEnabled, events::onOperationButtonClicked)
-            OperationIndicator(state.isOperationIndicatorVisible, state.operationIndicatorProgress)
+            LoggedInNameText(
+                text = state.name,
+            )
+            OperationButton(
+                enabled = state.isOperationButtonEnabled,
+                onClick = events::onOperationButtonClicked,
+            )
+            OperationIndicator(
+                isVisible = state.isOperationIndicatorVisible,
+                progress = state.operationIndicatorProgress,
+            )
         }
     }
 }
