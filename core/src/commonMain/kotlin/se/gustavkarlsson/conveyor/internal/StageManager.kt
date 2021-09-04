@@ -1,11 +1,12 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlin.jvm.Volatile
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
 
-// FIXME Use mutex or atomic reference instead
 internal class StageManager {
+    @Volatile
     private var stage: Stage = Stage.NotYetStarted
 
     fun start() {
