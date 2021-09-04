@@ -76,7 +76,8 @@ jobs:
         if: ${{ always() }}
         with:
           name: reports
-          path: '**/build/reports/'
+          path: |
+            **/build/reports/ktlint/
 
       - name: Set up PHP with cs2pr
         uses: shivammathur/setup-php@v1
