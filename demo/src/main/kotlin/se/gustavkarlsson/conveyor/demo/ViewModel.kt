@@ -2,7 +2,6 @@
 
 package se.gustavkarlsson.conveyor.demo
 
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.StateFlow
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.demo.actions.ChangeEmailAction
@@ -23,10 +22,12 @@ interface LoggedInEvents {
 }
 
 class ViewModel(api: Api, initialState: State) : LoginEvents, LoggedInEvents {
-    private val store = Store(initialState).apply { start(GlobalScope) }
+    private val store = Store(initialState)
     val state: StateFlow<State> = store.state
     private val loginAction = LoginAction(api)
     private val operationAction = OperationAction(api)
+
+    suspend fun run(): Nothing = store.run()
 
     override fun onEmailTextChanged(text: String) = store.issue(ChangeEmailAction(text))
 
