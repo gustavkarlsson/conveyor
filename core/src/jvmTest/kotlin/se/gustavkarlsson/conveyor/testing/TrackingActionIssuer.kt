@@ -34,13 +34,6 @@ fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasIssued(
         containsExactly(*expected)
     }
 
-fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasBeenCancelledWithMessages(
-    vararg expected: String?,
-): Assertion.Builder<TrackingActionIssuer<State>> =
-    with("cancellation messages", { cancellations.map { it.message } }) {
-        containsExactly(*expected)
-    }
-
 fun <State> Assertion.Builder<TrackingActionIssuer<State>>
     .hasNeverBeenCancelled(): Assertion.Builder<TrackingActionIssuer<State>> =
     with("cancellations", { cancellations }) {

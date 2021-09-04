@@ -14,12 +14,13 @@ import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.testing.hasBeenCancelledWithMessages
 import se.gustavkarlsson.conveyor.testing.hasIssued
 import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
 import se.gustavkarlsson.conveyor.testing.runBlockingTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.first
+import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
@@ -109,8 +110,13 @@ object StoreImplTest : Spek({
                         }
                 }
                 it("actionIssuer has been cancelled by exception") {
-                    // FIXME Add more exact assertion
-                    expectThat(actionIssuer).hasBeenCancelledWithMessages(cancellationException.message)
+                    expectThat(actionIssuer.cancellations).describedAs("cancellations")
+                        .hasSize(1)
+                        .first().and {
+                            isA<CancellationException>()
+                            get { message }.describedAs("message")
+                                .isEqualTo(cancellationException.message)
+                        }
                 }
                 it("job is cancelled") {
                     expectThat(job).describedAs("job")
