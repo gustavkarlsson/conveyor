@@ -14,7 +14,6 @@ import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import strikt.assertions.message
 
 object StoreIntegrationTest : Spek({
     val initialState = "initial"
@@ -98,8 +97,7 @@ object StoreIntegrationTest : Spek({
         }
     }
     describe("A store with a starting action that fails when executed") {
-        val errorMessage = "failed"
-        val failingAction = Action<String> { error(errorMessage) }
+        val failingAction = Action<String> { error("failed") }
         val subject by memoized {
             Store(initialState, startActions = listOf(failingAction))
         }
@@ -107,13 +105,12 @@ object StoreIntegrationTest : Spek({
         it("cancels when started") {
             expectThrows<IllegalStateException> {
                 subject.run()
-            }.message.isEqualTo(errorMessage)
+            }
         }
     }
     describe("A store with a starting action that fails when updating") {
-        val errorMessage = "failed"
         val failingAction = Action<String> { storeFlow ->
-            storeFlow.update { error(errorMessage) }
+            storeFlow.update { error("failed") }
         }
         val subject by memoized {
             Store(initialState, startActions = listOf(failingAction))
@@ -122,7 +119,7 @@ object StoreIntegrationTest : Spek({
         it("cancels when started") {
             expectThrows<IllegalStateException> {
                 subject.run()
-            }.message.isEqualTo(errorMessage)
+            }
         }
     }
 })

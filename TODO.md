@@ -1,4 +1,3 @@
-* Log exceptions in update functions with current state?
 * Fix website with links to api
 * Mention api docs on readme
 * Finish demo
