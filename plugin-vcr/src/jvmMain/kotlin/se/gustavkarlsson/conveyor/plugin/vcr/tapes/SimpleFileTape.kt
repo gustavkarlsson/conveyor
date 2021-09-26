@@ -12,7 +12,7 @@ public class SimpleFileTape<State>(
     file: File,
     private val serializer: Serializer<State>,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    dispatcher: CoroutineDispatcher = SingleThreadDispatcher,
+    dispatcher: CoroutineDispatcher = createSingleThreadDispatcher(),
 ) : AbstractFileTape<State>(file, bufferSize, dispatcher) {
     override fun readSample(stream: InputStream): Sample<State> =
         stream.readSample(serializer)

@@ -13,7 +13,7 @@ import java.io.OutputStream
 public abstract class AbstractFileTape<T>(
     private val file: File,
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
-    private val dispatcher: CoroutineDispatcher = SingleThreadDispatcher,
+    private val dispatcher: CoroutineDispatcher = createSingleThreadDispatcher(),
 ) : ReadableTape<T>, WriteableTape<T> {
     final override fun openForReading(): ReadableTape.Reading<T> = Reading()
 
