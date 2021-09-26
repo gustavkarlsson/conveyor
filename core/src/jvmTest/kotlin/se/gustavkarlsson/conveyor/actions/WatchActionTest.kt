@@ -4,13 +4,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.test.TestAtomicStateFlow
+import se.gustavkarlsson.conveyor.test.TestStoreFlow
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 
 object WatchActionTest : Spek({
     val initialValue = 0
-    val flow by memoized { TestAtomicStateFlow(initialValue) }
+    val flow by memoized { TestStoreFlow(initialValue) }
 
     describe("A test action") {
         val subject by memoized { TestWatchAction() }

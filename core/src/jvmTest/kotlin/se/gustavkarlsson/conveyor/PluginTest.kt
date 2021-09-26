@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
@@ -36,12 +37,20 @@ object PluginTest : Spek({
     describe("A store with added start actions") {
         val plugin1 = object : Plugin<Int> {
             override fun addStartActions(): Iterable<Action<Int>> {
-                return listOf(Action { it.update { this + 2 } })
+                return listOf(
+                    Action { storeFlow ->
+                        storeFlow.update { it + 2 }
+                    }
+                )
             }
         }
         val plugin2 = object : Plugin<Int> {
             override fun addStartActions(): Iterable<Action<Int>> {
-                return listOf(Action { it.update { this * 2 } })
+                return listOf(
+                    Action { storeFlow ->
+                        storeFlow.update { it * 2 }
+                    }
+                )
             }
         }
         val store by memoized {
@@ -49,7 +58,7 @@ object PluginTest : Spek({
         }
 
         it("has expected state after starting") {
-            store.start(scope)
+            scope.launch { store.run() }
             val result = store.state.value
             expectThat(result).isEqualTo(6)
         }
@@ -70,12 +79,12 @@ object PluginTest : Spek({
         }
 
         it("has expected state after issuing actions") {
-            store.start(scope)
-            store.issue {
-                it.update { this + 2 }
+            scope.launch { store.run() }
+            store.issue { storeFlow ->
+                storeFlow.update { it + 2 }
             }
-            store.issue {
-                it.update { this * 2 }
+            store.issue { storeFlow ->
+                storeFlow.update { it * 2 }
             }
             val result = store.state.value
             expectThat(result).isEqualTo(12)
@@ -97,10 +106,10 @@ object PluginTest : Spek({
         }
 
         it("has expected state after issuing actions") {
-            store.start(scope)
+            scope.launch { store.run() }
             val initialState = store.state.value
-            store.issue {
-                it.update { this + 2 }
+            store.issue { storeFlow ->
+                storeFlow.update { it + 2 }
             }
             val updatedState = store.state.value
             expect {

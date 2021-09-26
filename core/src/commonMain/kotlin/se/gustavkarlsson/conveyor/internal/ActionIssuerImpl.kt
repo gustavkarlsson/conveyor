@@ -13,5 +13,5 @@ internal class ActionIssuerImpl<State> : ActionIssuer<State> {
         sendResult.getOrThrow()
     }
 
-    override fun cancel(cause: Throwable?) = actionChannel.cancel(cause as? CancellationException)
+    override fun cancel(cause: Throwable) = actionChannel.cancel(cause as? CancellationException)
 }

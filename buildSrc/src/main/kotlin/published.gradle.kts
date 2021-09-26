@@ -17,11 +17,11 @@ kotlin {
     explicitApi()
     sourceSets {
         all {
-            languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
-            languageSettings.useExperimentalAnnotation("se.gustavkarlsson.conveyor.InternalConveyorApi")
+            languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("se.gustavkarlsson.conveyor.InternalConveyorApi")
             if (name.contains("test", ignoreCase = true)) {
-                languageSettings.useExperimentalAnnotation("kotlinx.coroutines.FlowPreview")
-                languageSettings.useExperimentalAnnotation("kotlinx.coroutines.ExperimentalCoroutinesApi")
+                languageSettings.optIn("kotlinx.coroutines.FlowPreview")
+                languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
             }
         }
     }
@@ -64,13 +64,9 @@ tasks.jacocoTestReport {
     classDirectories.setFrom("${buildDir}/classes/kotlin/jvm/main/")
     executionData.setFrom("${buildDir}/jacoco/jvmTest.exec")
     reports {
-        xml.isEnabled = true
-        html.isEnabled = true
+        xml.required.set(true)
+        html.required.set(true)
     }
-}
-
-jacoco {
-    toolVersion = Versions.jacoco
 }
 
 apiValidation {

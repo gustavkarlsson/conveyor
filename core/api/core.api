@@ -1,5 +1,5 @@
 public abstract interface class se/gustavkarlsson/conveyor/Action {
-	public abstract fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun execute (Lse/gustavkarlsson/conveyor/StoreFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract interface class se/gustavkarlsson/conveyor/ActionIssuer {
@@ -12,16 +12,6 @@ public final class se/gustavkarlsson/conveyor/ActionIssuerKt {
 
 public final class se/gustavkarlsson/conveyor/ActionKt {
 	public static final fun Action (Lkotlin/jvm/functions/Function2;)Lse/gustavkarlsson/conveyor/Action;
-}
-
-public abstract interface class se/gustavkarlsson/conveyor/AtomicStateFlow : kotlinx/coroutines/flow/MutableSharedFlow, kotlinx/coroutines/flow/StateFlow {
-	public abstract fun getStoreSubscriberCount ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract synthetic fun resetReplayCache ()V
-	public abstract fun update (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class se/gustavkarlsson/conveyor/AtomicStateFlow$DefaultImpls {
-	public static synthetic fun resetReplayCache (Lse/gustavkarlsson/conveyor/AtomicStateFlow;)V
 }
 
 public abstract interface annotation class se/gustavkarlsson/conveyor/InternalConveyorApi : java/lang/annotation/Annotation {
@@ -41,14 +31,31 @@ public final class se/gustavkarlsson/conveyor/Plugin$DefaultImpls {
 	public static fun transformStates (Lse/gustavkarlsson/conveyor/Plugin;Lkotlinx/coroutines/flow/Flow;)Lkotlinx/coroutines/flow/Flow;
 }
 
+public final class se/gustavkarlsson/conveyor/StateUpdateException : java/lang/IllegalStateException {
+	public fun getCause ()Ljava/lang/Throwable;
+	public fun getMessage ()Ljava/lang/String;
+	public final fun getState ()Ljava/lang/Object;
+}
+
 public abstract interface class se/gustavkarlsson/conveyor/Store : se/gustavkarlsson/conveyor/ActionIssuer {
-	public abstract fun getJob ()Lkotlinx/coroutines/Job;
 	public abstract fun getState ()Lkotlinx/coroutines/flow/StateFlow;
-	public abstract fun start (Lkotlinx/coroutines/CoroutineScope;)Lkotlinx/coroutines/Job;
+	public abstract fun run (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class se/gustavkarlsson/conveyor/StoreAlreadyStartedException : java/lang/IllegalStateException {
-	public fun <init> ()V
+	public fun getMessage ()Ljava/lang/String;
+}
+
+public abstract interface class se/gustavkarlsson/conveyor/StoreFlow : kotlinx/coroutines/flow/MutableSharedFlow, kotlinx/coroutines/flow/StateFlow {
+	public abstract fun getAndUpdate (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getStoreSubscriberCount ()Lkotlinx/coroutines/flow/StateFlow;
+	public abstract synthetic fun resetReplayCache ()V
+	public abstract fun update (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun updateAndGet (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class se/gustavkarlsson/conveyor/StoreFlow$DefaultImpls {
+	public static synthetic fun resetReplayCache (Lse/gustavkarlsson/conveyor/StoreFlow;)V
 }
 
 public final class se/gustavkarlsson/conveyor/StoreKt {
@@ -57,23 +64,23 @@ public final class se/gustavkarlsson/conveyor/StoreKt {
 }
 
 public final class se/gustavkarlsson/conveyor/StoreNotYetStartedException : java/lang/IllegalStateException {
-	public fun <init> ()V
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public final class se/gustavkarlsson/conveyor/StoreStoppedException : java/lang/IllegalStateException {
-	public fun <init> (Ljava/lang/Throwable;)V
 	public final fun getCancellationReason ()Ljava/lang/Throwable;
+	public fun getMessage ()Ljava/lang/String;
 }
 
 public abstract class se/gustavkarlsson/conveyor/actions/LiveAction : se/gustavkarlsson/conveyor/Action {
 	public fun <init> ()V
-	public final fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	protected abstract fun onLive (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun execute (Lse/gustavkarlsson/conveyor/StoreFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected abstract fun onLive (Lse/gustavkarlsson/conveyor/StoreFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public abstract class se/gustavkarlsson/conveyor/actions/WatchAction : se/gustavkarlsson/conveyor/Action {
 	public fun <init> ()V
-	public final fun execute (Lse/gustavkarlsson/conveyor/AtomicStateFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun execute (Lse/gustavkarlsson/conveyor/StoreFlow;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun onState (Ljava/lang/Object;)V
 }
 
