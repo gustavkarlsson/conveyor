@@ -27,6 +27,11 @@ kotlin {
         }
     }
     jvm {
+        val main by compilations.getting {
+            kotlinOptions {
+                jvmTarget = "1.8" // TODO Move to version catalog
+            }
+        }
         testRuns["test"].executionTask.configure {
             useJUnitPlatform {
                 includeEngines("spek2")
