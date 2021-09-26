@@ -7,10 +7,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                project(":core")
+                api(project(":core"))
                 implementation(project.dependencies.platform("org.jetbrains.kotlin:kotlin-bom"))
                 api(libs.kotlinCoroutines.core)
             }
         }
+        val jvmMain by getting
+        val jsMain by getting
     }
 }
