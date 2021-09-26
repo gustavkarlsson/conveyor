@@ -26,32 +26,16 @@ public class SimpleFileTape<State>(
     }
 }
 
-private enum class SampleType(val id: Int) {
-    Delay(1), State(2)
+private fun <State> InputStream.readSample(serializer: SimpleFileTape.Serializer<State>): Sample<State> {
+    val timestamp = readLong()
+    val state = readState(serializer)
+    return Sample(timestamp, state)
 }
 
-private fun <State> InputStream.readSample(serializer: SimpleFileTape.Serializer<State>): Sample<State> =
-    when (readSampleType()) {
-        SampleType.Delay -> readDelay()
-        SampleType.State -> readState(serializer)
-    }
-
-private fun InputStream.readSampleType(): SampleType {
-    val typeId = readInt()
-    val type = SampleType.values().find { it.id == typeId }
-    return type ?: error("Unsupported sample type ID: $typeId")
-}
-
-private fun InputStream.readDelay(): Sample.Delay {
-    val timeMillis = readLong()
-    return Sample.Delay(timeMillis)
-}
-
-private fun <State> InputStream.readState(serializer: SimpleFileTape.Serializer<State>): Sample.State<State> {
+private fun <State> InputStream.readState(serializer: SimpleFileTape.Serializer<State>): State {
     val size = readInt()
     val bytes = requireNBytes(size)
-    val state = serializer.deserialize(bytes)
-    return Sample.State(state)
+    return serializer.deserialize(bytes)
 }
 
 private fun InputStream.readLong(): Long {
@@ -74,26 +58,14 @@ private fun InputStream.requireNBytes(size: Int): ByteArray {
 }
 
 private fun <State> OutputStream.writeSample(sample: Sample<State>, serializer: SimpleFileTape.Serializer<State>) {
-    when (sample) {
-        is Sample.Delay -> writeDelay(sample.delayMillis)
-        is Sample.State -> writeState(sample.state, serializer)
-    }
-}
-
-private fun OutputStream.writeDelay(timeMillis: Long) {
-    writeSampleType(SampleType.Delay)
-    writeLong(timeMillis)
+    writeLong(sample.timestampMillis)
+    writeState(sample.state, serializer)
 }
 
 private fun <State> OutputStream.writeState(state: State, serializer: SimpleFileTape.Serializer<State>) {
-    writeSampleType(SampleType.State)
     val bytes = serializer.serialize(state)
     writeInt(bytes.size)
     write(bytes)
-}
-
-private fun OutputStream.writeSampleType(type: SampleType) {
-    writeInt(type.id)
 }
 
 private fun OutputStream.writeInt(value: Int) {

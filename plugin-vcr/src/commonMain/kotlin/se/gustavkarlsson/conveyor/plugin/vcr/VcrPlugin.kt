@@ -14,8 +14,9 @@ public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
     private val mode = MutableStateFlow<Mode<State>>(Mode.Idle) // FIXME Rename mode?
 
     override fun addStartActions(): Iterable<Action<State>> {
-        val recordAction = RecordAction(mode, TimeSource.Monotonic)
-        val playbackAction = PlaybackAction(mode)
+        val timeSource = TimeSource.Monotonic
+        val recordAction = RecordAction(mode, timeSource)
+        val playbackAction = PlaybackAction(mode, timeSource)
         return listOf(recordAction, playbackAction)
     }
 

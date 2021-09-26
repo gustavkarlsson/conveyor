@@ -9,16 +9,19 @@ import kotlinx.coroutines.flow.flow
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.plugin.vcr.ReadableTape
-import se.gustavkarlsson.conveyor.plugin.vcr.Sample
 import se.gustavkarlsson.conveyor.plugin.vcr.use
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 internal class PlaybackAction<State>(
     private val mode: Flow<Mode<State>>,
+    private val timeSource: TimeSource,
 ) : Action<State> {
     override suspend fun execute(storeFlow: StoreFlow<State>) {
         mode.collectLatest { mode ->
             if (mode is Mode.Playing) {
-                mode.play(storeFlow)
+                val playbackStart = timeSource.markNow()
+                mode.play(storeFlow, playbackStart)
             }
         }
     }
@@ -26,14 +29,16 @@ internal class PlaybackAction<State>(
 
 private suspend fun <State> Mode.Playing<State>.play(
     storeFlow: StoreFlow<State>,
+    playbackStart: TimeMark,
 ) = reading.use { reading ->
     reading.asFlow()
         .buffer(bufferSize)
         .collect { sample ->
-            when (sample) {
-                is Sample.Delay -> delay(sample.delayMillis)
-                is Sample.State -> storeFlow.update { sample.state }
-            }
+            val nowMillis = playbackStart.elapsedNow().inWholeMilliseconds
+            val targetMillis = sample.timestampMillis
+            val delayMillis = (targetMillis - nowMillis).coerceAtLeast(0)
+            delay(delayMillis)
+            storeFlow.update { sample.state }
         }
 }
 
