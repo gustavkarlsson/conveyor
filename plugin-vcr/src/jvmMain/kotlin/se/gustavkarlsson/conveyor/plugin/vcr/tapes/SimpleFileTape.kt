@@ -3,11 +3,11 @@ package se.gustavkarlsson.conveyor.plugin.vcr.tapes
 import kotlinx.coroutines.CoroutineDispatcher
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
-// FIXME ReadNBytes and WriteNBytes requires > JDK11
 public class SimpleFileTape<State>(
     file: File,
     private val serializer: Serializer<State>,
@@ -49,19 +49,28 @@ private fun InputStream.readDelay(): Sample.Delay {
 
 private fun <State> InputStream.readState(serializer: SimpleFileTape.Serializer<State>): Sample.State<State> {
     val size = readInt()
-    val bytes = readNBytes(size)
+    val bytes = requireNBytes(size)
     val state = serializer.deserialize(bytes)
     return Sample.State(state)
 }
 
 private fun InputStream.readLong(): Long {
-    val bytes = readNBytes(Long.SIZE_BYTES)
+    val bytes = requireNBytes(Long.SIZE_BYTES)
     return ByteBuffer.wrap(bytes).long
 }
 
 private fun InputStream.readInt(): Int {
-    val bytes = readNBytes(Int.SIZE_BYTES)
+    val bytes = requireNBytes(Int.SIZE_BYTES)
     return ByteBuffer.wrap(bytes).int
+}
+
+private fun InputStream.requireNBytes(size: Int): ByteArray {
+    val bytes = ByteArray(size)
+    val readCount = read(bytes)
+    if (readCount < size) {
+        throw IOException("Failed to read $size bytes. Could only read $readCount bytes.")
+    }
+    return bytes
 }
 
 private fun <State> OutputStream.writeSample(sample: Sample<State>, serializer: SimpleFileTape.Serializer<State>) {
