@@ -2,6 +2,7 @@ package se.gustavkarlsson.conveyor.plugin.vcr.internal
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -28,7 +29,7 @@ internal class PlaybackAction<State>(
 }
 
 private suspend fun <State> Mode.Playing<State>.play(
-    storeFlow: StoreFlow<State>,
+    storeFlow: MutableSharedFlow<State>,
     playbackStart: TimeMark,
 ) = reading.use { reading ->
     reading.asFlow()
@@ -38,7 +39,7 @@ private suspend fun <State> Mode.Playing<State>.play(
             val targetMillis = sample.timestampMillis
             val delayMillis = (targetMillis - nowMillis).coerceAtLeast(0)
             delay(delayMillis)
-            storeFlow.update { sample.state }
+            storeFlow.emit(sample.state)
         }
 }
 

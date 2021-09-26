@@ -27,15 +27,16 @@ internal class RecordAction<State>(
 }
 
 private suspend fun <State> Mode.Recording<State>.record(
-    storeFlow: StoreFlow<State>,
+    storeFlow: Flow<State>,
     recordingStart: TimeMark,
 ) = writing.use { writing ->
-    storeFlow.toSamples(recordingStart)
+    storeFlow
+        .toSamples(recordingStart)
         .buffer(bufferSize)
         .collect(writing::write)
 }
 
-private fun <State> StoreFlow<State>.toSamples(
+private fun <State> Flow<State>.toSamples(
     recordingStart: TimeMark,
 ) = flow {
     collect { state ->
