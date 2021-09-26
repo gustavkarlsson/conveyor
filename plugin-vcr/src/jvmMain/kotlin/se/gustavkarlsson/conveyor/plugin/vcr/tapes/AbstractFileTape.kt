@@ -9,6 +9,7 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
+// TODO Migrate to some KMP IO solution
 public abstract class AbstractFileTape<T>(
     private val file: File,
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
