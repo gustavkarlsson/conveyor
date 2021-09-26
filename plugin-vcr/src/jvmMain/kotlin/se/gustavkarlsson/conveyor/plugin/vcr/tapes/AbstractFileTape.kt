@@ -5,13 +5,16 @@ import kotlinx.coroutines.withContext
 import se.gustavkarlsson.conveyor.plugin.vcr.ReadableTape
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
 import se.gustavkarlsson.conveyor.plugin.vcr.WriteableTape
-import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.file.Path
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 // TODO Migrate to some KMP IO solution
 public abstract class AbstractFileTape<T>(
-    private val file: File,
+    private val file: Path,
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
     private val dispatcher: CoroutineDispatcher = createSingleThreadDispatcher(),
 ) : ReadableTape<T>, WriteableTape<T> {
@@ -20,7 +23,7 @@ public abstract class AbstractFileTape<T>(
     final override fun openForWriting(): WriteableTape.Writing<T> = Writing()
 
     private inner class Reading : ReadableTape.Reading<T> {
-        private val stream = file.inputStream().buffered(bufferSize)
+        private val stream = file.inputStream()
 
         override suspend fun read(): Sample<T>? =
             withContext(dispatcher) {
@@ -48,5 +51,5 @@ public abstract class AbstractFileTape<T>(
 
     protected abstract fun writeSample(sample: Sample<T>, stream: OutputStream)
 
-    public fun delete(): Boolean = file.delete()
+    public fun delete(): Boolean = file.deleteIfExists()
 }

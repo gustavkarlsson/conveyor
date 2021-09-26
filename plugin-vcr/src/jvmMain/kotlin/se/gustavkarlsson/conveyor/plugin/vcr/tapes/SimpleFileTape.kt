@@ -2,14 +2,14 @@ package se.gustavkarlsson.conveyor.plugin.vcr.tapes
 
 import kotlinx.coroutines.CoroutineDispatcher
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
-import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
+import java.nio.file.Path
 
 public class SimpleFileTape<State>(
-    file: File,
+    file: Path,
     private val serializer: Serializer<State>,
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     dispatcher: CoroutineDispatcher = createSingleThreadDispatcher(),
