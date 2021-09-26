@@ -6,7 +6,7 @@ public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/ReadableTa
 	public abstract fun read (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
-public abstract class se/gustavkarlsson/conveyor/plugin/vcr/Sample {
+public abstract interface class se/gustavkarlsson/conveyor/plugin/vcr/Sample {
 }
 
 public final class se/gustavkarlsson/conveyor/plugin/vcr/Sample$Delay : se/gustavkarlsson/conveyor/plugin/vcr/Sample {
