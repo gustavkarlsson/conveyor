@@ -1,7 +1,5 @@
 package se.gustavkarlsson.conveyor.plugin.vcr
 
-import java.io.Closeable
-
 public interface WriteableTape<in T> {
     public fun openForWriting(): Writing<T>
 

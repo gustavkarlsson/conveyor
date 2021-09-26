@@ -1,7 +1,5 @@
 package se.gustavkarlsson.conveyor.plugin.vcr
 
-import java.io.Closeable
-
 public interface ReadableTape<out T> {
     public fun openForReading(): Reading<T>
 

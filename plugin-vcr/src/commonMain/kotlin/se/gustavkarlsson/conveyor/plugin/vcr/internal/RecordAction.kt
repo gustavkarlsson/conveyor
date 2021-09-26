@@ -6,35 +6,41 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flow
 import se.gustavkarlsson.conveyor.Action
-import se.gustavkarlsson.conveyor.AtomicStateFlow
+import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.plugin.vcr.Sample
+import se.gustavkarlsson.conveyor.plugin.vcr.use
+import kotlin.jvm.Synchronized
+import kotlin.jvm.Volatile
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 internal class RecordAction<State>(
     private val mode: Flow<Mode<State>>,
-    private val currentTimeMillis: () -> Long,
+    private val timeSource: TimeSource,
 ) : Action<State> {
-    override suspend fun execute(stateFlow: AtomicStateFlow<State>) {
+    override suspend fun execute(storeFlow: StoreFlow<State>) {
         mode.collectLatest { mode ->
             if (mode is Mode.Recording) {
-                mode.record(stateFlow, currentTimeMillis)
+                val timeMark = timeSource.markNow()
+                mode.record(storeFlow, timeMark)
             }
         }
     }
 }
 
 private suspend fun <State> Mode.Recording<State>.record(
-    stateFlow: AtomicStateFlow<State>,
-    currentTimeMillis: () -> Long,
+    storeFlow: StoreFlow<State>,
+    timeMark: TimeMark,
 ) = writing.use { writing ->
-    stateFlow.toSamples(currentTimeMillis)
+    storeFlow.toSamples(timeMark)
         .buffer(bufferSize)
         .collect(writing::write)
 }
 
-private fun <State> AtomicStateFlow<State>.toSamples(
-    currentTimeMillis: () -> Long,
+private fun <State> StoreFlow<State>.toSamples(
+    timeMark: TimeMark,
 ) = flow {
-    val timer = Timer(currentTimeMillis)
+    val timer = Timer(timeMark)
     collect { state ->
         val deltaMillis = timer.delta()
         if (deltaMillis != null) {
@@ -44,14 +50,14 @@ private fun <State> AtomicStateFlow<State>.toSamples(
     }
 }
 
-private class Timer(private val getCurrent: () -> Long) {
+private class Timer(private val timeMark: TimeMark) {
     @Volatile
     private var previous: Long? = null
 
     @Synchronized
     fun delta(): Long? {
         val previous = previous
-        val current = getCurrent()
+        val current = timeMark.elapsedNow().inWholeMilliseconds
         this.previous = current
         return if (previous == null) {
             null

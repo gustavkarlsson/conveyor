@@ -18,6 +18,7 @@ kotlin {
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
+            languageSettings.optIn("kotlin.time.ExperimentalTime")
             languageSettings.optIn("se.gustavkarlsson.conveyor.InternalConveyorApi")
             if (name.contains("test", ignoreCase = true)) {
                 languageSettings.optIn("kotlinx.coroutines.FlowPreview")

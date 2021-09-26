@@ -8,12 +8,13 @@ import se.gustavkarlsson.conveyor.Plugin
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.Mode
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.PlaybackAction
 import se.gustavkarlsson.conveyor.plugin.vcr.internal.RecordAction
+import kotlin.time.TimeSource
 
 public class VcrPlugin<State> : Vcr<State>, Plugin<State> {
     private val mode = MutableStateFlow<Mode<State>>(Mode.Idle) // FIXME Rename mode?
 
     override fun addStartActions(): Iterable<Action<State>> {
-        val recordAction = RecordAction(mode, System::currentTimeMillis)
+        val recordAction = RecordAction(mode, TimeSource.Monotonic)
         val playbackAction = PlaybackAction(mode)
         return listOf(recordAction, playbackAction)
     }
