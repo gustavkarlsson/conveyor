@@ -97,7 +97,7 @@ jobs:
 
       - name: Merge checkstyle files
         if: ${{ always() }}
-        run: find . -path "./*/build/reports/ktlint/*.xml" -exec xml_grep --pretty_print indented --wrap checkstyle --descr '' --cond file '{}' > combined.xml +
+        run: find . -path "./*/build/reports/ktlint/*.xml" -exec cat '{}' +
 
       - name: print errors
         if: ${{ always() }}
