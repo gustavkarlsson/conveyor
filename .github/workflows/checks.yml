@@ -88,12 +88,15 @@ jobs:
           tools: cs2pr
 
       - name: Install xgrep
+        if: ${{ always() }}
         run: sudo apt-get install -y xgrep
 
       - name: Install xml_grep
+        if: ${{ always() }}
         run: sudo apt-get install -y xml-twig-tools
 
       - name: Merge checkstyle files
+        if: ${{ always() }}
         run: find . -path "./*/build/reports/ktlint/*.xml" -exec xml_grep --pretty_print indented --wrap checkstyle --descr '' --cond checkstyle '{}' > combined.xml +
 
       - name: Report errors
