@@ -1,10 +1,10 @@
 [versions]
 kotlin = "1.5.31"
-dokka = "1.5.30"
+dokka = "1.5.31"
 kotlinBinaryCompatibilityValidator = "0.7.1"
 kotlinCoroutines = "1.5.2"
-junit5 = "5.7.2"
-spek = "2.0.15"
+junit5 = "5.8.1"
+spek = "2.0.17"
 strikt = "0.31.0"
 ktlint = "10.2.0"
 
