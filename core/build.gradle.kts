@@ -11,16 +11,12 @@ kotlin {
                 api(libs.kotlinCoroutines.core)
             }
         }
-        val jvmMain by  getting
+        val jvmMain by getting
         val jsMain by getting
         val jvmTest by getting {
             dependencies {
                 implementation(project(":test"))
                 runtimeOnly(libs.bundles.testRuntime)
-
-
-
-
                 implementation(libs.bundles.testImplementation)
             }
         }

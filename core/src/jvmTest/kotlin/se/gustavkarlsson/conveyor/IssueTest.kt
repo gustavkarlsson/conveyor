@@ -11,7 +11,7 @@ import strikt.assertions.isEqualTo
 object IssueTest : Spek({
     val scope by memoizedTestCoroutineScope()
 
-    describe(  "A store that was started") {
+    describe("A store that was started") {
         val store by memoized {
             Store(0).also { store ->
                 scope.launch { store.run() }

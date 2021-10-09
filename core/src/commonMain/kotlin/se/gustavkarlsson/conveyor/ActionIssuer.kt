@@ -10,7 +10,7 @@ public interface ActionIssuer<State> {
      * Throws [StoreNotYetStartedException] if the store has not yet been started
      * and [StoreStoppedException] if the store has stopped.
      */
-    public fun  issue(action: Action<State>)
+    public fun issue(action: Action<State>)
 }
 
 /**
