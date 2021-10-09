@@ -89,4 +89,4 @@ jobs:
 
       - name: Report errors
         if: ${{ always() }}
-        run: cs2pr --graceful-warnings core/build/reports/ktlint/ktlintCommonMainSourceSetCheck/ktlintCommonMainSourceSetCheck.xml # TODO Add all report files somehow
+        run: find . -path "./*/build/reports/ktlint/*.xml" -exec cs2pr --graceful-warnings "{}" \;
