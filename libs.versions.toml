@@ -4,7 +4,7 @@ dokka = "1.5.31"
 kotlinBinaryCompatibilityValidator = "0.7.1"
 kotlinCoroutines = "1.5.2"
 junit5 = "5.8.1"
-spek = "2.0.17"
+spek = "2.0.15" # 2.0.16 and 2.0.17 are borked because of missing maven metadata
 strikt = "0.31.0"
 ktlint = "10.2.0"
 
