@@ -12,7 +12,7 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.testing.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -34,7 +34,7 @@ object ActionExecutorTest : Spek({
         }
 
         it("does not execute action before run") {
-            runBlockingTest {
+            runTest {
                 actions.emit(IncrementingAction(1))
             }
             expectThat(storeFlow.value).isEqualTo(0)
@@ -46,13 +46,13 @@ object ActionExecutorTest : Spek({
             }
 
             it("executes action") {
-                runBlockingTest {
+                runTest {
                     actions.emit(IncrementingAction(1))
                 }
                 expectThat(storeFlow.value).isEqualTo(1)
             }
             it("executes actions in parallel") {
-                runBlockingTest {
+                runTest {
                     actions.emit(IncrementingAction(1, 100))
                     actions.emit(IncrementingAction(1, 100))
                     scope.testScheduler.advanceTimeBy(100)
@@ -62,7 +62,7 @@ object ActionExecutorTest : Spek({
             }
             it("throws if run again") {
                 expectThrows<IllegalStateException> {
-                    runBlockingTest {
+                    runTest {
                         subject.run()
                     }
                 }
@@ -118,7 +118,7 @@ object ActionExecutorTest : Spek({
         }
 
         it("properly transforms actions") {
-            runBlockingTest {
+            runTest {
                 actions.emit(IncrementingAction(2))
             }
             expectThat(storeFlow.value).isEqualTo(5)

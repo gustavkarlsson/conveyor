@@ -16,7 +16,7 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StateUpdateException
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.testing.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -40,7 +40,7 @@ object StateManagerTest : Spek({
             expectThat(subject.value).isEqualTo(initialState)
         }
         it("flow emits initial") {
-            val result = runBlockingTest {
+            val result = runTest {
                 val deferred = async {
                     subject.take(2).toList()
                 }
@@ -50,37 +50,37 @@ object StateManagerTest : Spek({
             expectThat(result).containsExactly(initialState)
         }
         it("update sets new state after updating it") {
-            runBlockingTest {
+            runTest {
                 subject.update { this + state1 }
             }
             expectThat(subject.value).isEqualTo(initialState + state1)
         }
         it("updateAndGet sets new state after updating it") {
-            runBlockingTest {
+            runTest {
                 subject.updateAndGet { this + state1 }
             }
             expectThat(subject.value).isEqualTo(initialState + state1)
         }
         it("getAndUpdate sets new state after updating it") {
-            runBlockingTest {
+            runTest {
                 subject.getAndUpdate { this + state1 }
             }
             expectThat(subject.value).isEqualTo(initialState + state1)
         }
         it("updateAndGet returns new state after updating it") {
-            val result = runBlockingTest {
+            val result = runTest {
                 subject.updateAndGet { this + state1 }
             }
             expectThat(result).isEqualTo(initialState + state1)
         }
         it("updateAndGet returns old state after updating it") {
-            val result = runBlockingTest {
+            val result = runTest {
                 subject.getAndUpdate { this + state1 }
             }
             expectThat(result).isEqualTo(initialState)
         }
         it("emit sets new state") {
-            runBlockingTest {
+            runTest {
                 subject.emit(state1)
             }
             expectThat(subject.value).isEqualTo(state1)
@@ -93,7 +93,7 @@ object StateManagerTest : Spek({
             }
         }
         it("flow emits initial and state1 when updating it to state1 when collecting") {
-            val result = runBlockingTest {
+            val result = runTest {
                 val deferred = async {
                     subject.take(3).toList()
                 }
@@ -108,7 +108,7 @@ object StateManagerTest : Spek({
                 .isEqualTo(0)
         }
         it("subscriberCount updates with subscribers") {
-            runBlockingTest {
+            runTest {
                 val job1 = launch {
                     subject.collect {}
                 }
@@ -122,7 +122,7 @@ object StateManagerTest : Spek({
             }
         }
         it("subscriberCount does not update with subscribers to outgoing internal state") {
-            runBlockingTest {
+            runTest {
                 val job = launch {
                     subject.outgoingState.collect {}
                 }
@@ -136,7 +136,7 @@ object StateManagerTest : Spek({
                 .isEqualTo(0)
         }
         it("storeSubscriberCount updates with subscribers to outgoing state") {
-            runBlockingTest {
+            runTest {
                 val job1 = launch {
                     subject.outgoingState.collect {}
                 }
@@ -150,7 +150,7 @@ object StateManagerTest : Spek({
             }
         }
         it("storeSubscriberCount does not update with subscribers to internal state") {
-            runBlockingTest {
+            runTest {
                 val job = launch {
                     subject.collect {}
                 }
@@ -162,7 +162,7 @@ object StateManagerTest : Spek({
         it("slow collector of outgoingState does not miss any emissions") {
             val collected = mutableListOf<String>()
             scope.launch { subject.run() }
-            scope.runBlockingTest {
+            scope.runTest {
                 val job = launch {
                     subject.outgoingState
                         .onEach { delay(1) }
@@ -231,7 +231,7 @@ object StateManagerTest : Spek({
 
         it("transformers run when run") {
             val result = mutableListOf<String>()
-            runBlockingTest {
+            runTest {
                 val runJob = launch { subject.run() }
                 val collectJob = launch { subject.outgoingState.toCollection(result) }
 
@@ -263,7 +263,7 @@ object StateManagerTest : Spek({
         }
         it("does not miss any emissions") {
             val values = mutableListOf<String>()
-            scope.runBlockingTest {
+            scope.runTest {
                 launch {
                     subject.emit("first")
                 }

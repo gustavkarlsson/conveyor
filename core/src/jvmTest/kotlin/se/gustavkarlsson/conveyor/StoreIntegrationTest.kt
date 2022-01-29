@@ -9,7 +9,7 @@ import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.NullAction
 import se.gustavkarlsson.conveyor.testing.SetStateAction
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.testing.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -28,7 +28,7 @@ object StoreIntegrationTest : Spek({
         }
 
         it("state emits initial") {
-            val result = runBlockingTest {
+            val result = runTest {
                 subject.state.first()
             }
             expectThat(result).isEqualTo(initialState)
@@ -62,7 +62,7 @@ object StoreIntegrationTest : Spek({
                 expectThat(job.isCancelled).isTrue()
             }
             it("state emits initial") {
-                val result = runBlockingTest {
+                val result = runTest {
                     subject.state.first()
                 }
                 expectThat(result).isEqualTo(initialState)
@@ -88,7 +88,7 @@ object StoreIntegrationTest : Spek({
                     expectThat(result).isEqualTo(initialState)
                 }
                 it("state emits initial") {
-                    val result = runBlockingTest {
+                    val result = runTest {
                         subject.state.first()
                     }
                     expectThat(result).isEqualTo(initialState)

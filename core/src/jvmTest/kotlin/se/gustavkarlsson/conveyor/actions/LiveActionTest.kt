@@ -1,8 +1,7 @@
 package se.gustavkarlsson.conveyor.actions
 
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreFlow
@@ -19,7 +18,7 @@ object LiveActionTest : Spek({
         val subject by memoized { TestLiveAction() }
 
         it("does not collect when store subscriber count is 0") {
-            runBlockingTest {
+            runTest {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -30,7 +29,7 @@ object LiveActionTest : Spek({
         }
 
         it("collects current value when store subscribe count turns positive") {
-            runBlockingTest {
+            runTest {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -41,7 +40,7 @@ object LiveActionTest : Spek({
         }
 
         it("does not collect current value again when store subscribe count changes between positive values") {
-            runBlockingTest {
+            runTest {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -53,7 +52,7 @@ object LiveActionTest : Spek({
         }
 
         it("collects current value again when store subscribe count changes between positive and 0") {
-            runBlockingTest {
+            runTest {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -66,7 +65,7 @@ object LiveActionTest : Spek({
         }
 
         it("collects subsequent values when store subscribe count is positive") {
-            runBlockingTest {
+            runTest {
                 val launchJob = launch {
                     subject.execute(flow)
                 }

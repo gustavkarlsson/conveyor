@@ -8,7 +8,7 @@ import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.NullAction
-import se.gustavkarlsson.conveyor.testing.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -26,7 +26,7 @@ object ActionIssuerImplTest : Spek({
             }
         }
         it("issuedActions emits action issued after subscribing") {
-            val result = runBlockingTest {
+            val result = runTest {
                 val deferred = async { subject.issuedActions.first() }
                 subject.issue(action)
                 deferred.await()
@@ -34,7 +34,7 @@ object ActionIssuerImplTest : Spek({
             expectThat(result).isEqualTo(action)
         }
         it("issuedActions emits action issued before subscribing") {
-            val result = runBlockingTest {
+            val result = runTest {
                 subject.issue(action)
                 subject.issuedActions.first()
             }

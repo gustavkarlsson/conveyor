@@ -4,7 +4,7 @@ import kotlinx.coroutines.launch
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.testing.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
@@ -19,7 +19,7 @@ object IssueTest : Spek({
         }
 
         it("issue extension function executes body as expected") {
-            runBlockingTest {
+            runTest {
                 store.issue { storeFlow ->
                     storeFlow.update { it + 1 }
                 }

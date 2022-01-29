@@ -4,9 +4,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineExceptionHandler
-import kotlinx.coroutines.test.createTestCoroutineScope
+import kotlinx.coroutines.test.TestScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
@@ -18,7 +16,7 @@ import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.testing.hasIssued
 import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
-import se.gustavkarlsson.conveyor.testing.runBlockingTest
+import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.first
@@ -26,7 +24,6 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
-import kotlin.coroutines.EmptyCoroutineContext
 
 object StoreImplTest : Spek({
     val initialState = 0
@@ -42,7 +39,7 @@ object StoreImplTest : Spek({
             expectThat(result).isEqualTo(initialState)
         }
         it("state.first() returns current state") {
-            val result = runBlockingTest {
+            val result = runTest {
                 subject.state.value
             }
             expectThat(result).isEqualTo(initialState)
@@ -54,7 +51,7 @@ object StoreImplTest : Spek({
         }
 
         describe("that was started") {
-            val startScope by memoized { createTestCoroutineScope(TestCoroutineDispatcher() + TestCoroutineExceptionHandler() + EmptyCoroutineContext) }
+            val startScope by memoized { TestScope() }
             lateinit var job: Job
             beforeEachTest {
                 job = startScope.launch { subject.run() }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
@@ -24,14 +24,14 @@ object StatefulMutableSharedFlowTest : Spek({
         val subject by memoized { StatefulMutableSharedFlow(0) }
 
         it("sets value when emitting") {
-            runBlockingTest {
+            runTest {
                 subject.emit(5)
             }
             expectThat(subject.value).isEqualTo(5)
         }
         it("makes first value streamable") {
             var result: Any? = null
-            runBlockingTest {
+            runTest {
                 result = subject.firstOrNull()
             }
             expectThat(result).isNotNull()
@@ -39,7 +39,7 @@ object StatefulMutableSharedFlowTest : Spek({
         it("does not skip any items for slow collectors") {
             val targetCount = 10
             var count = 0
-            scope.runBlockingTest {
+            scope.runTest {
                 launch {
                     subject
                         .take(targetCount)
@@ -57,7 +57,7 @@ object StatefulMutableSharedFlowTest : Spek({
         it("rejects tryEmit when blocked") {
             var count = 0
             var success: Boolean? = null
-            scope.runBlockingTest {
+            scope.runTest {
                 launch {
                     subject
                         .take(1)
@@ -78,14 +78,14 @@ object StatefulMutableSharedFlowTest : Spek({
             expectThat(subject.subscriptionCount.value).isEqualTo(0)
         }
         it("has a subscriptionCount of 1 when one subscriber") {
-            runBlockingTest {
+            runTest {
                 val job = launch { subject.collect() }
                 expectThat(subject.subscriptionCount.value).isEqualTo(1)
                 job.cancel()
             }
         }
         it("does not emit non-distinct element") {
-            runBlockingTest {
+            runTest {
                 val values = mutableListOf<Int>()
                 val job = launch { subject.toCollection(values) }
                 subject.emit(0)

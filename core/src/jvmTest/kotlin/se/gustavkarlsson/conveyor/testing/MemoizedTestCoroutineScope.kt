@@ -1,19 +1,15 @@
 package se.gustavkarlsson.conveyor.testing
 
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineExceptionHandler
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.createTestCoroutineScope
+import kotlinx.coroutines.test.TestScope
 import org.spekframework.spek2.dsl.LifecycleAware
 import org.spekframework.spek2.lifecycle.MemoizedValue
 
-fun LifecycleAware.memoizedTestCoroutineScope(): MemoizedValue<TestCoroutineScope> =
+// FIXME replace with runTest ?
+fun LifecycleAware.memoizedTestCoroutineScope(): MemoizedValue<TestScope> =
     memoized(
-        factory = { createTestCoroutineScope(TestCoroutineDispatcher() + TestCoroutineExceptionHandler() + Job()) },
+        factory = { TestScope() },
         destructor = {
             it.cancel("Test ended")
-            it.cleanupTestCoroutines()
         }
     )

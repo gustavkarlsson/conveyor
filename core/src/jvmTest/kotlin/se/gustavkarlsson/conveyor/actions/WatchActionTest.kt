@@ -1,7 +1,7 @@
 package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.TestStoreFlow
@@ -16,7 +16,7 @@ object WatchActionTest : Spek({
         val subject by memoized { TestWatchAction() }
 
         it("initially gets current value") {
-            runBlockingTest {
+            runTest {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -26,7 +26,7 @@ object WatchActionTest : Spek({
         }
 
         it("watches new state changes") {
-            runBlockingTest {
+            runTest {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
