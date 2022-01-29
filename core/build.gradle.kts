@@ -13,12 +13,17 @@ kotlin {
         }
         val jvmMain by getting
         val jsMain by getting
+        val commonTest by getting {
+            dependencies {
+                implementation(project(":test", "archives"))
+            }
+        }
         val jvmTest by getting {
             dependencies {
-                implementation(project(":test"))
                 runtimeOnly(libs.bundles.testRuntime)
                 implementation(libs.bundles.testImplementation)
             }
         }
+        val jsTest by getting
     }
 }

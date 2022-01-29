@@ -1,8 +1,8 @@
 [versions]
-kotlin = "1.5.31"
-dokka = "1.5.31"
+kotlin = "1.6.10"
+dokka = "1.6.10"
 kotlinBinaryCompatibilityValidator = "0.8.0"
-kotlinCoroutines = "1.5.2"
+kotlinCoroutines = "1.6.0"
 junit5 = "5.8.2"
 spek = "2.0.15" # 2.0.16 and 2.0.17 are borked because of missing maven metadata
 strikt = "0.33.0"

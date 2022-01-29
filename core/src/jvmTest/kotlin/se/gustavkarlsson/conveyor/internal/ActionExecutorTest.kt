@@ -55,7 +55,7 @@ object ActionExecutorTest : Spek({
                 runBlockingTest {
                     actions.emit(IncrementingAction(1, 100))
                     actions.emit(IncrementingAction(1, 100))
-                    scope.advanceTimeBy(100)
+                    // FIXME removed scope.advanceTimeBy(100)
                 }
                 expectThat(storeFlow.value).isEqualTo(2)
             }

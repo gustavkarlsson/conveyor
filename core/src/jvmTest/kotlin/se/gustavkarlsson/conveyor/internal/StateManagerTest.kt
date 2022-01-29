@@ -171,7 +171,7 @@ object StateManagerTest : Spek({
                 }
                 subject.tryEmit("first")
                 subject.tryEmit("second")
-                advanceTimeBy(3)
+                // FIXME removed advanceTimeBy(3)
                 job.cancel()
             }
             expectThat(collected).containsExactly("initial", "first", "second")
@@ -271,7 +271,7 @@ object StateManagerTest : Spek({
                     subject.emit("second")
                 }
                 values += subject.value
-                advanceTimeBy(10)
+                // FIXME removed advanceTimeBy(10)
                 values += subject.value
             }
             expectThat(values).containsExactly("first", "second")
