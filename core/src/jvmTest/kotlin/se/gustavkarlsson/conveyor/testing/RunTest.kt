@@ -2,19 +2,22 @@ package se.gustavkarlsson.conveyor.testing
 
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.runTest as kotlinRunTest
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlinx.coroutines.test.runTest as kotlinRunTest
+
+const val DEFAULT_DISPATCH_TIMEOUT_MS = 5L
 
 /**
  * Same as [kotlinx.coroutines.test.runTest] but returns a value
  */
 fun <T : Any> runTest(
-    context: CoroutineContext = UnconfinedTestDispatcher(),
+    context: CoroutineContext = EmptyCoroutineContext,
+    dispatchTimeoutMs: Long = DEFAULT_DISPATCH_TIMEOUT_MS,
     testBody: suspend TestScope.() -> T,
 ): T {
     lateinit var result: T
-    kotlinRunTest(context) {
+    kotlinRunTest(context, dispatchTimeoutMs) {
         result = testBody()
     }
     return result
@@ -24,12 +27,14 @@ fun <T : Any> runTest(
  * Same as [kotlinx.coroutines.test.runTest] but returns a value
  */
 fun <T : Any> TestScope.runTest(
-    block: suspend TestScope.() -> T,
-): T = runTest(coroutineContext, block)
+    dispatchTimeoutMs: Long = DEFAULT_DISPATCH_TIMEOUT_MS,
+    testBody: suspend TestScope.() -> T,
+): T = runTest(coroutineContext, dispatchTimeoutMs, testBody)
 
 /**
  * Same as [kotlinx.coroutines.test.runTest] but returns a value
  */
 fun <T : Any> TestDispatcher.runTest(
-    block: suspend TestScope.() -> T,
-): T = runTest(this, block)
+    dispatchTimeoutMs: Long = DEFAULT_DISPATCH_TIMEOUT_MS,
+    testBody: suspend TestScope.() -> T,
+): T = runTest(this, dispatchTimeoutMs, testBody)
