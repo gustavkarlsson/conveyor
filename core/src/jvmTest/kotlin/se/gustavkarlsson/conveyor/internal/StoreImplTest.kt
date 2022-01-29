@@ -4,7 +4,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.TestCoroutineExceptionHandler
+import kotlinx.coroutines.test.createTestCoroutineScope
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
@@ -24,6 +26,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
+import kotlin.coroutines.EmptyCoroutineContext
 
 object StoreImplTest : Spek({
     val initialState = 0
@@ -51,7 +54,7 @@ object StoreImplTest : Spek({
         }
 
         describe("that was started") {
-            val startScope by memoized { TestCoroutineScope() }
+            val startScope by memoized { createTestCoroutineScope(TestCoroutineDispatcher() + TestCoroutineExceptionHandler() + EmptyCoroutineContext) }
             lateinit var job: Job
             beforeEachTest {
                 job = startScope.launch { subject.run() }
