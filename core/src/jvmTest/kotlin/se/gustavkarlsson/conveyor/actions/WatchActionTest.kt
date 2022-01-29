@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -16,10 +17,11 @@ object WatchActionTest : Spek({
         val subject by memoized { TestWatchAction() }
 
         it("initially gets current value") {
-            runTest {
+            runTest() {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
+                runCurrent()
                 launchJob.cancel()
             }
             expectThat(subject.watched).containsExactly(initialValue)
@@ -30,6 +32,7 @@ object WatchActionTest : Spek({
                 val launchJob = launch {
                     subject.execute(flow)
                 }
+                runCurrent()
                 flow.emit(1)
                 flow.emit(2)
                 launchJob.cancel()
