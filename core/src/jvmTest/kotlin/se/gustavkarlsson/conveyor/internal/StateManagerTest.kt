@@ -2,6 +2,7 @@ package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -11,12 +12,13 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StateUpdateException
-import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
@@ -28,7 +30,6 @@ import strikt.assertions.isTrue
 
 object StateManagerTest : Spek({
     val errorMessage = "failed"
-    val scope by memoizedTestCoroutineScope()
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
@@ -40,14 +41,14 @@ object StateManagerTest : Spek({
             expectThat(subject.value).isEqualTo(initialState)
         }
         it("flow emits initial") {
-            val result = runTest {
+            runTest {
                 val deferred = async {
                     subject.take(2).toList()
                 }
                 deferred.cancel()
-                deferred.await()
+                val result = deferred.await()
+                expectThat(result).containsExactly(initialState)
             }
-            expectThat(result).containsExactly(initialState)
         }
         it("update sets new state after updating it") {
             runTest {
@@ -68,22 +69,22 @@ object StateManagerTest : Spek({
             expectThat(subject.value).isEqualTo(initialState + state1)
         }
         it("updateAndGet returns new state after updating it") {
-            val result = runTest {
-                subject.updateAndGet { this + state1 }
+            runTest {
+                val result = subject.updateAndGet { this + state1 }
+                expectThat(result).isEqualTo(initialState + state1)
             }
-            expectThat(result).isEqualTo(initialState + state1)
         }
         it("updateAndGet returns old state after updating it") {
-            val result = runTest {
-                subject.getAndUpdate { this + state1 }
+            runTest {
+                val result = subject.getAndUpdate { this + state1 }
+                expectThat(result).isEqualTo(initialState)
             }
-            expectThat(result).isEqualTo(initialState)
         }
         it("emit sets new state") {
             runTest {
                 subject.emit(state1)
+                expectThat(subject.value).isEqualTo(state1)
             }
-            expectThat(subject.value).isEqualTo(state1)
         }
         it("tryEmit sets new state and returns true") {
             val success = subject.tryEmit(state1)
@@ -93,15 +94,15 @@ object StateManagerTest : Spek({
             }
         }
         it("flow emits initial and state1 when updating it to state1 when collecting") {
-            val result = runTest {
+            runTest {
                 val deferred = async {
                     subject.take(3).toList()
                 }
                 subject.emit(state1)
                 deferred.cancel()
-                deferred.await()
+                val result = deferred.await()
+                expectThat(result).containsExactly(initialState, state1)
             }
-            expectThat(result).containsExactly(initialState, state1)
         }
         it("subscriberCount is initially 0") {
             expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
@@ -109,16 +110,16 @@ object StateManagerTest : Spek({
         }
         it("subscriberCount updates with subscribers") {
             runTest {
-                val job1 = launch {
+                launch {
                     subject.collect {}
                 }
-                val job2 = launch {
+                launch {
                     subject.collect {}
                 }
+                runCurrent()
                 expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
                     .isEqualTo(2)
-                job1.cancel()
-                job2.cancel()
+                cancel()
             }
         }
         it("subscriberCount does not update with subscribers to outgoing internal state") {
@@ -137,16 +138,16 @@ object StateManagerTest : Spek({
         }
         it("storeSubscriberCount updates with subscribers to outgoing state") {
             runTest {
-                val job1 = launch {
+                launch {
                     subject.outgoingState.collect {}
                 }
-                val job2 = launch {
+                launch {
                     subject.outgoingState.collect {}
                 }
+                runCurrent()
                 expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
                     .isEqualTo(2)
-                job1.cancel()
-                job2.cancel()
+                cancel()
             }
         }
         it("storeSubscriberCount does not update with subscribers to internal state") {
@@ -160,21 +161,22 @@ object StateManagerTest : Spek({
             }
         }
         it("slow collector of outgoingState does not miss any emissions") {
-            val collected = mutableListOf<String>()
-            scope.launch { subject.run() }
-            scope.runTest {
-                val job = launch {
+            runTest {
+                val collected = mutableListOf<String>()
+                launch { subject.run() }
+                launch {
                     subject.outgoingState
                         .onEach { delay(1) }
                         .toCollection(collected)
                 }
+                runCurrent()
                 subject.tryEmit("first")
+                runCurrent()
                 subject.tryEmit("second")
-                testScheduler.advanceTimeBy(100)
-                testScheduler.runCurrent()
-                job.cancel()
+                advanceTimeBy(100)
+                expectThat(collected).containsExactly("initial", "first", "second")
+                cancel()
             }
-            expectThat(collected).containsExactly("initial", "first", "second")
         }
         it("throws exception containing state when update fails") {
             expectThrows<StateUpdateException> {
@@ -232,14 +234,14 @@ object StateManagerTest : Spek({
         it("transformers run when run") {
             val result = mutableListOf<String>()
             runTest {
-                val runJob = launch { subject.run() }
-                val collectJob = launch { subject.outgoingState.toCollection(result) }
+                launch { subject.run() }
+                launch { subject.outgoingState.toCollection(result) }
+                runCurrent()
 
                 subject.tryEmit("first")
                 subject.tryEmit("second")
 
-                runJob.cancel()
-                collectJob.cancel()
+                cancel()
             }
             expectThat(result).containsExactly("initial-0", "second-2")
         }
@@ -249,40 +251,49 @@ object StateManagerTest : Spek({
             flow.onEach { delay(10) }
         }
         val subject by memoized { StateManager(initialState, listOf(delay)) }
-        beforeEachTest {
-            scope.launch { subject.run() }
-        }
 
         it("suspends emissions due to backpressure") {
-            expectThrows<TimeoutCancellationException> {
-                withTimeout(15) {
-                    subject.emit("first")
-                    subject.emit("second")
+            runTest {
+                launch { subject.run() }
+                runCurrent()
+                expectThrows<TimeoutCancellationException> {
+                    withTimeout(15) {
+                        subject.emit("first")
+                        subject.emit("second")
+                    }
                 }
+                cancel()
             }
         }
         it("does not miss any emissions") {
-            val values = mutableListOf<String>()
-            scope.runTest {
+            runTest {
+                val values = mutableListOf<String>()
+                launch { subject.run() }
                 launch {
                     subject.emit("first")
                 }
                 launch {
                     subject.emit("second")
                 }
+                runCurrent()
                 values += subject.value
-                testScheduler.advanceTimeBy(100)
-                testScheduler.runCurrent()
+                advanceTimeBy(100)
                 values += subject.value
+                expectThat(values).containsExactly("first", "second")
+                cancel()
             }
-            expectThat(values).containsExactly("first", "second")
         }
         it("tryEmit fails to set new state and returns false when blocked") {
-            subject.tryEmit(state1)
-            val success = subject.tryEmit(state2)
-            expect {
-                that(success).isFalse()
-                that(subject.value).isEqualTo(state1)
+            runTest {
+                launch { subject.run() }
+                runCurrent()
+                subject.tryEmit(state1)
+                val success = subject.tryEmit(state2)
+                expect {
+                    that(success).isFalse()
+                    that(subject.value).isEqualTo(state1)
+                }
+                cancel()
             }
         }
     }
