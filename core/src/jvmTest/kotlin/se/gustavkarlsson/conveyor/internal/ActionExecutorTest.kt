@@ -1,25 +1,24 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
-import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 
 object ActionExecutorTest : Spek({
     val initialState = 0
-    val scope by memoizedTestCoroutineScope()
     val actions by memoized { MutableSharedFlow<Action<Int>>() }
     val storeFlow by memoized { SimpleStoreFlow(initialState) }
 
@@ -39,30 +38,31 @@ object ActionExecutorTest : Spek({
             }
             expectThat(storeFlow.value).isEqualTo(0)
         }
-
         describe("that was run") {
-            beforeEachTest {
-                scope.launch { subject.run() }
-            }
-
             it("executes action") {
                 runTest {
+                    launch { subject.run() }
                     actions.emit(IncrementingAction(1))
+                    cancel()
                 }
                 expectThat(storeFlow.value).isEqualTo(1)
             }
             it("executes actions in parallel") {
                 runTest {
+                    launch { subject.run() }
                     actions.emit(IncrementingAction(1, 100))
                     actions.emit(IncrementingAction(1, 100))
-                    scope.testScheduler.advanceTimeBy(100)
-                    scope.testScheduler.runCurrent()
+                    // FIXME why does this test succeed without advancing time?
+                    //  advanceTimeBy(100)
+                    //  runCurrent()
+                    cancel()
                 }
                 expectThat(storeFlow.value).isEqualTo(2)
             }
             it("throws if run again") {
                 expectThrows<IllegalStateException> {
                     runTest {
+                        launch { subject.run() }
                         subject.run()
                     }
                 }
@@ -86,11 +86,11 @@ object ActionExecutorTest : Spek({
         }
 
         describe("that was run") {
-            beforeEachTest {
-                scope.launch { subject.run() }
-            }
-
             it("executed start actions") {
+                runTest {
+                    launch { subject.run() }
+                    cancel()
+                }
                 expectThat(storeFlow.value).isEqualTo(3)
             }
         }
@@ -113,13 +113,12 @@ object ActionExecutorTest : Spek({
                 storeFlow = storeFlow,
             )
         }
-        beforeEachTest {
-            scope.launch { subject.run() }
-        }
 
         it("properly transforms actions") {
             runTest {
+                launch { subject.run() }
                 actions.emit(IncrementingAction(2))
+                cancel()
             }
             expectThat(storeFlow.value).isEqualTo(5)
         }
