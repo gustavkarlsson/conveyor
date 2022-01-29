@@ -3,7 +3,6 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -171,7 +170,8 @@ object StateManagerTest : Spek({
                 }
                 subject.tryEmit("first")
                 subject.tryEmit("second")
-                // FIXME removed advanceTimeBy(3)
+                testScheduler.advanceTimeBy(100)
+                testScheduler.runCurrent()
                 job.cancel()
             }
             expectThat(collected).containsExactly("initial", "first", "second")
@@ -271,7 +271,8 @@ object StateManagerTest : Spek({
                     subject.emit("second")
                 }
                 values += subject.value
-                // FIXME removed advanceTimeBy(10)
+                testScheduler.advanceTimeBy(100)
+                testScheduler.runCurrent()
                 values += subject.value
             }
             expectThat(values).containsExactly("first", "second")
