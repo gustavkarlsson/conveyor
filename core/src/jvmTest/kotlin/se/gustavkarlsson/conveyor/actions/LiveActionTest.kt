@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -18,7 +19,7 @@ object LiveActionTest : Spek({
         val subject by memoized { TestLiveAction() }
 
         it("does not collect when store subscriber count is 0") {
-            runTest {
+            runTest(UnconfinedTestDispatcher()) {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -29,7 +30,7 @@ object LiveActionTest : Spek({
         }
 
         it("collects current value when store subscribe count turns positive") {
-            runTest {
+            runTest(UnconfinedTestDispatcher()) {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -40,7 +41,7 @@ object LiveActionTest : Spek({
         }
 
         it("does not collect current value again when store subscribe count changes between positive values") {
-            runTest {
+            runTest(UnconfinedTestDispatcher()) {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -52,7 +53,7 @@ object LiveActionTest : Spek({
         }
 
         it("collects current value again when store subscribe count changes between positive and 0") {
-            runTest {
+            runTest(UnconfinedTestDispatcher()) {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
@@ -65,7 +66,7 @@ object LiveActionTest : Spek({
         }
 
         it("collects subsequent values when store subscribe count is positive") {
-            runTest {
+            runTest(UnconfinedTestDispatcher()) {
                 val launchJob = launch {
                     subject.execute(flow)
                 }
