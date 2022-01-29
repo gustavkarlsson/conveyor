@@ -3,12 +3,13 @@ package se.gustavkarlsson.conveyor.internal
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.NullAction
-import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
@@ -26,19 +27,20 @@ object ActionIssuerImplTest : Spek({
             }
         }
         it("issuedActions emits action issued after subscribing") {
-            val result = runTest {
+            runTest {
                 val deferred = async { subject.issuedActions.first() }
                 subject.issue(action)
-                deferred.await()
+                val result = deferred.await()
+                expectThat(result).isEqualTo(action)
+                cancel()
             }
-            expectThat(result).isEqualTo(action)
         }
         it("issuedActions emits action issued before subscribing") {
-            val result = runTest {
+            runTest {
                 subject.issue(action)
-                subject.issuedActions.first()
+                val result = subject.issuedActions.first()
+                expectThat(result).isEqualTo(action)
             }
-            expectThat(result).isEqualTo(action)
         }
 
         describe("that was cancelled") {

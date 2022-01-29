@@ -2,6 +2,8 @@ package se.gustavkarlsson.conveyor.actions
 
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -23,10 +25,12 @@ object LiveActionTest : Spek({
                 launch {
                     subject.execute(flow)
                 }
+                runCurrent()
                 flow.emit(1)
+                runCurrent()
+                expectThat(subject.collected).isEmpty()
                 cancel()
             }
-            expectThat(subject.collected).isEmpty()
         }
 
         it("collects current value when store subscribe count turns positive") {
@@ -34,10 +38,12 @@ object LiveActionTest : Spek({
                 launch {
                     subject.execute(flow)
                 }
+                runCurrent()
                 flow.storeSubscriberCount.value = 1
+                runCurrent()
+                expectThat(subject.collected).containsExactly(initialValue)
                 cancel()
             }
-            expectThat(subject.collected).containsExactly(initialValue)
         }
 
         it("does not collect current value again when store subscribe count changes between positive values") {
@@ -45,11 +51,14 @@ object LiveActionTest : Spek({
                 launch {
                     subject.execute(flow)
                 }
+                runCurrent()
                 flow.storeSubscriberCount.value = 1
+                runCurrent()
                 flow.storeSubscriberCount.value = 2
+                runCurrent()
+                expectThat(subject.collected).containsExactly(initialValue)
                 cancel()
             }
-            expectThat(subject.collected).containsExactly(initialValue)
         }
 
         it("collects current value again when store subscribe count changes between positive and 0") {
@@ -57,25 +66,33 @@ object LiveActionTest : Spek({
                 launch {
                     subject.execute(flow)
                 }
+                runCurrent()
                 flow.storeSubscriberCount.value = 1
+                runCurrent()
                 flow.storeSubscriberCount.value = 0
+                runCurrent()
                 flow.storeSubscriberCount.value = 1
+                runCurrent()
+                expectThat(subject.collected).containsExactly(initialValue, initialValue)
                 cancel()
             }
-            expectThat(subject.collected).containsExactly(initialValue, initialValue)
         }
 
         it("collects subsequent values when store subscribe count is positive") {
-            runTest {
+            runTest(UnconfinedTestDispatcher()) {
                 launch {
                     subject.execute(flow)
                 }
+                runCurrent()
                 flow.storeSubscriberCount.value = 1
+                runCurrent()
                 flow.emit(1)
+                runCurrent()
                 flow.emit(2)
+                runCurrent()
+                expectThat(subject.collected).containsExactly(initialValue, 1, 2)
                 cancel()
             }
-            expectThat(subject.collected).containsExactly(initialValue, 1, 2)
         }
     }
 })
