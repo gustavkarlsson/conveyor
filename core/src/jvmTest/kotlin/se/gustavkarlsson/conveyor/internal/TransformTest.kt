@@ -5,9 +5,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 
@@ -16,10 +16,10 @@ object TransformTest : Spek({
         val flow = flowOf(1, 2, 3)
 
         it("returns same flow if transforming with 0 transformers") {
-            val result = runTest {
-                flow.transform(emptyList()).toList()
+            runTest {
+                val result = flow.transform(emptyList()).toList()
+                expectThat(result).containsExactly(1, 2, 3)
             }
-            expectThat(result).containsExactly(1, 2, 3)
         }
         it("returns transformed flow after multiple transformations") {
             val doubleEach = { flow: Flow<Int> ->
@@ -28,10 +28,10 @@ object TransformTest : Spek({
             val filterOverThree = { flow: Flow<Int> ->
                 flow.filter { item -> item > 3 }
             }
-            val result = runTest {
-                flow.transform(listOf(doubleEach, filterOverThree)).toList()
+            runTest {
+                val result = flow.transform(listOf(doubleEach, filterOverThree)).toList()
+                expectThat(result).containsExactly(4, 6)
             }
-            expectThat(result).containsExactly(4, 6)
         }
     }
 })
