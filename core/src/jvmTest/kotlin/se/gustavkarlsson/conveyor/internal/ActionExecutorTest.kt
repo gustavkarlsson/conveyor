@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -39,6 +40,15 @@ object ActionExecutorTest : Spek({
             expectThat(storeFlow.value).isEqualTo(0)
         }
         describe("that was run") {
+            val runTest: (testBody: suspend TestScope.() -> Unit) -> Unit by memoized {
+                { testBody ->
+                    runTest {
+                        launch { subject.run() }
+                        testBody()
+                    }
+                }
+            }
+
             it("executes action") {
                 runTest {
                     launch { subject.run() }
@@ -49,7 +59,6 @@ object ActionExecutorTest : Spek({
             }
             it("executes actions in parallel") {
                 runTest {
-                    launch { subject.run() }
                     actions.emit(IncrementingAction(1, 100))
                     actions.emit(IncrementingAction(1, 100))
                     // FIXME why does this test succeed without advancing time?
@@ -62,7 +71,6 @@ object ActionExecutorTest : Spek({
             it("throws if run again") {
                 expectThrows<IllegalStateException> {
                     runTest {
-                        launch { subject.run() }
                         subject.run()
                     }
                 }
@@ -86,9 +94,17 @@ object ActionExecutorTest : Spek({
         }
 
         describe("that was run") {
+            val runTest: (testBody: suspend TestScope.() -> Unit) -> Unit by memoized {
+                { testBody ->
+                    runTest {
+                        launch { subject.run() }
+                        testBody()
+                    }
+                }
+            }
+
             it("executed start actions") {
                 runTest {
-                    launch { subject.run() }
                     cancel()
                 }
                 expectThat(storeFlow.value).isEqualTo(3)
