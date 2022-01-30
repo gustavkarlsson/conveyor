@@ -1,10 +1,10 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
-import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
