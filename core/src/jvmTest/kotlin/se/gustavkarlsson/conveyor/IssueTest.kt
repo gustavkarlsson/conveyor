@@ -1,30 +1,31 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
-import se.gustavkarlsson.conveyor.testing.runTest
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object IssueTest : Spek({
-    val scope by memoizedTestCoroutineScope()
-
-    describe("A store that was started") {
+    describe("A store") {
         val store by memoized {
-            Store(0).also { store ->
-                scope.launch { store.run() }
-            }
+            Store(0)
         }
 
-        it("issue extension function executes body as expected") {
+        it("after started, issue extension function executes body as expected") {
             runTest {
+                launch { store.run() }
+                runCurrent()
                 store.issue { storeFlow ->
                     storeFlow.update { it + 1 }
                 }
+                runCurrent()
+                expectThat(store.state.value).isEqualTo(1)
+                cancel()
             }
-            expectThat(store.state.value).isEqualTo(1)
         }
     }
 })
