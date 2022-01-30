@@ -1,20 +1,21 @@
 package se.gustavkarlsson.conveyor
 
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
-import se.gustavkarlsson.conveyor.testing.memoizedTestCoroutineScope
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 object PluginTest : Spek({
-    val scope by memoizedTestCoroutineScope()
 
     describe("A store with overridden initial state") {
         val plugin1 = object : Plugin<Int> {
@@ -58,9 +59,13 @@ object PluginTest : Spek({
         }
 
         it("has expected state after starting") {
-            scope.launch { store.run() }
-            val result = store.state.value
-            expectThat(result).isEqualTo(6)
+            runTest {
+                launch { store.run() }
+                runCurrent()
+                val result = store.state.value
+                expectThat(result).isEqualTo(6)
+                cancel()
+            }
         }
     }
     describe("A store with transformed actions") {
@@ -79,15 +84,20 @@ object PluginTest : Spek({
         }
 
         it("has expected state after issuing actions") {
-            scope.launch { store.run() }
-            store.issue { storeFlow ->
-                storeFlow.update { it + 2 }
+            runTest {
+                launch { store.run() }
+                runCurrent()
+                store.issue { storeFlow ->
+                    storeFlow.update { it + 2 }
+                }
+                store.issue { storeFlow ->
+                    storeFlow.update { it * 2 }
+                }
+                runCurrent()
+                val result = store.state.value
+                expectThat(result).isEqualTo(12)
+                cancel()
             }
-            store.issue { storeFlow ->
-                storeFlow.update { it * 2 }
-            }
-            val result = store.state.value
-            expectThat(result).isEqualTo(12)
         }
     }
     describe("A store with transformed state") {
@@ -106,15 +116,20 @@ object PluginTest : Spek({
         }
 
         it("has expected state after issuing actions") {
-            scope.launch { store.run() }
-            val initialState = store.state.value
-            store.issue { storeFlow ->
-                storeFlow.update { it + 2 }
-            }
-            val updatedState = store.state.value
-            expect {
-                that(initialState).isEqualTo(6)
-                that(updatedState).isEqualTo(10)
+            runTest {
+                launch { store.run() }
+                runCurrent()
+                val initialState = store.state.value
+                store.issue { storeFlow ->
+                    storeFlow.update { it + 2 }
+                }
+                runCurrent()
+                val updatedState = store.state.value
+                expect {
+                    that(initialState).isEqualTo(6)
+                    that(updatedState).isEqualTo(10)
+                }
+                cancel()
             }
         }
     }
