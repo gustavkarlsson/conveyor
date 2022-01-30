@@ -1,98 +1,92 @@
 package se.gustavkarlsson.conveyor.actions
 
-import kotlinx.coroutines.cancel
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.test.TestStoreFlow
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
-object LiveActionTest : Spek({
+class LiveActionTest : FunSpec({
     val initialValue = 0
-    val flow by memoized { TestStoreFlow(initialValue) }
+    val flow = TestStoreFlow(initialValue)
+    val subject = TestLiveAction()
 
-    describe("A test action") {
-        val subject by memoized { TestLiveAction() }
-
-        it("does not collect when store subscriber count is 0") {
-            runTest {
-                launch {
-                    subject.execute(flow)
-                }
-                runCurrent()
-                flow.emit(1)
-                runCurrent()
-                expectThat(subject.collected).isEmpty()
-                cancel()
+    test("does not collect when store subscriber count is 0") {
+        runTest {
+            val executeJob = launch {
+                subject.execute(flow)
             }
+            runCurrent()
+            flow.emit(1)
+            runCurrent()
+            expectThat(subject.collected).isEmpty()
+            executeJob.cancel()
         }
+    }
 
-        it("collects current value when store subscribe count turns positive") {
-            runTest {
-                launch {
-                    subject.execute(flow)
-                }
-                runCurrent()
-                flow.storeSubscriberCount.value = 1
-                runCurrent()
-                expectThat(subject.collected).containsExactly(initialValue)
-                cancel()
+    test("collects current value when store subscribe count turns positive") {
+        runTest {
+            val executeJob = launch {
+                subject.execute(flow)
             }
+            runCurrent()
+            flow.storeSubscriberCount.value = 1
+            runCurrent()
+            expectThat(subject.collected).containsExactly(initialValue)
+            executeJob.cancel()
         }
+    }
 
-        it("does not collect current value again when store subscribe count changes between positive values") {
-            runTest {
-                launch {
-                    subject.execute(flow)
-                }
-                runCurrent()
-                flow.storeSubscriberCount.value = 1
-                runCurrent()
-                flow.storeSubscriberCount.value = 2
-                runCurrent()
-                expectThat(subject.collected).containsExactly(initialValue)
-                cancel()
+    test("does not collect current value again when store subscribe count changes between positive values") {
+        runTest {
+            val executeJob = launch {
+                subject.execute(flow)
             }
+            runCurrent()
+            flow.storeSubscriberCount.value = 1
+            runCurrent()
+            flow.storeSubscriberCount.value = 2
+            runCurrent()
+            expectThat(subject.collected).containsExactly(initialValue)
+            executeJob.cancel()
         }
+    }
 
-        it("collects current value again when store subscribe count changes between positive and 0") {
-            runTest {
-                launch {
-                    subject.execute(flow)
-                }
-                runCurrent()
-                flow.storeSubscriberCount.value = 1
-                runCurrent()
-                flow.storeSubscriberCount.value = 0
-                runCurrent()
-                flow.storeSubscriberCount.value = 1
-                runCurrent()
-                expectThat(subject.collected).containsExactly(initialValue, initialValue)
-                cancel()
+    test("collects current value again when store subscribe count changes between positive and 0") {
+        runTest {
+            val executeJob = launch {
+                subject.execute(flow)
             }
+            runCurrent()
+            flow.storeSubscriberCount.value = 1
+            runCurrent()
+            flow.storeSubscriberCount.value = 0
+            runCurrent()
+            flow.storeSubscriberCount.value = 1
+            runCurrent()
+            expectThat(subject.collected).containsExactly(initialValue, initialValue)
+            executeJob.cancel()
         }
+    }
 
-        it("collects subsequent values when store subscribe count is positive") {
-            runTest(UnconfinedTestDispatcher()) {
-                launch {
-                    subject.execute(flow)
-                }
-                runCurrent()
-                flow.storeSubscriberCount.value = 1
-                runCurrent()
-                flow.emit(1)
-                runCurrent()
-                flow.emit(2)
-                runCurrent()
-                expectThat(subject.collected).containsExactly(initialValue, 1, 2)
-                cancel()
+    test("collects subsequent values when store subscribe count is positive") {
+        runTest {
+            val executeJob = launch {
+                subject.execute(flow)
             }
+            runCurrent()
+            flow.storeSubscriberCount.value = 1
+            runCurrent()
+            flow.emit(1)
+            runCurrent()
+            flow.emit(2)
+            runCurrent()
+            expectThat(subject.collected).containsExactly(initialValue, 1, 2)
+            executeJob.cancel()
         }
     }
 })

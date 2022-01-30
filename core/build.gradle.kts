@@ -22,6 +22,7 @@ kotlin {
             dependencies {
                 runtimeOnly(libs.bundles.testRuntime)
                 implementation(libs.bundles.testImplementation)
+                implementation(libs.kotest) // TODO kotest has multiplatform support. Try to enable it after removing spek
             }
         }
         val jsTest by getting

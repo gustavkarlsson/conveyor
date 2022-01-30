@@ -1,45 +1,40 @@
 package se.gustavkarlsson.conveyor.actions
 
-import kotlinx.coroutines.cancel
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.test.TestStoreFlow
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 
-object WatchActionTest : Spek({
+object WatchActionTest : FunSpec({
     val initialValue = 0
-    val flow by memoized { TestStoreFlow(initialValue) }
+    val flow = TestStoreFlow(initialValue)
+    val subject = TestWatchAction()
 
-    describe("A test action") {
-        val subject by memoized { TestWatchAction() }
-
-        it("initially gets current value") {
-            runTest {
-                launch {
-                    subject.execute(flow)
-                }
-                runCurrent()
-                expectThat(subject.watched).containsExactly(initialValue)
-                cancel()
+    test("initially gets current value") {
+        runTest {
+            val job = launch {
+                subject.execute(flow)
             }
+            runCurrent()
+            expectThat(subject.watched).containsExactly(initialValue)
+            job.cancel()
         }
+    }
 
-        it("watches new state changes") {
-            runTest {
-                launch {
-                    subject.execute(flow)
-                }
-                runCurrent()
-                flow.emit(1)
-                flow.emit(2)
-                runCurrent()
-                expectThat(subject.watched).containsExactly(initialValue, 1, 2)
-                cancel()
+    test("watches new state changes") {
+        runTest {
+            val job = launch {
+                subject.execute(flow)
             }
+            runCurrent()
+            flow.emit(1)
+            flow.emit(2)
+            runCurrent()
+            expectThat(subject.watched).containsExactly(initialValue, 1, 2)
+            job.cancel()
         }
     }
 })

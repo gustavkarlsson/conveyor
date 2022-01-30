@@ -27,9 +27,7 @@ kotlin {
     }
     jvm {
         testRuns["test"].executionTask.configure {
-            useJUnitPlatform {
-                includeEngines("spek2")
-            }
+            useJUnitPlatform()
         }
     }
     js(IR) {
