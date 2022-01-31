@@ -8,7 +8,7 @@ import se.gustavkarlsson.conveyor.test.TestStoreFlow
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 
-object WatchActionTest : FunSpec({
+class WatchActionTest : FunSpec({
     val initialValue = 0
     val flow = TestStoreFlow(initialValue)
     val subject = TestWatchAction()
