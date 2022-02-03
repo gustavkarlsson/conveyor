@@ -1,14 +1,19 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toCollection
+import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import se.gustavkarlsson.conveyor.StateUpdateException
 import strikt.api.expect
 import strikt.api.expectThat
@@ -16,6 +21,7 @@ import strikt.api.expectThrows
 import strikt.assertions.cause
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
 class StateManagerTest : FunSpec({
@@ -24,6 +30,11 @@ class StateManagerTest : FunSpec({
     val state1 = "state1"
     val state2 = "state2"
     val subject = StateManager(initialState, emptyList())
+
+    val delayTransformer: Transformer<String> = { flow ->
+        flow.onEach { delay(10) }
+    }
+    val delayedSubject = StateManager(initialState, listOf(delayTransformer))
 
     test("value returns initial") {
         expectThat(subject.value).isEqualTo(initialState)
@@ -235,85 +246,84 @@ class StateManagerTest : FunSpec({
                 .isEqualTo(errorMessage)
         }
     }
-/*
-    describe("A StateManager with transformers") {
-        val addIndex: Transformer<String> = { flow ->
+    test("transformers run when run") {
+        val addIndexTransformer: Transformer<String> = { flow ->
             flow.withIndex()
                 .map { "${it.value}-${it.index}" }
         }
-        val dropOdd: Transformer<String> = { flow ->
+        val dropOddTransformer: Transformer<String> = { flow ->
             flow.filter {
                 val index = it.substringAfter("-").toInt()
                 index % 2 == 0
             }
         }
-        val subject by memoized { StateManager(initialState, listOf(addIndex, dropOdd)) }
+        val subjectWithTransformers = StateManager(initialState, listOf(addIndexTransformer, dropOddTransformer))
 
-        it("transformers run when run") {
+        runTest {
             val result = mutableListOf<String>()
-            runTest {
-                launch { subject.run() }
-                launch { subject.outgoingState.toCollection(result) }
-                runCurrent()
+            val runJob1 = launch { subjectWithTransformers.run() }
+            val runJob2 = launch { subjectWithTransformers.outgoingState.toCollection(result) }
+            runCurrent()
 
-                subject.tryEmit("first")
-                subject.tryEmit("second")
+            subjectWithTransformers.tryEmit("first")
+            runCurrent()
+            subjectWithTransformers.tryEmit("second")
+            runCurrent()
 
-                cancel()
-            }
+            runJob1.cancel()
+            runJob2.cancel()
             expectThat(result).containsExactly("initial-0", "second-2")
         }
     }
-    describe("A StateManager with a delaying transformer") {
-        val delay: Transformer<String> = { flow ->
-            flow.onEach { delay(10) }
-        }
-        val subject by memoized { StateManager(initialState, listOf(delay)) }
 
-        it("suspends emissions due to backpressure") {
-            runTest {
-                launch { subject.run() }
-                runCurrent()
-                expectThrows<TimeoutCancellationException> {
-                    withTimeout(15) {
-                        subject.emit("first")
-                        subject.emit("second")
-                    }
+    test("subject with delaying transformer suspends emissions due to backpressure") {
+        runTest {
+            val runJob = launch { delayedSubject.run() }
+            runCurrent()
+            expectThrows<TimeoutCancellationException> {
+                withTimeout(15) {
+                    delayedSubject.emit("first")
+                    runCurrent()
+                    delayedSubject.emit("second")
+                    runCurrent()
                 }
-                cancel()
             }
-        }
-        it("does not miss any emissions") {
-            runTest {
-                val values = mutableListOf<String>()
-                launch { subject.run() }
-                launch {
-                    subject.emit("first")
-                }
-                launch {
-                    subject.emit("second")
-                }
-                runCurrent()
-                values += subject.value
-                advanceTimeBy(100)
-                values += subject.value
-                expectThat(values).containsExactly("first", "second")
-                cancel()
-            }
-        }
-        it("tryEmit fails to set new state and returns false when blocked") {
-            runTest {
-                launch { subject.run() }
-                runCurrent()
-                subject.tryEmit(state1)
-                val success = subject.tryEmit(state2)
-                expect {
-                    that(success).isFalse()
-                    that(subject.value).isEqualTo(state1)
-                }
-                cancel()
-            }
+            runJob.cancel()
         }
     }
-*/
+
+    test("subject with delaying transformer does not miss any emissions") {
+        runTest {
+            val values = mutableListOf<String>()
+            val runJob = launch { delayedSubject.run() }
+            val emitJob1 = launch {
+                delayedSubject.emit("first")
+            }
+            val emitJob2 = launch {
+                delayedSubject.emit("second")
+            }
+            runCurrent()
+            values += delayedSubject.value
+            advanceTimeBy(100)
+            values += delayedSubject.value
+            expectThat(values).containsExactly("first", "second")
+            runJob.cancel()
+            emitJob1.cancel()
+            emitJob2.cancel()
+        }
+    }
+
+    test("subject with delaying transformer, tryEmit fails to set new state and returns false when blocked") {
+        runTest {
+            val runJob = launch { delayedSubject.run() }
+            runCurrent()
+            delayedSubject.tryEmit(state1)
+            val success = delayedSubject.tryEmit(state2)
+            expect {
+                that(success).isFalse()
+                that(delayedSubject.value).isEqualTo(state1)
+            }
+            runJob.cancel()
+        }
+    }
 })
