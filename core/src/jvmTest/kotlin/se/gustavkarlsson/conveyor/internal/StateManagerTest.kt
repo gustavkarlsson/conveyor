@@ -1,23 +1,14 @@
 package se.gustavkarlsson.conveyor.internal
 
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toCollection
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.withIndex
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
-import org.spekframework.spek2.Spek
-import org.spekframework.spek2.style.specification.describe
 import se.gustavkarlsson.conveyor.StateUpdateException
 import strikt.api.expect
 import strikt.api.expectThat
@@ -25,199 +16,226 @@ import strikt.api.expectThrows
 import strikt.assertions.cause
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-object StateManagerTest : Spek({
+class StateManagerTest : FunSpec({
     val errorMessage = "failed"
     val initialState = "initial"
     val state1 = "state1"
     val state2 = "state2"
+    val subject = StateManager(initialState, emptyList())
 
-    describe("A StateManager") {
-        val subject by memoized { StateManager(initialState, emptyList()) }
+    test("value returns initial") {
+        expectThat(subject.value).isEqualTo(initialState)
+    }
 
-        it("value returns initial") {
-            expectThat(subject.value).isEqualTo(initialState)
-        }
-        it("flow emits initial") {
-            runTest {
-                val deferred = async {
-                    subject.take(2).toList()
-                }
-                deferred.cancel()
-                val result = deferred.await()
-                expectThat(result).containsExactly(initialState)
+    test("flow emits initial") {
+        runTest {
+            val collected = mutableListOf<String>()
+            val collectJob = launch {
+                subject
+                    .take(2)
+                    .toCollection(collected)
             }
-        }
-        it("update sets new state after updating it") {
-            runTest {
-                subject.update { this + state1 }
-            }
-            expectThat(subject.value).isEqualTo(initialState + state1)
-        }
-        it("updateAndGet sets new state after updating it") {
-            runTest {
-                subject.updateAndGet { this + state1 }
-            }
-            expectThat(subject.value).isEqualTo(initialState + state1)
-        }
-        it("getAndUpdate sets new state after updating it") {
-            runTest {
-                subject.getAndUpdate { this + state1 }
-            }
-            expectThat(subject.value).isEqualTo(initialState + state1)
-        }
-        it("updateAndGet returns new state after updating it") {
-            runTest {
-                val result = subject.updateAndGet { this + state1 }
-                expectThat(result).isEqualTo(initialState + state1)
-            }
-        }
-        it("updateAndGet returns old state after updating it") {
-            runTest {
-                val result = subject.getAndUpdate { this + state1 }
-                expectThat(result).isEqualTo(initialState)
-            }
-        }
-        it("emit sets new state") {
-            runTest {
-                subject.emit(state1)
-                expectThat(subject.value).isEqualTo(state1)
-            }
-        }
-        it("tryEmit sets new state and returns true") {
-            val success = subject.tryEmit(state1)
-            expect {
-                that(success).isTrue()
-                that(subject.value).isEqualTo(state1)
-            }
-        }
-        it("flow emits initial and state1 when updating it to state1 when collecting") {
-            runTest {
-                val deferred = async {
-                    subject.take(3).toList()
-                }
-                subject.emit(state1)
-                deferred.cancel()
-                val result = deferred.await()
-                expectThat(result).containsExactly(initialState, state1)
-            }
-        }
-        it("subscriberCount is initially 0") {
-            expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
-                .isEqualTo(0)
-        }
-        it("subscriberCount updates with subscribers") {
-            runTest {
-                launch {
-                    subject.collect {}
-                }
-                launch {
-                    subject.collect {}
-                }
-                runCurrent()
-                expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
-                    .isEqualTo(2)
-                cancel()
-            }
-        }
-        it("subscriberCount does not update with subscribers to outgoing internal state") {
-            runTest {
-                val job = launch {
-                    subject.outgoingState.collect {}
-                }
-                expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
-                    .isEqualTo(0)
-                job.cancel()
-            }
-        }
-        it("storeSubscriberCount is initially 0") {
-            expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
-                .isEqualTo(0)
-        }
-        it("storeSubscriberCount updates with subscribers to outgoing state") {
-            runTest {
-                launch {
-                    subject.outgoingState.collect {}
-                }
-                launch {
-                    subject.outgoingState.collect {}
-                }
-                runCurrent()
-                expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
-                    .isEqualTo(2)
-                cancel()
-            }
-        }
-        it("storeSubscriberCount does not update with subscribers to internal state") {
-            runTest {
-                val job = launch {
-                    subject.collect {}
-                }
-                expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
-                    .isEqualTo(0)
-                job.cancel()
-            }
-        }
-        it("slow collector of outgoingState does not miss any emissions") {
-            runTest {
-                val collected = mutableListOf<String>()
-                launch { subject.run() }
-                launch {
-                    subject.outgoingState
-                        .onEach { delay(1) }
-                        .toCollection(collected)
-                }
-                runCurrent()
-                subject.tryEmit("first")
-                runCurrent()
-                subject.tryEmit("second")
-                advanceTimeBy(100)
-                expectThat(collected).containsExactly("initial", "first", "second")
-                cancel()
-            }
-        }
-        it("throws exception containing state when update fails") {
-            expectThrows<StateUpdateException> {
-                subject.update {
-                    error(errorMessage)
-                }
-            }.and {
-                get { state }.describedAs("state")
-                    .isEqualTo(initialState)
-                cause
-                    .get { this?.message }.describedAs("message")
-                    .isEqualTo(errorMessage)
-            }
-        }
-        it("throws exception containing state when updateAndGet fails") {
-            expectThrows<StateUpdateException> {
-                subject.updateAndGet {
-                    error(errorMessage)
-                }
-            }.and {
-                get { state }.describedAs("state")
-                    .isEqualTo(initialState)
-                cause
-                    .get { this?.message }.describedAs("message")
-                    .isEqualTo(errorMessage)
-            }
-        }
-        it("throws exception containing state when getAndUpdate fails") {
-            expectThrows<StateUpdateException> {
-                subject.getAndUpdate {
-                    error(errorMessage)
-                }
-            }.and {
-                get { state }.describedAs("state")
-                    .isEqualTo(initialState)
-                cause
-                    .get { this?.message }.describedAs("message")
-                    .isEqualTo(errorMessage)
-            }
+            runCurrent()
+            collectJob.cancel()
+            expectThat(collected).containsExactly(initialState)
         }
     }
+
+    test("update sets new state after updating it") {
+        runTest {
+            subject.update { this + state1 }
+        }
+        expectThat(subject.value).isEqualTo(initialState + state1)
+    }
+
+    test("updateAndGet sets new state after updating it") {
+        runTest {
+            subject.updateAndGet { this + state1 }
+        }
+        expectThat(subject.value).isEqualTo(initialState + state1)
+    }
+
+    test("getAndUpdate sets new state after updating it") {
+        runTest {
+            subject.getAndUpdate { this + state1 }
+        }
+        expectThat(subject.value).isEqualTo(initialState + state1)
+    }
+
+    test("updateAndGet returns new state after updating it") {
+        runTest {
+            val result = subject.updateAndGet { this + state1 }
+            expectThat(result).isEqualTo(initialState + state1)
+        }
+    }
+
+    test("updateAndGet returns old state after updating it") {
+        runTest {
+            val result = subject.getAndUpdate { this + state1 }
+            expectThat(result).isEqualTo(initialState)
+        }
+    }
+
+    test("emit sets new state") {
+        runTest {
+            subject.emit(state1)
+            expectThat(subject.value).isEqualTo(state1)
+        }
+    }
+
+    test("tryEmit sets new state and returns true") {
+        val success = subject.tryEmit(state1)
+        expect {
+            that(success).isTrue()
+            that(subject.value).isEqualTo(state1)
+        }
+    }
+
+    test("flow emits initial and state1 when updating it to state1 when collecting") {
+        runTest {
+            val collected = mutableListOf<String>()
+            val collectJob = launch {
+                subject
+                    .take(3)
+                    .toCollection(collected)
+            }
+            runCurrent()
+            subject.emit(state1)
+            runCurrent()
+            collectJob.cancel()
+            expectThat(collected).containsExactly(initialState, state1)
+        }
+    }
+
+    test("subscriberCount is initially 0") {
+        expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
+            .isEqualTo(0)
+    }
+
+    test("subscriberCount updates with subscribers") {
+        runTest {
+            val collectJob1 = launch {
+                subject.collect {}
+            }
+            val collectJob2 = launch {
+                subject.collect {}
+            }
+            runCurrent()
+            expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
+                .isEqualTo(2)
+            collectJob1.cancel()
+            collectJob2.cancel()
+        }
+    }
+
+    test("subscriberCount does not update with subscribers to outgoing internal state") {
+        runTest {
+            val collectJob = launch {
+                subject.outgoingState.collect {}
+            }
+            runCurrent()
+            expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
+                .isEqualTo(0)
+            collectJob.cancel()
+        }
+    }
+
+    test("storeSubscriberCount is initially 0") {
+        expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
+            .isEqualTo(0)
+    }
+
+    test("storeSubscriberCount updates with subscribers to outgoing state") {
+        runTest {
+            val collectJob1 = launch {
+                subject.outgoingState.collect {}
+            }
+            val collectJob2 = launch {
+                subject.outgoingState.collect {}
+            }
+            runCurrent()
+            expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
+                .isEqualTo(2)
+            collectJob1.cancel()
+            collectJob2.cancel()
+        }
+    }
+
+    test("storeSubscriberCount does not update with subscribers to internal state") {
+        runTest {
+            val job = launch {
+                subject.collect {}
+            }
+            expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
+                .isEqualTo(0)
+            job.cancel()
+        }
+    }
+
+    test("slow collector of outgoingState does not miss any emissions") {
+        runTest {
+            val collected = mutableListOf<String>()
+            val runJob = launch { subject.run() }
+            val collectJob = launch {
+                subject.outgoingState
+                    .onEach { delay(1) }
+                    .toCollection(collected)
+            }
+            runCurrent()
+            subject.tryEmit("first")
+            runCurrent()
+            subject.tryEmit("second")
+            advanceTimeBy(100)
+            expectThat(collected).containsExactly("initial", "first", "second")
+            runJob.cancel()
+            collectJob.cancel()
+        }
+    }
+
+    test("throws exception containing state when update fails") {
+        expectThrows<StateUpdateException> {
+            subject.update {
+                error(errorMessage)
+            }
+        }.and {
+            get { state }.describedAs("state")
+                .isEqualTo(initialState)
+            cause
+                .get { this?.message }.describedAs("message")
+                .isEqualTo(errorMessage)
+        }
+    }
+
+    test("throws exception containing state when updateAndGet fails") {
+        expectThrows<StateUpdateException> {
+            subject.updateAndGet {
+                error(errorMessage)
+            }
+        }.and {
+            get { state }.describedAs("state")
+                .isEqualTo(initialState)
+            cause
+                .get { this?.message }.describedAs("message")
+                .isEqualTo(errorMessage)
+        }
+    }
+
+    test("throws exception containing state when getAndUpdate fails") {
+        expectThrows<StateUpdateException> {
+            subject.getAndUpdate {
+                error(errorMessage)
+            }
+        }.and {
+            get { state }.describedAs("state")
+                .isEqualTo(initialState)
+            cause
+                .get { this?.message }.describedAs("message")
+                .isEqualTo(errorMessage)
+        }
+    }
+/*
     describe("A StateManager with transformers") {
         val addIndex: Transformer<String> = { flow ->
             flow.withIndex()
@@ -297,4 +315,5 @@ object StateManagerTest : Spek({
             }
         }
     }
+*/
 })
