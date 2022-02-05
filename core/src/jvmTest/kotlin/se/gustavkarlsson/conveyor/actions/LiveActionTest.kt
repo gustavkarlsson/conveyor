@@ -1,14 +1,13 @@
 package se.gustavkarlsson.conveyor.actions
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.test.TestStoreFlow
-import strikt.api.expectThat
-import strikt.assertions.isEmpty
 
 class LiveActionTest : FunSpec({
     val initialValue = 0
@@ -23,7 +22,7 @@ class LiveActionTest : FunSpec({
             runCurrent()
             flow.emit(1)
             runCurrent()
-            expectThat(subject.collected).isEmpty()
+            subject.collected.shouldBeEmpty()
             executeJob.cancel()
         }
     }

@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -8,9 +9,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.testing.NullAction
 import se.gustavkarlsson.conveyor.testing.SetStateAction
-import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.isTrue
 
 class StoreIntegrationTest : FunSpec({
     val initialState = "initial"
@@ -66,7 +65,7 @@ class StoreIntegrationTest : FunSpec({
     test("started store has an active job") {
         runTest {
             val runJob = launch { minimalStore.run() }
-            expectThat(runJob.isActive).isTrue()
+            runJob.isActive.shouldBeTrue()
             runJob.cancel()
         }
     }

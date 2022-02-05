@@ -2,6 +2,7 @@ package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
@@ -9,8 +10,6 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import strikt.api.expectThat
-import strikt.assertions.isNotNull
 
 class StatefulMutableSharedFlowTest : FunSpec({
     val subject = StatefulMutableSharedFlow(0)
@@ -25,7 +24,7 @@ class StatefulMutableSharedFlowTest : FunSpec({
     test("makes first value streamable") {
         runTest {
             val result = subject.firstOrNull()
-            expectThat(result).isNotNull()
+            result.shouldNotBeNull()
         }
     }
 
