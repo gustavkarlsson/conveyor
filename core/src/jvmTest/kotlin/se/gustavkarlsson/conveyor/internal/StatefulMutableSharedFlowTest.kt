@@ -1,13 +1,19 @@
 package se.gustavkarlsson.conveyor.internal
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
@@ -29,50 +35,47 @@ class StatefulMutableSharedFlowTest : FunSpec({
     }
 
     test("does not skip any items for slow collectors") {
-        /*
         runTest {
-            FIXME Fix this test
             val targetCount = 10
+            val itemDelay = 100L
             var count = 0
             launch {
                 subject
+                    .buffer(targetCount)
                     .take(targetCount)
                     .collect {
-                        delay(100)
                         count++
+                        delay(itemDelay)
                     }
             }
+            runCurrent()
             repeat(targetCount) {
-                subject.emit(it + 1)
+                launch { subject.emit(it + 1) }
             }
-            cancel()
+            advanceTimeBy(itemDelay * targetCount)
             count.shouldBe(targetCount)
         }
-         */
     }
 
     test("rejects tryEmit when blocked") {
-        /*
         runTest {
-            FIXME can't test this properly
             var count = 0
-            var success: Boolean? = null
-            launch {
+            val collectJob = launch {
                 subject
-                    .take(1)
                     .collect {
-                        delay(100)
                         count++
+                        delay(100)
                     }
             }
             subject.emit(2)
-            success = subject.tryEmit(3)
-            expect {
-                that(success).isFalse()
-                that(count).isEqualTo(1)
+            runCurrent()
+            val success = subject.tryEmit(3)
+            assertSoftly {
+                success.shouldBeFalse()
+                count.shouldBe(1)
             }
+            collectJob.cancel()
         }
-         */
     }
 
     test("initially has a subscriptionCount of 0") {
