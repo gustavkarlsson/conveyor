@@ -21,6 +21,7 @@ kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref =
 kotlinGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 dokkaGradle = { module = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin", version.ref = "dokka" }
 ktlintGradle = { module = "org.jlleitschuh.gradle:ktlint-gradle", version.ref = "ktlint" }
+kotestGradle = { module = "io.kotest:kotest-framework-multiplatform-plugin-gradle", version.ref = "kotest" }
 kotlinBinaryCompatibilityValidatorGradle = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "kotlinBinaryCompatibilityValidator" }
 
 [bundles]

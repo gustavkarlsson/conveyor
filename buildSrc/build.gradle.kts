@@ -12,4 +12,5 @@ dependencies {
     implementation(libs.kotlinBinaryCompatibilityValidatorGradle)
     implementation(libs.dokkaGradle)
     implementation(libs.ktlintGradle)
+    implementation(libs.kotestGradle)
 }
