@@ -19,7 +19,7 @@ kotlin {
     targets {
         jvm {
             testRuns["test"].executionTask.configure {
-                useJUnitPlatform() // FIXME do we need this?
+                useJUnitPlatform()
             }
         }
         js(IR) {
