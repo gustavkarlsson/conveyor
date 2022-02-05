@@ -1,11 +1,13 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
+import se.gustavkarlsson.conveyor.StoreStoppedException
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.SuspendingProcess
@@ -14,6 +16,9 @@ import se.gustavkarlsson.conveyor.testing.hasIssued
 import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
 import strikt.api.expectThat
 import strikt.api.expectThrows
+import strikt.assertions.first
+import strikt.assertions.hasSize
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 class StoreImplTest : FunSpec({
@@ -21,6 +26,7 @@ class StoreImplTest : FunSpec({
     val action = IncrementingAction(1)
     val state = SimpleStoreFlow(initialState)
     val actionIssuer = TrackingActionIssuer<Int>()
+    val cancellationException = CancellationException("Job cancelled at beginning of test")
     val subject = StoreImpl(state, actionIssuer, listOf(SuspendingProcess))
 
     test("state.value returns current state") {
@@ -78,49 +84,62 @@ class StoreImplTest : FunSpec({
             runJob.cancel()
         }
     }
-/*
-FIXME can't get these to work
 
-            describe("that was stopped") {
-                val cancellationException = CancellationException("Job cancelled at beginning of test")
-                beforeEachTest { job.cancel(cancellationException) }
+    test("stopping twice succeeds") {
+        runTest {
+            val runJob = launch { subject.run() }
+            runJob.cancel()
+            runJob.cancel()
+        }
+    }
 
-                it("stopping again succeeds") {
-                    job.cancel("Stopped again")
+    test("starting after stopped throws with cancellationException as reason") {
+        runTest {
+            val runJob = launch { subject.run() }
+            runCurrent()
+            runJob.cancel(cancellationException)
+            runCurrent()
+            expectThrows<StoreStoppedException> {
+                subject.run()
+            }.get { cancellationReason }.describedAs("cancellation reason")
+                .and {
+                    isA<CancellationException>()
+                    get { message }.describedAs("message")
+                        .isEqualTo(cancellationException.message)
                 }
-                it("start again throws with cancellationException as reason") {
-                    expectThrows<StoreStoppedException> {
-                        subject.run()
-                    }.get { cancellationReason }.describedAs("cancellation reason")
-                        .and {
-                            isA<CancellationException>()
-                            get { message }.describedAs("message")
-                                .isEqualTo(cancellationException.message)
-                        }
+        }
+    }
+
+    test("issuing action after stopped throws with cancellationException as reason") {
+        runTest {
+            val runJob = launch { subject.run() }
+            runCurrent()
+            runJob.cancel(cancellationException)
+            runCurrent()
+            expectThrows<StoreStoppedException> {
+                subject.issue(action)
+            }.get { cancellationReason }.describedAs("cancellation reason")
+                .and {
+                    isA<CancellationException>()
+                    get { message }.describedAs("message")
+                        .isEqualTo(cancellationException.message)
                 }
-                it("issuing action throws with cancellationException as reason") {
-                    expectThrows<StoreStoppedException> {
-                        subject.issue(action)
-                    }.get { cancellationReason }.describedAs("cancellation reason")
-                        .and {
-                            isA<CancellationException>()
-                            get { message }.describedAs("message")
-                                .isEqualTo(cancellationException.message)
-                        }
+        }
+    }
+
+    test("actionIssuer has been cancelled by exception") {
+        runTest {
+            val runJob = launch { subject.run() }
+            runCurrent()
+            runJob.cancel(cancellationException)
+            runCurrent()
+            expectThat(actionIssuer.cancellations).describedAs("cancellations")
+                .hasSize(1)
+                .first().and {
+                    isA<CancellationException>()
+                    get { message }.describedAs("message")
+                        .isEqualTo(cancellationException.message)
                 }
-                it("actionIssuer has been cancelled by exception") {
-                    expectThat(actionIssuer.cancellations).describedAs("cancellations")
-                        .hasSize(1)
-                        .first().and {
-                            isA<CancellationException>()
-                            get { message }.describedAs("message")
-                                .isEqualTo(cancellationException.message)
-                        }
-                }
-                it("job is cancelled") {
-                    expectThat(job).describedAs("job")
-                        .get { isCancelled }.isTrue()
-                }
-            }
-*/
+        }
+    }
 })
