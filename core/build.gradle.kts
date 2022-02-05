@@ -23,6 +23,7 @@ kotlin {
                 runtimeOnly(libs.bundles.testRuntime)
                 implementation(libs.bundles.testImplementation)
                 implementation(libs.kotest)
+                implementation(libs.kotest.assertions)
             }
         }
         val jsTest by getting
