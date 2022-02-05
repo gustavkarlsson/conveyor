@@ -16,7 +16,6 @@ import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 
-// TODO Split subjects into separate files?
 class ActionExecutorTest : FunSpec({
     val initialState = 0
     val actions = MutableSharedFlow<Action<Int>>()
