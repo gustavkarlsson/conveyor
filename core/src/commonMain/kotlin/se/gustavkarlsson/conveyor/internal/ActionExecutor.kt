@@ -1,8 +1,8 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -26,7 +26,7 @@ internal class ActionExecutor<State>(
             actions
                 .transform(transformers)
                 .collect { action ->
-                    launch { action.execute(storeFlow) }
+                    launch(start = CoroutineStart.UNDISPATCHED) { action.execute(storeFlow) }
                 }
         }
     }
