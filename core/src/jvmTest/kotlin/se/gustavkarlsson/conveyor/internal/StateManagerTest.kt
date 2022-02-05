@@ -1,12 +1,12 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -18,11 +18,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
 import se.gustavkarlsson.conveyor.StateUpdateException
 import strikt.api.expectThat
-import strikt.api.expectThrows
-import strikt.assertions.cause
 import strikt.assertions.isEqualTo
 
 class StateManagerTest : FunSpec({
@@ -207,44 +204,38 @@ class StateManagerTest : FunSpec({
     }
 
     test("throws exception containing state when update fails") {
-        expectThrows<StateUpdateException> {
+        val throwable = shouldThrow<StateUpdateException> {
             subject.update {
                 error(errorMessage)
             }
-        }.and {
-            get { state }.describedAs("state")
-                .isEqualTo(initialState)
-            cause
-                .get { this?.message }.describedAs("message")
-                .isEqualTo(errorMessage)
+        }
+        assertSoftly {
+            throwable.state.shouldBe(initialState)
+            throwable.cause.message.shouldBe(errorMessage)
         }
     }
 
     test("throws exception containing state when updateAndGet fails") {
-        expectThrows<StateUpdateException> {
+        val throwable = shouldThrow<StateUpdateException> {
             subject.updateAndGet {
                 error(errorMessage)
             }
-        }.and {
-            get { state }.describedAs("state")
-                .isEqualTo(initialState)
-            cause
-                .get { this?.message }.describedAs("message")
-                .isEqualTo(errorMessage)
+        }
+        assertSoftly {
+            throwable.state.shouldBe(initialState)
+            throwable.cause.message.shouldBe(errorMessage)
         }
     }
 
     test("throws exception containing state when getAndUpdate fails") {
-        expectThrows<StateUpdateException> {
+        val throwable = shouldThrow<StateUpdateException> {
             subject.getAndUpdate {
                 error(errorMessage)
             }
-        }.and {
-            get { state }.describedAs("state")
-                .isEqualTo(initialState)
-            cause
-                .get { this?.message }.describedAs("message")
-                .isEqualTo(errorMessage)
+        }
+        assertSoftly {
+            throwable.state.shouldBe(initialState)
+            throwable.cause.message.shouldBe(errorMessage)
         }
     }
     test("transformers run when run") {
@@ -281,14 +272,13 @@ class StateManagerTest : FunSpec({
         runTest {
             val runJob = launch { delayedSubject.run() }
             runCurrent()
-            expectThrows<TimeoutCancellationException> {
-                withTimeout(15) {
-                    delayedSubject.emit("first")
-                    runCurrent()
-                    delayedSubject.emit("second")
-                    runCurrent()
-                }
-            }
+            val emitJob1 = launch { delayedSubject.emit("first") }
+            val emitJob2 = launch { delayedSubject.emit("second") }
+            runCurrent()
+            advanceTimeBy(5)
+            runCurrent()
+            emitJob2.isActive.shouldBeTrue()
+            emitJob1.cancel()
             runJob.cancel()
         }
     }

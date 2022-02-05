@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.internal
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
@@ -14,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
-import strikt.api.expectThrows
 
 // TODO Split subjects into separate files?
 class ActionExecutorTest : FunSpec({
@@ -86,7 +86,7 @@ class ActionExecutorTest : FunSpec({
     }
 
     test("throws if run a second time") {
-        expectThrows<IllegalStateException> {
+        shouldThrow<IllegalStateException> {
             runTest {
                 launch { minimalSubject.run() }
                 minimalSubject.run()

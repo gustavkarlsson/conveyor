@@ -1,7 +1,10 @@
 package se.gustavkarlsson.conveyor.internal
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -16,7 +19,6 @@ import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.testing.shouldHaveIssued
 import se.gustavkarlsson.conveyor.testing.shouldNeverHaveBeenCancelled
 import strikt.api.expectThat
-import strikt.api.expectThrows
 import strikt.assertions.first
 import strikt.assertions.hasSize
 import strikt.assertions.isA
@@ -41,7 +43,7 @@ class StoreImplTest : FunSpec({
     }
 
     test("throws when action issued") {
-        expectThrows<StoreNotYetStartedException> {
+        shouldThrow<StoreNotYetStartedException> {
             subject.issue(action)
         }
     }
@@ -50,7 +52,7 @@ class StoreImplTest : FunSpec({
         runTest {
             val runJob = launch { subject.run() }
             runCurrent()
-            expectThrows<StoreAlreadyStartedException> {
+            shouldThrow<StoreAlreadyStartedException> {
                 subject.run()
             }
             runJob.cancel()
@@ -100,14 +102,13 @@ class StoreImplTest : FunSpec({
             runCurrent()
             runJob.cancel(cancellationException)
             runCurrent()
-            expectThrows<StoreStoppedException> {
+            val throwable = shouldThrow<StoreStoppedException> {
                 subject.run()
-            }.get { cancellationReason }.describedAs("cancellation reason")
-                .and {
-                    isA<CancellationException>()
-                    get { message }.describedAs("message")
-                        .isEqualTo(cancellationException.message)
-                }
+            }
+            assertSoftly {
+                throwable.cancellationReason.shouldBeInstanceOf<CancellationException>()
+                throwable.cancellationReason.message.shouldBe(cancellationException.message)
+            }
         }
     }
 
@@ -117,14 +118,13 @@ class StoreImplTest : FunSpec({
             runCurrent()
             runJob.cancel(cancellationException)
             runCurrent()
-            expectThrows<StoreStoppedException> {
+            val throwable = shouldThrow<StoreStoppedException> {
                 subject.issue(action)
-            }.get { cancellationReason }.describedAs("cancellation reason")
-                .and {
-                    isA<CancellationException>()
-                    get { message }.describedAs("message")
-                        .isEqualTo(cancellationException.message)
-                }
+            }
+            assertSoftly {
+                throwable.cancellationReason.shouldBeInstanceOf<CancellationException>()
+                throwable.cancellationReason.message.shouldBe(cancellationException.message)
+            }
         }
     }
 

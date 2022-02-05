@@ -1,28 +1,28 @@
 package se.gustavkarlsson.conveyor.internal
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import se.gustavkarlsson.conveyor.StoreAlreadyStartedException
 import se.gustavkarlsson.conveyor.StoreNotYetStartedException
 import se.gustavkarlsson.conveyor.StoreStoppedException
-import strikt.api.expectThrows
-import strikt.assertions.isSameInstanceAs
 
 class StageManagerTest : FunSpec({
     val subject = StageManager()
 
     test("stop throws exception") {
-        expectThrows<StoreNotYetStartedException> {
+        shouldThrow<StoreNotYetStartedException> {
             subject.stop(Throwable())
         }
     }
     test("requireStarted throws exception") {
-        expectThrows<StoreNotYetStartedException> {
+        shouldThrow<StoreNotYetStartedException> {
             subject.requireStarted()
         }
     }
 
     test("when started, start throws exception") {
-        expectThrows<StoreAlreadyStartedException> {
+        shouldThrow<StoreAlreadyStartedException> {
             subject.start()
             subject.start()
         }
@@ -42,26 +42,26 @@ class StageManagerTest : FunSpec({
         val reason = Throwable()
         subject.start()
         subject.stop(reason)
-        expectThrows<StoreStoppedException> {
+        shouldThrow<StoreStoppedException> {
             subject.start()
-        }.get { reason }.isSameInstanceAs(reason)
+        }.cancellationReason.shouldBeSameInstanceAs(reason)
     }
 
     test("when stopped, requireStarted throws exception") {
         val reason = Throwable()
         subject.start()
         subject.stop(reason)
-        expectThrows<StoreStoppedException> {
+        shouldThrow<StoreStoppedException> {
             subject.requireStarted()
-        }.get { cancellationReason }.isSameInstanceAs(reason)
+        }.cancellationReason.shouldBeSameInstanceAs(reason)
     }
 
     test("when stopped, stop throws exception") {
         val reason = Throwable()
         subject.start()
         subject.stop(reason)
-        expectThrows<StoreStoppedException> {
+        shouldThrow<StoreStoppedException> {
             subject.stop(Throwable())
-        }.get { cancellationReason }.isSameInstanceAs(reason)
+        }.cancellationReason.shouldBeSameInstanceAs(reason)
     }
 })

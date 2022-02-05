@@ -1,17 +1,16 @@
 package se.gustavkarlsson.conveyor.internal
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeout
 import se.gustavkarlsson.conveyor.testing.NullAction
-import strikt.api.expectThrows
-import strikt.assertions.isEqualTo
-import strikt.assertions.message
 
 class ActionIssuerImplTest : FunSpec({
     val action = NullAction<Int>()
@@ -20,8 +19,11 @@ class ActionIssuerImplTest : FunSpec({
     val subject = ActionIssuerImpl<Int>()
 
     test("issuedActions suspends waiting for first item") {
-        expectSuspends {
-            subject.issuedActions.first()
+        runTest {
+            val job = launch { subject.issuedActions.first() }
+            runCurrent()
+            job.isActive.shouldBeTrue()
+            job.cancel()
         }
     }
 
@@ -44,16 +46,16 @@ class ActionIssuerImplTest : FunSpec({
 
     test("when cancelled, issuedActions emits error") {
         subject.cancel(exception)
-        expectThrows<CancellationException> {
+        shouldThrow<CancellationException> {
             subject.issuedActions.first()
-        }.message.isEqualTo(cancellationMessage)
+        }.message.shouldBe(cancellationMessage)
     }
 
     test("when cancelled, throws exception when action is issued") {
         subject.cancel(exception)
-        expectThrows<CancellationException> {
+        shouldThrow<CancellationException> {
             subject.issue(action)
-        }.message.isEqualTo(cancellationMessage)
+        }.message.shouldBe(cancellationMessage)
     }
 
     test("can be cancelled twice") {
@@ -61,11 +63,3 @@ class ActionIssuerImplTest : FunSpec({
         subject.cancel(Throwable())
     }
 })
-
-private fun expectSuspends(block: suspend () -> Unit) {
-    expectThrows<TimeoutCancellationException> {
-        withTimeout(100) {
-            block()
-        }
-    }
-}

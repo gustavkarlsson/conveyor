@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
@@ -9,7 +10,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.testing.NullAction
 import se.gustavkarlsson.conveyor.testing.SetStateAction
-import strikt.api.expectThrows
 
 class StoreIntegrationTest : FunSpec({
     val initialState = "initial"
@@ -41,7 +41,7 @@ class StoreIntegrationTest : FunSpec({
     }
 
     test("throws when issuing action") {
-        expectThrows<StoreNotYetStartedException> {
+        shouldThrow<StoreNotYetStartedException> {
             minimalStore.issue(fixedStateAction1)
         }
     }
@@ -50,13 +50,13 @@ class StoreIntegrationTest : FunSpec({
 
 
     test("A store with a starting action that fails when updating cancels when started") {
-        expectThrows<IllegalStateException> {
+        shouldThrow<IllegalStateException> {
             storeWithFailingWhileUpdatingAction.run()
         }
     }
 
     test("A store with a starting action that fails when executed cancels when started") {
-        expectThrows<IllegalStateException> {
+        shouldThrow<IllegalStateException> {
             storeWithFailingAction.run()
         }
     }
@@ -74,7 +74,7 @@ class StoreIntegrationTest : FunSpec({
         runTest {
             val runJob = launch { minimalStore.run() }
             runCurrent()
-            expectThrows<StoreAlreadyStartedException> {
+            shouldThrow<StoreAlreadyStartedException> {
                 minimalStore.run()
             }
             runJob.cancel()
@@ -97,7 +97,7 @@ class StoreIntegrationTest : FunSpec({
             runCurrent()
             runJob.cancel()
             runCurrent()
-            expectThrows<StoreStoppedException> {
+            shouldThrow<StoreStoppedException> {
                 minimalStore.run()
             }
         }
@@ -108,7 +108,7 @@ class StoreIntegrationTest : FunSpec({
             runCurrent()
             runJob.cancel()
             runCurrent()
-            expectThrows<StoreStoppedException> {
+            shouldThrow<StoreStoppedException> {
                 minimalStore.issue(action)
             }
         }
