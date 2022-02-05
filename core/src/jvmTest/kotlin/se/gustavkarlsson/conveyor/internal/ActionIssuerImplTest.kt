@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
@@ -8,7 +9,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import se.gustavkarlsson.conveyor.testing.NullAction
-import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.isEqualTo
 import strikt.assertions.message
@@ -30,7 +30,7 @@ class ActionIssuerImplTest : FunSpec({
             val deferred = async { subject.issuedActions.first() }
             subject.issue(action)
             val result = deferred.await()
-            expectThat(result).isEqualTo(action)
+            result.shouldBe(action)
         }
     }
 
@@ -38,7 +38,7 @@ class ActionIssuerImplTest : FunSpec({
         runTest {
             subject.issue(action)
             val result = subject.issuedActions.first()
-            expectThat(result).isEqualTo(action)
+            result.shouldBe(action)
         }
     }
 

@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -9,7 +10,6 @@ import se.gustavkarlsson.conveyor.testing.NullAction
 import se.gustavkarlsson.conveyor.testing.SetStateAction
 import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 
 class StoreIntegrationTest : FunSpec({
@@ -31,14 +31,14 @@ class StoreIntegrationTest : FunSpec({
         runTest {
             val result = minimalStore.state.first()
             runCurrent()
-            expectThat(result).isEqualTo(initialState)
+            result.shouldBe(initialState)
 
         }
     }
 
     test("state.value returns initial") {
         val result = minimalStore.state.value
-        expectThat(result).isEqualTo(initialState)
+        result.shouldBe(initialState)
     }
 
     test("throws when issuing action") {
@@ -87,7 +87,7 @@ class StoreIntegrationTest : FunSpec({
             val runJob = launch { minimalStore.run() }
             runCurrent()
             val result = minimalStore.state.first()
-            expectThat(result).isEqualTo(initialState)
+            result.shouldBe(initialState)
             runJob.cancel()
         }
     }
@@ -121,7 +121,7 @@ class StoreIntegrationTest : FunSpec({
             runJob.cancel()
             runCurrent()
             val result = minimalStore.state.value
-            expectThat(result).isEqualTo(initialState)
+            result.shouldBe(initialState)
         }
     }
 
@@ -132,7 +132,7 @@ class StoreIntegrationTest : FunSpec({
             runJob.cancel()
             runCurrent()
             val result = minimalStore.state.first()
-            expectThat(result).isEqualTo(initialState)
+            result.shouldBe(initialState)
         }
     }
 

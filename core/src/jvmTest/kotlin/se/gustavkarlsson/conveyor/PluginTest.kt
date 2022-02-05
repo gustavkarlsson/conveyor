@@ -10,24 +10,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import strikt.api.expect
-import strikt.api.expectThat
+import io.kotest.matchers.shouldBe
 import strikt.assertions.isEqualTo
 
 class PluginTest : FunSpec({
 
     test("store with overridden initial state has expected initial state") {
         val plugin1 = object : Plugin<Int> {
-            override fun overrideInitialState(initialState: Int) =
-                initialState + 2
+            override fun overrideInitialState(initialState: Int) = initialState + 2
         }
         val plugin2 = object : Plugin<Int> {
-            override fun overrideInitialState(initialState: Int) =
-                initialState * 2
+            override fun overrideInitialState(initialState: Int) = initialState * 2
         }
         val store = Store(1, plugins = listOf(plugin1, plugin2))
 
         val result = store.state.value
-        expectThat(result).isEqualTo(6)
+        result.shouldBe(6)
     }
 
     test("store with added start action shas expected state after starting") {
@@ -55,7 +53,7 @@ class PluginTest : FunSpec({
             val runJob = launch { store.run() }
             runCurrent()
             val result = store.state.value
-            expectThat(result).isEqualTo(6)
+            result.shouldBe(6)
             runJob.cancel()
         }
     }
@@ -84,7 +82,7 @@ class PluginTest : FunSpec({
             }
             runCurrent()
             val result = store.state.value
-            expectThat(result).isEqualTo(12)
+            result.shouldBe(12)
             runJob.cancel()
         }
     }

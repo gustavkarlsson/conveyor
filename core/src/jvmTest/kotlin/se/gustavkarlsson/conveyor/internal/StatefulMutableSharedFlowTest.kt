@@ -2,6 +2,7 @@ package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toCollection
@@ -9,7 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import strikt.api.expectThat
-import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 
 class StatefulMutableSharedFlowTest : FunSpec({
@@ -18,7 +18,7 @@ class StatefulMutableSharedFlowTest : FunSpec({
     test("sets value when emitting") {
         runTest {
             subject.emit(5)
-            expectThat(subject.value).isEqualTo(5)
+            subject.value.shouldBe(5)
         }
     }
 
@@ -47,7 +47,7 @@ class StatefulMutableSharedFlowTest : FunSpec({
                 subject.emit(it + 1)
             }
             cancel()
-            expectThat(count).isEqualTo(targetCount)
+            count.shouldBe(targetCount)
         }
          */
     }
@@ -77,14 +77,14 @@ class StatefulMutableSharedFlowTest : FunSpec({
     }
 
     test("initially has a subscriptionCount of 0") {
-        expectThat(subject.subscriptionCount.value).isEqualTo(0)
+        subject.subscriptionCount.value.shouldBe(0)
     }
 
     test("has a subscriptionCount of 1 when one subscriber") {
         runTest {
             val collectJob = launch { subject.collect() }
             runCurrent()
-            expectThat(subject.subscriptionCount.value).isEqualTo(1)
+            subject.subscriptionCount.value.shouldBe(1)
             collectJob.cancel()
         }
     }

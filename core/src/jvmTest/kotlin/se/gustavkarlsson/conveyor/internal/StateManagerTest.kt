@@ -2,6 +2,7 @@ package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -37,7 +38,7 @@ class StateManagerTest : FunSpec({
     val delayedSubject = StateManager(initialState, listOf(delayTransformer))
 
     test("value returns initial") {
-        expectThat(subject.value).isEqualTo(initialState)
+        subject.value.shouldBe(initialState)
     }
 
     test("flow emits initial") {
@@ -58,41 +59,41 @@ class StateManagerTest : FunSpec({
         runTest {
             subject.update { this + state1 }
         }
-        expectThat(subject.value).isEqualTo(initialState + state1)
+        subject.value.shouldBe(initialState + state1)
     }
 
     test("updateAndGet sets new state after updating it") {
         runTest {
             subject.updateAndGet { this + state1 }
         }
-        expectThat(subject.value).isEqualTo(initialState + state1)
+        subject.value.shouldBe(initialState + state1)
     }
 
     test("getAndUpdate sets new state after updating it") {
         runTest {
             subject.getAndUpdate { this + state1 }
         }
-        expectThat(subject.value).isEqualTo(initialState + state1)
+        subject.value.shouldBe(initialState + state1)
     }
 
     test("updateAndGet returns new state after updating it") {
         runTest {
             val result = subject.updateAndGet { this + state1 }
-            expectThat(result).isEqualTo(initialState + state1)
+            result.shouldBe(initialState + state1)
         }
     }
 
     test("updateAndGet returns old state after updating it") {
         runTest {
             val result = subject.getAndUpdate { this + state1 }
-            expectThat(result).isEqualTo(initialState)
+            result.shouldBe(initialState)
         }
     }
 
     test("emit sets new state") {
         runTest {
             subject.emit(state1)
-            expectThat(subject.value).isEqualTo(state1)
+            subject.value.shouldBe(state1)
         }
     }
 

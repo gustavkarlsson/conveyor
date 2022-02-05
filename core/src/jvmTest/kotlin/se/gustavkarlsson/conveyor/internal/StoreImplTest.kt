@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -31,12 +32,12 @@ class StoreImplTest : FunSpec({
 
     test("state.value returns current state") {
         val result = subject.state.value
-        expectThat(result).isEqualTo(initialState)
+        result.shouldBe(initialState)
     }
 
     test("state.first() returns current state") {
         val result = subject.state.value
-        expectThat(result).isEqualTo(initialState)
+        result.shouldBe(initialState)
     }
 
     test("throws when action issued") {

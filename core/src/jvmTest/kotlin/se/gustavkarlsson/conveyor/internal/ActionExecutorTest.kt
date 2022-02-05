@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.drop
@@ -13,9 +14,7 @@ import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
-import strikt.api.expectThat
 import strikt.api.expectThrows
-import strikt.assertions.isEqualTo
 
 // TODO Split subjects into separate files?
 class ActionExecutorTest : FunSpec({
@@ -59,7 +58,7 @@ class ActionExecutorTest : FunSpec({
         runTest {
             actions.emit(IncrementingAction(1))
         }
-        expectThat(minimalStoreFlow.value).isEqualTo(0)
+        minimalStoreFlow.value.shouldBe(0)
     }
 
     test("running executes emitted action") {
@@ -68,7 +67,7 @@ class ActionExecutorTest : FunSpec({
             runCurrent()
             actions.emit(IncrementingAction(1))
             runCurrent()
-            expectThat(minimalStoreFlow.value).isEqualTo(1)
+            minimalStoreFlow.value.shouldBe(1)
             runJob.cancel()
         }
     }
@@ -81,7 +80,7 @@ class ActionExecutorTest : FunSpec({
             actions.emit(IncrementingAction(1, 100))
             advanceTimeBy(100)
             runCurrent()
-            expectThat(minimalStoreFlow.value).isEqualTo(2)
+            minimalStoreFlow.value.shouldBe(2)
             runJob.cancel()
         }
     }
@@ -96,14 +95,14 @@ class ActionExecutorTest : FunSpec({
     }
 
     test("doesn't execute start actions before run") {
-        expectThat(twoActionStoreFlow.value).isEqualTo(0)
+        twoActionStoreFlow.value.shouldBe(0)
     }
 
     test("executes start actions when run") {
         runTest {
             val runJob = launch { twoActionSubject.run() }
             runCurrent()
-            expectThat(twoActionStoreFlow.value).isEqualTo(3)
+            twoActionStoreFlow.value.shouldBe(3)
             runJob.cancel()
         }
     }
@@ -114,7 +113,7 @@ class ActionExecutorTest : FunSpec({
             runCurrent()
             actions.emit(IncrementingAction(2))
             runCurrent()
-            expectThat(transformerStoreFlow.value).isEqualTo(5)
+            transformerStoreFlow.value.shouldBe(5)
             runJob.cancel()
         }
     }
