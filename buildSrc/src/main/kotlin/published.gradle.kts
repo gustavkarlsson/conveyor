@@ -18,8 +18,10 @@ kotlin {
     explicitApi()
     targets {
         jvm {
-            testRuns["test"].executionTask.configure {
-                useJUnitPlatform()
+            compilations.all {
+                kotlinOptions {
+                    jvmTarget = "1.8"
+                }
             }
         }
         js(IR) {
@@ -36,6 +38,16 @@ kotlin {
                 languageSettings.optIn("kotlinx.coroutines.ExperimentalCoroutinesApi")
             }
         }
+    }
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+    filter {
+        isFailOnNoMatchingTests = false
+    }
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
 
