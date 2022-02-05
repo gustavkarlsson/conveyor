@@ -34,8 +34,7 @@ fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasIssued(
         containsExactly(*expected)
     }
 
-fun <State> Assertion.Builder<TrackingActionIssuer<State>>
-.hasNeverBeenCancelled(): Assertion.Builder<TrackingActionIssuer<State>> =
+fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasNeverBeenCancelled(): Assertion.Builder<TrackingActionIssuer<State>> =
     with("cancellations", { cancellations }) {
         isEmpty()
     }

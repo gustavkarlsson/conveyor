@@ -1,13 +1,13 @@
 package se.gustavkarlsson.conveyor.actions
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.test.TestStoreFlow
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
 class LiveActionTest : FunSpec({
@@ -36,7 +36,7 @@ class LiveActionTest : FunSpec({
             runCurrent()
             flow.storeSubscriberCount.value = 1
             runCurrent()
-            expectThat(subject.collected).containsExactly(initialValue)
+            subject.collected.shouldContainExactly(initialValue)
             executeJob.cancel()
         }
     }
@@ -51,7 +51,7 @@ class LiveActionTest : FunSpec({
             runCurrent()
             flow.storeSubscriberCount.value = 2
             runCurrent()
-            expectThat(subject.collected).containsExactly(initialValue)
+            subject.collected.shouldContainExactly(initialValue)
             executeJob.cancel()
         }
     }
@@ -68,7 +68,7 @@ class LiveActionTest : FunSpec({
             runCurrent()
             flow.storeSubscriberCount.value = 1
             runCurrent()
-            expectThat(subject.collected).containsExactly(initialValue, initialValue)
+            subject.collected.shouldContainExactly(initialValue, initialValue)
             executeJob.cancel()
         }
     }
@@ -85,7 +85,7 @@ class LiveActionTest : FunSpec({
             runCurrent()
             flow.emit(2)
             runCurrent()
-            expectThat(subject.collected).containsExactly(initialValue, 1, 2)
+            subject.collected.shouldContainExactly(initialValue, 1, 2)
             executeJob.cancel()
         }
     }

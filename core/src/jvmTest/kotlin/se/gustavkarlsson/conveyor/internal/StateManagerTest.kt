@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -19,7 +20,6 @@ import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.cause
-import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
@@ -50,7 +50,7 @@ class StateManagerTest : FunSpec({
             }
             runCurrent()
             collectJob.cancel()
-            expectThat(collected).containsExactly(initialState)
+            collected.shouldContainExactly(initialState)
         }
     }
 
@@ -116,7 +116,7 @@ class StateManagerTest : FunSpec({
             subject.emit(state1)
             runCurrent()
             collectJob.cancel()
-            expectThat(collected).containsExactly(initialState, state1)
+            collected.shouldContainExactly(initialState, state1)
         }
     }
 
@@ -199,7 +199,7 @@ class StateManagerTest : FunSpec({
             runCurrent()
             subject.tryEmit("second")
             advanceTimeBy(100)
-            expectThat(collected).containsExactly("initial", "first", "second")
+            collected.shouldContainExactly("initial", "first", "second")
             runJob.cancel()
             collectJob.cancel()
         }
@@ -272,7 +272,7 @@ class StateManagerTest : FunSpec({
 
             runJob1.cancel()
             runJob2.cancel()
-            expectThat(result).containsExactly("initial-0", "second-2")
+            result.shouldContainExactly("initial-0", "second-2")
         }
     }
 
@@ -306,7 +306,7 @@ class StateManagerTest : FunSpec({
             values += delayedSubject.value
             advanceTimeBy(100)
             values += delayedSubject.value
-            expectThat(values).containsExactly("first", "second")
+            values.shouldContainExactly("first", "second")
             runJob.cancel()
             emitJob1.cancel()
             emitJob2.cancel()

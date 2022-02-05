@@ -1,12 +1,11 @@
 package se.gustavkarlsson.conveyor.actions
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.test.TestStoreFlow
-import strikt.api.expectThat
-import strikt.assertions.containsExactly
 
 class WatchActionTest : FunSpec({
     val initialValue = 0
@@ -19,7 +18,7 @@ class WatchActionTest : FunSpec({
                 subject.execute(flow)
             }
             runCurrent()
-            expectThat(subject.watched).containsExactly(initialValue)
+            subject.watched.shouldContainExactly(initialValue)
             job.cancel()
         }
     }
@@ -33,7 +32,7 @@ class WatchActionTest : FunSpec({
             flow.emit(1)
             flow.emit(2)
             runCurrent()
-            expectThat(subject.watched).containsExactly(initialValue, 1, 2)
+            subject.watched.shouldContainExactly(initialValue, 1, 2)
             job.cancel()
         }
     }

@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.internal
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toCollection
@@ -8,7 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import strikt.api.expectThat
-import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNotNull
 
@@ -96,7 +96,7 @@ class StatefulMutableSharedFlowTest : FunSpec({
             subject.emit(0)
             subject.emit(0)
             runCurrent()
-            expectThat(values).containsExactly(0)
+            values.shouldContainExactly(0)
             collectJob.cancel()
         }
     }
