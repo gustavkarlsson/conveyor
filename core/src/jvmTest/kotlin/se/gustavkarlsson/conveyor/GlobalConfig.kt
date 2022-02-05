@@ -7,7 +7,8 @@ import kotlin.time.Duration.Companion.seconds
 
 object GlobalConfig : AbstractProjectConfig() {
     override val isolationMode = IsolationMode.InstancePerLeaf
-    override val parallelism = Runtime.getRuntime().availableProcessors()
+    // FIXME does not work on jvm
+    //  override val parallelism = Runtime.getRuntime().availableProcessors()
     override val timeout = 5.seconds
     override val projectTimeout = 1.minutes
 }
