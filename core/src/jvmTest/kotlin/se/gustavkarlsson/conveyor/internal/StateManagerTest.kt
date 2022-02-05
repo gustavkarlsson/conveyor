@@ -19,8 +19,6 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import se.gustavkarlsson.conveyor.StateUpdateException
-import strikt.api.expectThat
-import strikt.assertions.isEqualTo
 
 class StateManagerTest : FunSpec({
     val errorMessage = "failed"
@@ -119,8 +117,7 @@ class StateManagerTest : FunSpec({
     }
 
     test("subscriberCount is initially 0") {
-        expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
-            .isEqualTo(0)
+        subject.subscriptionCount.value.shouldBe(0)
     }
 
     test("subscriberCount updates with subscribers") {
@@ -132,8 +129,7 @@ class StateManagerTest : FunSpec({
                 subject.collect {}
             }
             runCurrent()
-            expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
-                .isEqualTo(2)
+            subject.subscriptionCount.value.shouldBe(2)
             collectJob1.cancel()
             collectJob2.cancel()
         }
@@ -145,15 +141,13 @@ class StateManagerTest : FunSpec({
                 subject.outgoingState.collect {}
             }
             runCurrent()
-            expectThat(subject.subscriptionCount.value).describedAs("current subscriber count")
-                .isEqualTo(0)
+            subject.subscriptionCount.value.shouldBe(0)
             collectJob.cancel()
         }
     }
 
     test("storeSubscriberCount is initially 0") {
-        expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
-            .isEqualTo(0)
+        subject.storeSubscriberCount.value.shouldBe(0)
     }
 
     test("storeSubscriberCount updates with subscribers to outgoing state") {
@@ -165,8 +159,7 @@ class StateManagerTest : FunSpec({
                 subject.outgoingState.collect {}
             }
             runCurrent()
-            expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
-                .isEqualTo(2)
+            subject.storeSubscriberCount.value.shouldBe(2)
             collectJob1.cancel()
             collectJob2.cancel()
         }
@@ -177,8 +170,7 @@ class StateManagerTest : FunSpec({
             val job = launch {
                 subject.collect {}
             }
-            expectThat(subject.storeSubscriberCount.value).describedAs("current subscriber count")
-                .isEqualTo(0)
+            subject.storeSubscriberCount.value.shouldBe(0)
             job.cancel()
         }
     }

@@ -6,8 +6,6 @@ import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.channels.Channel
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.internal.ActionIssuer
-import strikt.api.Assertion
-import strikt.assertions.isEmpty
 
 class TrackingActionIssuer<State> : ActionIssuer<State> {
     private val _issuedActions = mutableListOf<Action<State>>()

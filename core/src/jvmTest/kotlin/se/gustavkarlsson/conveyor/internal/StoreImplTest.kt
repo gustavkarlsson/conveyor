@@ -3,6 +3,7 @@ package se.gustavkarlsson.conveyor.internal
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import kotlinx.coroutines.CancellationException
@@ -18,11 +19,6 @@ import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
 import se.gustavkarlsson.conveyor.testing.shouldHaveIssued
 import se.gustavkarlsson.conveyor.testing.shouldNeverHaveBeenCancelled
-import strikt.api.expectThat
-import strikt.assertions.first
-import strikt.assertions.hasSize
-import strikt.assertions.isA
-import strikt.assertions.isEqualTo
 
 class StoreImplTest : FunSpec({
     val initialState = 0
@@ -134,13 +130,11 @@ class StoreImplTest : FunSpec({
             runCurrent()
             runJob.cancel(cancellationException)
             runCurrent()
-            expectThat(actionIssuer.cancellations).describedAs("cancellations")
-                .hasSize(1)
-                .first().and {
-                    isA<CancellationException>()
-                    get { message }.describedAs("message")
-                        .isEqualTo(cancellationException.message)
-                }
+            actionIssuer.cancellations.shouldHaveSize(1)
+            assertSoftly {
+                actionIssuer.cancellations.first().shouldBeInstanceOf<CancellationException>()
+                actionIssuer.cancellations.first().message.shouldBe(cancellationException.message)
+            }
         }
     }
 })
