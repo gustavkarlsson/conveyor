@@ -1,6 +1,8 @@
 package se.gustavkarlsson.conveyor
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flatMapConcat
@@ -9,9 +11,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import strikt.api.expect
-import io.kotest.matchers.shouldBe
-import strikt.assertions.isEqualTo
 
 class PluginTest : FunSpec({
 
@@ -109,9 +108,9 @@ class PluginTest : FunSpec({
             }
             runCurrent()
             val updatedState = store.state.value
-            expect {
-                that(initialState).isEqualTo(6)
-                that(updatedState).isEqualTo(10)
+            assertSoftly {
+                initialState.shouldBe(6)
+                updatedState.shouldBe(10)
             }
             runJob.cancel()
         }

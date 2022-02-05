@@ -1,6 +1,9 @@
 package se.gustavkarlsson.conveyor.internal
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.TimeoutCancellationException
@@ -17,13 +20,10 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import se.gustavkarlsson.conveyor.StateUpdateException
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.cause
 import strikt.assertions.isEqualTo
-import strikt.assertions.isFalse
-import strikt.assertions.isTrue
 
 class StateManagerTest : FunSpec({
     val errorMessage = "failed"
@@ -99,9 +99,9 @@ class StateManagerTest : FunSpec({
 
     test("tryEmit sets new state and returns true") {
         val success = subject.tryEmit(state1)
-        expect {
-            that(success).isTrue()
-            that(subject.value).isEqualTo(state1)
+        assertSoftly {
+            success.shouldBeTrue()
+            subject.value.shouldBe(state1)
         }
     }
 
@@ -320,9 +320,9 @@ class StateManagerTest : FunSpec({
             runCurrent()
             delayedSubject.tryEmit(state1)
             val success = delayedSubject.tryEmit(state2)
-            expect {
-                that(success).isFalse()
-                that(delayedSubject.value).isEqualTo(state1)
+            assertSoftly {
+                success.shouldBeFalse()
+                delayedSubject.value.shouldBe(state1)
             }
             runJob.cancel()
         }
