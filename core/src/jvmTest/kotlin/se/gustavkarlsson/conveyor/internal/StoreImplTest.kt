@@ -13,8 +13,8 @@ import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.testing.hasIssued
 import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
+import se.gustavkarlsson.conveyor.testing.shouldHaveIssued
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.first
@@ -63,7 +63,7 @@ class StoreImplTest : FunSpec({
             runCurrent()
             subject.issue(action)
             runCurrent()
-            expectThat(actionIssuer).hasIssued(action)
+            actionIssuer.shouldHaveIssued(action)
             runJob.cancel()
         }
     }
@@ -81,7 +81,7 @@ class StoreImplTest : FunSpec({
             val runJob = launch { subject.run() }
             runCurrent()
             subject.issue(action)
-            expectThat(actionIssuer).hasIssued(action)
+            actionIssuer.shouldHaveIssued(action)
             runJob.cancel()
         }
     }

@@ -1,10 +1,11 @@
 package se.gustavkarlsson.conveyor.testing
 
+import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.channels.Channel
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.internal.ActionIssuer
 import strikt.api.Assertion
-import strikt.assertions.containsExactly
 import strikt.assertions.isEmpty
 
 class TrackingActionIssuer<State> : ActionIssuer<State> {
@@ -27,12 +28,11 @@ class TrackingActionIssuer<State> : ActionIssuer<State> {
     private val actionsChannel = Channel<Action<State>>(Channel.BUFFERED)
 }
 
-fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasIssued(
-    vararg expected: Action<State>,
-): Assertion.Builder<TrackingActionIssuer<State>> =
-    with("issuedActions", { issuedActions }) {
-        containsExactly(*expected)
+fun <State> TrackingActionIssuer<State>.shouldHaveIssued(vararg expected: Action<State>) {
+    withClue("Should have issued $expected") {
+        issuedActions.shouldContainExactly(*expected)
     }
+}
 
 fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasNeverBeenCancelled(): Assertion.Builder<TrackingActionIssuer<State>> =
     with("cancellations", { cancellations }) {
