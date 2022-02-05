@@ -25,13 +25,11 @@ class StoreIntegrationTest : FunSpec({
     val failingWhileUpdatingAction = Action<String> { storeFlow -> storeFlow.update { error("failed") } }
     val storeWithFailingWhileUpdatingAction = Store(initialState, startActions = listOf(failingWhileUpdatingAction))
 
-
     test("state emits initial") {
         runTest {
             val result = minimalStore.state.first()
             runCurrent()
             result.shouldBe(initialState)
-
         }
     }
 
@@ -46,9 +44,6 @@ class StoreIntegrationTest : FunSpec({
         }
     }
 
-
-
-
     test("A store with a starting action that fails when updating cancels when started") {
         shouldThrow<IllegalStateException> {
             storeWithFailingWhileUpdatingAction.run()
@@ -60,7 +55,6 @@ class StoreIntegrationTest : FunSpec({
             storeWithFailingAction.run()
         }
     }
-
 
     test("started store has an active job") {
         runTest {
@@ -134,5 +128,4 @@ class StoreIntegrationTest : FunSpec({
             result.shouldBe(initialState)
         }
     }
-
 })
