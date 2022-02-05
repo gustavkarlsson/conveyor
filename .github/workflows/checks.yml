@@ -32,7 +32,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Run
-        run: ./gradlew test allTests jacocoTestReport --no-daemon
+        run: ./gradlew jvmTest jacocoTestReport
 
       - name: Upload reports
         uses: actions/upload-artifact@v2
@@ -69,7 +69,7 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Run
-        run: ./gradlew ktlintCheck --no-daemon
+        run: ./gradlew ktlintCheck
 
       - name: Upload reports
         uses: actions/upload-artifact@v2
