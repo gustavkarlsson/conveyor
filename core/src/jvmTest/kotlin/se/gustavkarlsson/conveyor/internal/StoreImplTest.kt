@@ -13,8 +13,8 @@ import se.gustavkarlsson.conveyor.testing.IncrementingAction
 import se.gustavkarlsson.conveyor.testing.SimpleStoreFlow
 import se.gustavkarlsson.conveyor.testing.SuspendingProcess
 import se.gustavkarlsson.conveyor.testing.TrackingActionIssuer
-import se.gustavkarlsson.conveyor.testing.hasNeverBeenCancelled
 import se.gustavkarlsson.conveyor.testing.shouldHaveIssued
+import se.gustavkarlsson.conveyor.testing.shouldNeverHaveBeenCancelled
 import strikt.api.expectThat
 import strikt.api.expectThrows
 import strikt.assertions.first
@@ -71,7 +71,7 @@ class StoreImplTest : FunSpec({
     test("nothing has been cancelled") {
         runTest {
             val runJob = launch { subject.run() }
-            expectThat(actionIssuer).hasNeverBeenCancelled()
+            actionIssuer.shouldNeverHaveBeenCancelled()
             runJob.cancel()
         }
     }

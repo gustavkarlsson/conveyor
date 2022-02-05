@@ -1,6 +1,7 @@
 package se.gustavkarlsson.conveyor.testing
 
 import io.kotest.assertions.withClue
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import kotlinx.coroutines.channels.Channel
 import se.gustavkarlsson.conveyor.Action
@@ -34,7 +35,8 @@ fun <State> TrackingActionIssuer<State>.shouldHaveIssued(vararg expected: Action
     }
 }
 
-fun <State> Assertion.Builder<TrackingActionIssuer<State>>.hasNeverBeenCancelled(): Assertion.Builder<TrackingActionIssuer<State>> =
-    with("cancellations", { cancellations }) {
-        isEmpty()
+fun <State> TrackingActionIssuer<State>.shouldNeverHaveBeenCancelled() {
+    withClue("Should never have been cancelled") {
+        cancellations.shouldBeEmpty()
     }
+}
