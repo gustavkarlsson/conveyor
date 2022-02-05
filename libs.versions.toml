@@ -3,19 +3,14 @@ kotlin = "1.6.10"
 dokka = "1.6.10"
 kotlinBinaryCompatibilityValidator = "0.8.0"
 kotlinCoroutines = "1.6.0"
-junit5 = "5.8.2"
 ktlint = "10.2.0"
 kotest = "5.1.0"
 
 [libraries]
-kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlinCoroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
-kotlinCoroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }
 
-junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit5" }
-junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit5" }
-
-kotest = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-engine = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-jvm = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 kotest-assertions = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 
 kotlinGradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -25,5 +20,3 @@ kotestGradle = { module = "io.kotest:kotest-framework-multiplatform-plugin-gradl
 kotlinBinaryCompatibilityValidatorGradle = { module = "org.jetbrains.kotlinx.binary-compatibility-validator:org.jetbrains.kotlinx.binary-compatibility-validator.gradle.plugin", version.ref = "kotlinBinaryCompatibilityValidator" }
 
 [bundles]
-testRuntime = ["junit-jupiter-engine", "kotlin-reflect"]
-testImplementation = ["junit-jupiter-api", "kotlinCoroutines-test"]
