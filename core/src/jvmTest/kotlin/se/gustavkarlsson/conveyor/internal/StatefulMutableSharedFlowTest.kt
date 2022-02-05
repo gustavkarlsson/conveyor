@@ -67,8 +67,8 @@ class StatefulMutableSharedFlowTest : FunSpec({
                         delay(100)
                     }
             }
-            subject.emit(2)
             runCurrent()
+            subject.emit(2)
             val success = subject.tryEmit(3)
             assertSoftly {
                 success.shouldBeFalse()
