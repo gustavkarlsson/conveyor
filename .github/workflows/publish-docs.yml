@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - fix-doc-generation
 
 jobs:
   publish:
@@ -35,21 +34,13 @@ jobs:
       - name: Copy docs to temp directory
         run: |
           rm -rf ~/temp/dokka
-          mkdir -p ~/temp/dokka
+          mkdir ~/temp/dokka
           cp -r build/dokka/htmlMultiModule/* ~/temp/dokka
-
-      - name: Check if docs were generated
-        run: |
-          ls ~/temp/dokka
 
       - name: Check out pages
         uses: actions/checkout@v2
         with:
           ref: gh-pages
-
-      - name: Check if docs still exist
-        run: |
-          ls ~/temp/dokka
 
       - name: Replace old docs with generated
         run: |
@@ -57,10 +48,6 @@ jobs:
           mkdir -p api
           cp -r ~/temp/dokka/* api
           git add api
-
-      - name: Check if docs have been replaced
-        run: |
-          git diff --cached
 
       - name: Commit and push
         env:
