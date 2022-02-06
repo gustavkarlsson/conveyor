@@ -1,12 +1,10 @@
-@file:Suppress("FunctionName", "EXPERIMENTAL_API_USAGE")
-
 package se.gustavkarlsson.conveyor.demo
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.WindowSize
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
 import kotlinx.coroutines.launch
@@ -18,7 +16,7 @@ fun main() {
     singleWindowApplication(
         title = "Conveyor Demo",
         resizable = false,
-        state = WindowState(size = WindowSize(400.dp, 400.dp)),
+        state = WindowState(size = DpSize(400.dp, 400.dp)),
     ) {
         val scope = rememberCoroutineScope()
         scope.launch { viewModel.run() }

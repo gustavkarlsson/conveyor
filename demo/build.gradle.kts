@@ -3,7 +3,7 @@ import org.jetbrains.compose.compose
 plugins {
     common
     kotlin("jvm")
-    id("org.jetbrains.compose") version Versions.compose
+    id("org.jetbrains.compose") version "1.0.1"
 }
 
 repositories {
@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":core"))
+    implementation(project(":core", "archives"))
     implementation(compose.desktop.currentOs)
 }
 

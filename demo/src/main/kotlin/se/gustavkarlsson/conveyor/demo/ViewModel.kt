@@ -1,5 +1,3 @@
-@file:Suppress("EXPERIMENTAL_API_USAGE")
-
 package se.gustavkarlsson.conveyor.demo
 
 import kotlinx.coroutines.flow.StateFlow
