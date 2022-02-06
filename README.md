@@ -11,22 +11,20 @@ Heavily inspired by [beworker/knot](https://github.com/beworker/knot) :heart:
 
 ## Example
 ```kotlin
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.Store
 import se.gustavkarlsson.conveyor.StoreFlow
 import se.gustavkarlsson.conveyor.issue
 
-public suspend fun main() {
+suspend fun main() {
     val store = Store(initialState = 0)
     coroutineScope {
         // Start processing actions
-        launch(Dispatchers.Unconfined) {
+        launch {
             store.run()
         }
 

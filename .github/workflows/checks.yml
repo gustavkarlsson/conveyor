@@ -27,12 +27,12 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
       - name: Run
-        run: ./gradlew test allTests jacocoTestReport --no-daemon
+        run: ./gradlew jvmTest jacocoTestReport
 
       - name: Upload reports
         uses: actions/upload-artifact@v2
@@ -44,7 +44,7 @@ jobs:
             **/build/reports/jacoco/
 
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
 
   lint:
     name: Lint
@@ -64,12 +64,12 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
       - name: Run
-        run: ./gradlew ktlintCheck --no-daemon
+        run: ./gradlew ktlintCheck
 
       - name: Upload reports
         uses: actions/upload-artifact@v2
@@ -89,4 +89,4 @@ jobs:
 
       - name: Report errors
         if: ${{ always() }}
-        run: cs2pr --graceful-warnings core/build/reports/ktlint/ktlintCommonMainSourceSetCheck/ktlintCommonMainSourceSetCheck.xml # TODO Add all report files somehow
+        run: find . -path "./*/build/reports/ktlint/*.xml" -exec cs2pr --graceful-warnings "{}" \;
