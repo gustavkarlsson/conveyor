@@ -16,11 +16,11 @@ class SimpleStoreFlow<State> private constructor(
     override val value by mutableFlow::value
     override val storeSubscriberCount = MutableStateFlow(0)
 
-    override suspend fun update(block: State.() -> State) = mutableFlow.update(block)
+    override suspend fun update(block: (State) -> State) = mutableFlow.update(block)
 
-    override suspend fun updateAndGet(block: State.() -> State): State = mutableFlow.updateAndGet(block)
+    override suspend fun updateAndGet(block: (State) -> State): State = mutableFlow.updateAndGet(block)
 
-    override suspend fun getAndUpdate(block: State.() -> State): State = mutableFlow.getAndUpdate(block)
+    override suspend fun getAndUpdate(block: (State) -> State): State = mutableFlow.getAndUpdate(block)
 
     @ExperimentalCoroutinesApi
     @Deprecated("Not supported", level = DeprecationLevel.HIDDEN)
