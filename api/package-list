@@ -1,0 +1,9 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+
+module:core
+se.gustavkarlsson.conveyor
+se.gustavkarlsson.conveyor.actions
+se.gustavkarlsson.conveyor.internal
+module:test
+se.gustavkarlsson.conveyor.test
