@@ -36,7 +36,7 @@ jobs:
       - name: Copy docs to temp directory
         run: |
           rm -rf ~/temp/dokka
-          mkdir ~/temp/dokka
+          mkdir -p ~/temp/dokka
           cp -r build/dokka/htmlMultiModule/* ~/temp/dokka
 
       - name: Check out pages
