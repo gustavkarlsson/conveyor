@@ -52,35 +52,35 @@ class StateManagerTest : FunSpec({
 
     test("update sets new state after updating it") {
         runTest {
-            subject.update { this + state1 }
+            subject.update { it + state1 }
         }
         subject.value.shouldBe(initialState + state1)
     }
 
     test("updateAndGet sets new state after updating it") {
         runTest {
-            subject.updateAndGet { this + state1 }
+            subject.updateAndGet { it + state1 }
         }
         subject.value.shouldBe(initialState + state1)
     }
 
     test("getAndUpdate sets new state after updating it") {
         runTest {
-            subject.getAndUpdate { this + state1 }
+            subject.getAndUpdate { it + state1 }
         }
         subject.value.shouldBe(initialState + state1)
     }
 
     test("updateAndGet returns new state after updating it") {
         runTest {
-            val result = subject.updateAndGet { this + state1 }
+            val result = subject.updateAndGet { it + state1 }
             result.shouldBe(initialState + state1)
         }
     }
 
     test("updateAndGet returns old state after updating it") {
         runTest {
-            val result = subject.getAndUpdate { this + state1 }
+            val result = subject.getAndUpdate { it + state1 }
             result.shouldBe(initialState)
         }
     }
