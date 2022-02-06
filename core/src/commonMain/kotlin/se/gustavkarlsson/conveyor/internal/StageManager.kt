@@ -36,9 +36,9 @@ internal class StageManager {
             is Stage.Stopped -> throw StoreStoppedException(stage.cancellationReason)
         }
 
-    private sealed class Stage {
-        object NotYetStarted : Stage()
-        object Started : Stage()
-        data class Stopped(val cancellationReason: Throwable) : Stage()
+    private sealed interface Stage {
+        object NotYetStarted : Stage
+        object Started : Stage
+        data class Stopped(val cancellationReason: Throwable) : Stage
     }
 }

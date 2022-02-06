@@ -1,6 +1,5 @@
 package se.gustavkarlsson.conveyor.actions
 
-import kotlinx.coroutines.flow.collect
 import se.gustavkarlsson.conveyor.Action
 import se.gustavkarlsson.conveyor.StoreFlow
 

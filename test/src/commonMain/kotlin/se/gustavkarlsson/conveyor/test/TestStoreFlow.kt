@@ -14,25 +14,25 @@ public class TestStoreFlow<State> private constructor(
 
     private val writeMutex = Mutex()
 
-    override suspend fun update(block: State.() -> State) {
+    override suspend fun update(block: (State) -> State) {
         return writeMutex.withLock {
-            val newState = value.block()
+            val newState = block(value)
             inner.emit(newState)
         }
     }
 
-    override suspend fun updateAndGet(block: State.() -> State): State {
+    override suspend fun updateAndGet(block: (State) -> State): State {
         return writeMutex.withLock {
-            val newState = value.block()
+            val newState = block(value)
             inner.emit(newState)
             newState
         }
     }
 
-    override suspend fun getAndUpdate(block: State.() -> State): State {
+    override suspend fun getAndUpdate(block: (State) -> State): State {
         return writeMutex.withLock {
             val oldState = value
-            val newState = oldState.block()
+            val newState = block(oldState)
             inner.emit(newState)
             oldState
         }
@@ -51,7 +51,7 @@ public class TestStoreFlow<State> private constructor(
         return emitted
     }
 
-    override val subscriptionCount: StateFlow<Int> by inner::subscriptionCount
+    override val subscriptionCount: StateFlow<Int> = inner.subscriptionCount
 
     override val storeSubscriberCount: MutableStateFlow<Int> = MutableStateFlow(0)
 }

@@ -1,15 +1,11 @@
+import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
+
 plugins {
-    id("io.gitlab.arturbosch.detekt")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    detektPlugins("io.gitlab.arturbosch.detekt:detekt-formatting:${Versions.detekt}")
-}
-
-detekt {
-    input = files(fileTree("src").include("*/kotlin/"))
+ktlint {
+    reporters {
+        reporter(ReporterType.CHECKSTYLE)
+    }
 }
