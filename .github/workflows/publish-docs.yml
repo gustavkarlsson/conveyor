@@ -33,7 +33,8 @@ jobs:
 
       - name: Copy docs to temp directory
         run: |
-          mkdir -p ~/temp/dokka
+          rm -rf ~/temp/dokka
+          mkdir ~/temp/dokka
           cp -r build/dokka/htmlMultiModule/* ~/temp/dokka
 
       - name: Check out pages
@@ -44,7 +45,7 @@ jobs:
       - name: Replace old docs with generated
         run: |
           git rm --ignore-unmatch -r -q api
-          mkdir api
+          mkdir -p api
           cp -r ~/temp/dokka/* api
           git add api
 
@@ -54,4 +55,4 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git diff-index --quiet HEAD || git commit -m "Update API documentation from $SHA" | git push origin gh-pages
+          git diff-index --quiet HEAD || (git commit -m "Update API documentation from $SHA" && git push origin gh-pages)
