@@ -51,7 +51,7 @@ public class TestStoreFlow<State> private constructor(
         return emitted
     }
 
-    override val subscriptionCount: StateFlow<Int> by inner::subscriptionCount
+    override val subscriptionCount: StateFlow<Int> = inner.subscriptionCount
 
     override val storeSubscriberCount: MutableStateFlow<Int> = MutableStateFlow(0)
 }

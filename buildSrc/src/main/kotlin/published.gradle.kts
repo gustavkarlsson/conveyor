@@ -2,6 +2,7 @@ plugins {
     kotlin("multiplatform")
     id("org.jetbrains.kotlinx.binary-compatibility-validator")
     id("org.jetbrains.dokka")
+    id("io.kotest.multiplatform")
     // java is required for jacoco according to
     // https://nwillc.medium.com/kotlin-multiplatform-first-contact-bintray-jacoco-part-3-dbd496bf168a
     java
@@ -15,6 +16,19 @@ repositories {
 
 kotlin {
     explicitApi()
+    targets {
+        jvm {
+            compilations.all {
+                kotlinOptions {
+                    jvmTarget = "1.8"
+                }
+            }
+        }
+        js(IR) {
+            browser()
+            nodejs()
+        }
+    }
     sourceSets {
         all {
             languageSettings.optIn("kotlin.RequiresOptIn")
@@ -25,16 +39,15 @@ kotlin {
             }
         }
     }
-    jvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform {
-                includeEngines("spek2")
-            }
-        }
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
+    filter {
+        isFailOnNoMatchingTests = false
     }
-    js(IR) {
-        browser()
-        nodejs()
+    testLogging {
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
     }
 }
 

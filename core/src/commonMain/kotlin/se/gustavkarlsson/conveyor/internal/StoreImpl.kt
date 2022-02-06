@@ -1,5 +1,6 @@
 package se.gustavkarlsson.conveyor.internal
 
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,7 @@ internal class StoreImpl<State>(
         try {
             coroutineScope {
                 for (process in processes) {
-                    launch { process.run() }
+                    launch(start = CoroutineStart.UNDISPATCHED) { process.run() }
                 }
                 awaitCancellation()
             }
