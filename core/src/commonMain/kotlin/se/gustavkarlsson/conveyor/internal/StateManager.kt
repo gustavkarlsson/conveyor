@@ -1,7 +1,6 @@
 package se.gustavkarlsson.conveyor.internal
 
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import se.gustavkarlsson.conveyor.StateUpdateException
@@ -27,14 +26,14 @@ internal class StateManager<State> private constructor(
 
     private val writeMutex = Mutex()
 
-    override suspend fun update(block: State.() -> State) {
+    override suspend fun update(block: (State) -> State) {
         return writeMutex.withLock {
             val newState = value.updateWithExceptionHandling(block)
             incomingMutableState.emit(newState)
         }
     }
 
-    override suspend fun updateAndGet(block: State.() -> State): State {
+    override suspend fun updateAndGet(block: (State) -> State): State {
         return writeMutex.withLock {
             val newState = value.updateWithExceptionHandling(block)
             incomingMutableState.emit(newState)
@@ -42,7 +41,7 @@ internal class StateManager<State> private constructor(
         }
     }
 
-    override suspend fun getAndUpdate(block: State.() -> State): State {
+    override suspend fun getAndUpdate(block: (State) -> State): State {
         return writeMutex.withLock {
             val oldState = value
             val newState = oldState.updateWithExceptionHandling(block)
@@ -52,9 +51,9 @@ internal class StateManager<State> private constructor(
     }
 
     @Suppress("TooGenericExceptionCaught")
-    private fun State.updateWithExceptionHandling(block: State.() -> State): State {
+    private fun State.updateWithExceptionHandling(block: (State) -> State): State {
         return try {
-            block()
+            block(this)
         } catch (t: Throwable) {
             throw StateUpdateException(this, t)
         }
