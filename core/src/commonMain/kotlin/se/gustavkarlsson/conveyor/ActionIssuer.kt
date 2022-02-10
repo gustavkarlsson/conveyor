@@ -24,3 +24,16 @@ public fun <State> ActionIssuer<State>.issue(
 ) {
     issue(Action(block))
 }
+
+// FIXME test
+/**
+ * Issues an action to the store where the given block will be used to update the state. The store must be running.
+ *
+ * Throws [StoreNotYetStartedException] if the store has not yet been started
+ * and [StoreStoppedException] if the store has stopped.
+ */
+public fun <State> ActionIssuer<State>.issueUpdate(
+    block: (State) -> State,
+) {
+    issue(UpdateAction(block))
+}

@@ -8,6 +8,7 @@ public abstract interface class se/gustavkarlsson/conveyor/ActionIssuer {
 
 public final class se/gustavkarlsson/conveyor/ActionIssuerKt {
 	public static final fun issue (Lse/gustavkarlsson/conveyor/ActionIssuer;Lkotlin/jvm/functions/Function2;)V
+	public static final fun issueUpdate (Lse/gustavkarlsson/conveyor/ActionIssuer;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class se/gustavkarlsson/conveyor/ActionKt {

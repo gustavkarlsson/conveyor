@@ -18,10 +18,18 @@ public interface Action<State> {
 @Suppress("FunctionName")
 public fun <State> Action(
     block: suspend (storeFlow: StoreFlow<State>) -> Unit,
-): Action<State> = ConstructorAction(block)
+): Action<State> = BasicAction(block)
 
-private class ConstructorAction<State>(
+private class BasicAction<State>(
     private val block: suspend (storeFlow: StoreFlow<State>) -> Unit,
 ) : Action<State> {
     override suspend fun execute(storeFlow: StoreFlow<State>) = block(storeFlow)
+}
+
+internal class UpdateAction<State>(
+    private val block: (State) -> State,
+) : Action<State> {
+    override suspend fun execute(storeFlow: StoreFlow<State>) {
+        storeFlow.update(block)
+    }
 }
