@@ -15,7 +15,7 @@ kotlin {
         val jsMain by getting
         val commonTest by getting {
             dependencies {
-                implementation(project(":test", "archives"))
+                implementation(project(":test"))
                 implementation(libs.kotest.engine)
                 implementation(libs.kotest.assertions)
             }
